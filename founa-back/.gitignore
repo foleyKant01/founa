@@ -1,0 +1,31 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+# /
+__pycache__/
+*.py[cod]
+*$py.class
+
+# compiled output
+/dist
+/tmp
+/out-tsc
+
+/venv
+.venv/
+.venv
+/static
+.static/
+.static
+
+/config/constant.py
+/migrations
+/migrations_old
+# dependencies
+/node_modules
+
+/config/__pycache__
+/resources/__pycache__
+/model/__pycache__
+/helpers/__pycache__
+/__pycache__
