@@ -1,156 +1,148 @@
+// src/pages/HomePage.tsx
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { useCart } from '../../context/cartContext';
+import { Bell } from "lucide-react";
 
-type Produit = {
-  uid: string;
-  nom: string;
-  prix: number;
-  image: string;
-};
+// 🔹 Typage des produits
+interface Product {
+  name: string;
+  price: string;
+  emoji: string;
+}
 
-const mockProduits: Produit[] = [
-  {
-    uid: "p1",
-    nom: "Sneakers Nike AirMax",
-    prix: 45000,
-    image: "https://via.placeholder.com/200",
-  },
-  {
-    uid: "p2",
-    nom: "Casque Audio Bluetooth",
-    prix: 25000,
-    image: "https://via.placeholder.com/200",
-  },
-  {
-    uid: "p3",
-    nom: "Montre Connectée",
-    prix: 60000,
-    image: "https://via.placeholder.com/200",
-  },
+// 🔹 Produits au top
+const topProducts: Product[] = [
+  { name: "Smartphone Samsung", price: "350 000 FCFA", emoji: "📱" },
+  { name: "Robe élégante", price: "80 000 FCFA", emoji: "👗" },
+  { name: "Poulet frais", price: "3 500 FCFA", emoji: "🍗" },
+  { name: "Lampe design", price: "12 000 FCFA", emoji: "💡" },
+  { name: "Casque audio", price: "25 000 FCFA", emoji: "🎧" },
+  { name: "Sac à main", price: "45 000 FCFA", emoji: "👜" },
 ];
 
 const HomePage: React.FC = () => {
-  const nav = useNavigate();
-  const { add } = useCart();
-
   return (
     <div style={styles.container}>
-
       {/* HEADER */}
       <header style={styles.header}>
-        <h2>Bienvenue sur FOUNA 👋</h2>
-        <button style={styles.cartBtn} onClick={() => nav("/cart")}>
-          🛒 Panier
-        </button>
+        <div style={styles.searchWrapper}>
+          <img src="/logo-founa.png" alt="FOUNA Logo" style={styles.searchLogo} />
+          <input
+            type="text"
+            placeholder="Rechercher un produit..."
+            style={styles.searchInput}
+          />
+        </div>
+        <Bell size={24} style={{ cursor: "pointer", marginLeft: 15 }} />
       </header>
 
-      {/* SEARCH BAR */}
-      <input
-        type="text"
-        placeholder="Rechercher un produit..."
-        style={styles.search}
-      />
+      {/* PRODUITS AU TOP */}
+      <section style={styles.topProductsSection}>
+        <h2 style={styles.sectionTitle}>Produits au top du classement</h2>
+        <div style={styles.slider}>
+          {topProducts.map((prod, index) => (
+            <div key={index} style={styles.topProductCard}>
+              <div style={styles.productImage}>{prod.emoji}</div>
+              <h3 style={styles.productName}>{prod.name}</h3>
+              <p style={styles.productPrice}>{prod.price}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      {/* PRODUCTS */}
-      <h3 style={{ marginTop: 20 }}>Produits Populaires</h3>
+      <section style={styles.productsSection}>
+        <h2 style={styles.sectionTitle}>Produits populaires</h2>
+        <div style={styles.productList}>
+          {topProducts.slice(0, 4).map((prod, index) => (
+            <div key={index} style={styles.productCard}>
+              <div style={styles.productImage}>{prod.emoji}</div>
+              <h3 style={styles.productName}>{prod.name}</h3>
+              <p style={styles.productPrice}>{prod.price}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <div style={styles.grid}>
-        {mockProduits.map((p) => (
-          <div key={p.uid} style={styles.card}>
-            <img src={p.image} style={styles.image} />
 
-            <h4>{p.nom}</h4>
-            <p style={styles.price}>{p.prix} FCFA</p>
-
-            <button
-              style={styles.btn}
-              onClick={() =>
-                add({ uid: p.uid, nom: p.nom, prix: p.prix, qty: 1, image: p.image })
-              }
-            >
-              Ajouter au panier
-            </button>
-
-            <button
-              style={styles.detailsBtn}
-              onClick={() => nav(`/product/${p.uid}`)}
-            >
-              Voir détails
-            </button>
-          </div>
-        ))}
-      </div>
+      {/* STYLES GLOBAUX */}
+      <style>{`
+        .slider::-webkit-scrollbar { display: none; } /* Masquer scrollbar Chrome/Safari */
+      `}</style>
     </div>
   );
 };
 
-const styles: Record<string, React.CSSProperties> = {
+/* 🎨 Styles */
+const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    padding: 20,
+    paddingBottom: 80,
+    background: "#F5F5F5",
+    minHeight: "100vh",
+    fontFamily: "Arial, sans-serif",
   },
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  cartBtn: {
-    background: "#0066CC",
+    padding: "10px 15px",
+    backgroundColor: "#00A4A6",
     color: "#fff",
-    padding: "10px 16px",
-    borderRadius: 6,
-    border: "none",
-    cursor: "pointer",
+    flexWrap: "wrap",
   },
-  search: {
-    width: "100%",
-    padding: 12,
-    marginTop: 15,
-    borderRadius: 6,
-    border: "1px solid #ccc",
+  searchWrapper: {
+    display: "flex",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 25,
+    padding: "10px",
+    flex: 1,
+    maxWidth: 300,
   },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-    gap: 15,
-    marginTop: 20,
+  searchLogo: { height: 30, width: 30, marginRight: 8, objectFit: "contain" },
+  searchInput: { border: "none", outline: "none", flex: 1, fontSize: 16 },
+
+  topProductsSection: { marginTop: 20, padding: "0 10px" },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15 },
+
+  slider: {
+    display: "flex",
+    overflowX: "auto",
+    gap: 10,
+    paddingBottom: 10,
+    scrollbarWidth: "none" as any, // Firefox
+    msOverflowStyle: "none", // IE/Edge
   },
-  card: {
-    padding: 12,
-    borderRadius: 8,
-    border: "1px solid #eee",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+  topProductCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 15,
+    minWidth: 150,
     textAlign: "center",
+    flexShrink: 0,
+    boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+    scrollSnapAlign: "start",
   },
-  image: {
-    width: "100%",
-    height: 140,
-    objectFit: "cover",
-    borderRadius: 6,
+
+  productsSection: { marginTop: 30, padding: "0 15px" },
+  productList: {
+    display: "flex",
+    flexWrap: "wrap",
+    margin: "-7.5px", // pour compenser le padding interne
   },
-  price: {
-    fontWeight: "bold",
-    margin: "10px 0",
-  },
-  btn: {
-    width: "100%",
-    background: "#28a745",
-    color: "#fff",
-    padding: 10,
-    border: "none",
-    borderRadius: 6,
+  productCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    // maxWidth: 150,
+    padding: "15px 0px",
+    width: "calc(50% - 15px)", // 50% moins le gap total
+    margin: "7.5px", // espace entre cartes
+    boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+    textAlign: "center",
     cursor: "pointer",
-    marginBottom: 6,
+    transition: "transform 0.2s, box-shadow 0.2s",
   },
-  detailsBtn: {
-    width: "100%",
-    background: "#0066CC",
-    color: "#fff",
-    padding: 10,
-    border: "none",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
+  productImage: { fontSize: 40, marginBottom: 10 },
+  productName: { fontSize: 14, fontWeight: "bold", marginBottom: 5 },
+  productPrice: { fontSize: 13, color: "#00A4A6" },
 };
 
 export default HomePage;

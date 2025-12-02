@@ -4,11 +4,11 @@ import { useNavigate } from "react-router-dom";
 const LoginPage: React.FC = () => {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
-  const [pwd, setPwd] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && pwd) {
+    if (email && password) {
       nav("/home");
     }
   };
@@ -41,10 +41,18 @@ const LoginPage: React.FC = () => {
             type="password"
             placeholder="Mot de passe"
             style={styles.input}
-            value={pwd}
-            onChange={(e) => setPwd(e.target.value)}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
+
+          {/* 🔹 Lien mot de passe oublié */}
+          <span
+            style={styles.forgotPasswordLink}
+            onClick={() => nav("/auth/forgotpassword")}
+          >
+            Mot de passe oublié ?
+          </span>
 
           <button type="submit" style={styles.button}>
             Se connecter
@@ -84,14 +92,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 
   logo: {
-    width: 150,           // ← LOGO PLUS GRAND
+    width: 250,           // ← LOGO PLUS GRAND
     height: "auto",
   },
 
   card: {
     width: 320,
-    padding: "40px 30px",
-    margin: "0px 20px",
+    padding: "40px 20px",
+    margin: "0px 15px 150px 15px",
     borderRadius: 15,
     background: "#fff",
     boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
@@ -133,10 +141,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: "0.2s",
   },
 
+  forgotPasswordLink: {
+    color: "#00A4A6",
+    fontSize: 16,
+    textAlign: "right",
+    cursor: "pointer",
+    marginTop: -5,
+    marginBottom: 5,
+    display: "block",
+  },
+
   registerText: {
     marginTop: 20,
     color: "#555",
-    fontSize: 14,
+    fontSize: 16,
   },
 
   registerLink: {
