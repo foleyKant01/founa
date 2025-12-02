@@ -13,107 +13,152 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
 
     if (pwd !== confirmPwd) {
-      alert("Les mots de passe ne correspondent pas !");
+      alert("Les mots de passe ne correspondent pas.");
       return;
     }
 
-    // 🔗 Ici tu feras ton appel API d'inscription
-    console.log("Register:", { nom, email, pwd });
-
-    // Redirection après inscription
+    // 👉 logique API plus tard
     nav("/auth/login");
   };
 
   return (
     <div style={styles.container}>
-      <h2>Créer un compte</h2>
+      <div style={styles.card}>
 
-      <form onSubmit={handleRegister} style={styles.form}>
-
-        <input
-          type="text"
-          placeholder="Nom complet"
-          value={nom}
-          onChange={(e) => setNom(e.target.value)}
-          required
-          style={styles.input}
+        {/* 🔵 LOGO */}
+        <img
+          src="/logo-founa.png"
+          alt="FOuna Logo"
+          style={styles.logo}
         />
 
-        <input
-          type="email"
-          placeholder="Adresse e-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={styles.input}
-        />
+        <h2 style={styles.title}>Créer un compte</h2>
 
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={pwd}
-          onChange={(e) => setPwd(e.target.value)}
-          required
-          style={styles.input}
-        />
+        <form onSubmit={handleRegister} style={styles.form}>
+          <input
+            type="text"
+            placeholder="Nom complet"
+            style={styles.input}
+            value={nom}
+            onChange={(e) => setNom(e.target.value)}
+            required
+          />
 
-        <input
-          type="password"
-          placeholder="Confirmer le mot de passe"
-          value={confirmPwd}
-          onChange={(e) => setConfirmPwd(e.target.value)}
-          required
-          style={styles.input}
-        />
+          <input
+            type="email"
+            placeholder="Adresse email"
+            style={styles.input}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-        <button type="submit" style={styles.button}>
-          S’inscrire
-        </button>
-      </form>
+          <input
+            type="password"
+            placeholder="Mot de passe"
+            style={styles.input}
+            value={pwd}
+            onChange={(e) => setPwd(e.target.value)}
+            required
+          />
 
-      <p
-        style={styles.link}
-        onClick={() => nav("/auth/login")}
-      >
-        Déjà un compte ? Se connecter
-      </p>
+          <input
+            type="password"
+            placeholder="Confirmer le mot de passe"
+            style={styles.input}
+            value={confirmPwd}
+            onChange={(e) => setConfirmPwd(e.target.value)}
+            required
+          />
+
+          <button type="submit" style={styles.button}>
+            S'inscrire
+          </button>
+        </form>
+
+        <p style={styles.loginText}>
+          Vous avez déjà un compte ?{" "}
+          <span
+            onClick={() => nav("/auth/login")}
+            style={styles.loginLink}
+          >
+            Se connecter
+          </span>
+        </p>
+      </div>
     </div>
   );
 };
 
-// 🎨 Styles simples
-const styles: Record<string, React.CSSProperties> = {
+/* 🎨 Styles FOuna */
+const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    padding: 30,
-    maxWidth: 400,
-    margin: "0 auto",
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "#F5F5F5",
+  },
+
+  card: {
+    width: 380,
+    padding: "40px 30px",
+    borderRadius: 14,
+    background: "#fff",
+    boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
     textAlign: "center",
   },
+
+  logo: {
+    width: 90,
+    marginBottom: 20,
+  },
+
+  title: {
+    marginBottom: 25,
+    color: "#2E2E2E",
+    fontSize: 26,
+    fontWeight: 700,
+  },
+
   form: {
     display: "flex",
     flexDirection: "column",
-    gap: 12,
-    marginTop: 20,
+    gap: 15,
   },
+
   input: {
-    padding: 12,
-    fontSize: 16,
-    borderRadius: 6,
+    padding: "12px 15px",
+    borderRadius: 8,
     border: "1px solid #ccc",
+    fontSize: 15,
+    outline: "none",
+    transition: "0.2s",
   },
+
   button: {
-    padding: 12,
-    fontSize: 17,
-    background: "#0066CC",
-    color: "white",
+    marginTop: 10,
+    padding: "12px 15px",
+    background: "#00A4A6",
+    color: "#fff",
     border: "none",
-    borderRadius: 6,
+    borderRadius: 8,
+    fontSize: 17,
     cursor: "pointer",
+    fontWeight: "bold",
+    transition: "0.2s",
   },
-  link: {
-    marginTop: 15,
-    color: "#0066CC",
+
+  loginText: {
+    marginTop: 20,
+    color: "#555",
+    fontSize: 14,
+  },
+
+  loginLink: {
+    color: "#00A4A6",
     cursor: "pointer",
+    fontWeight: "bold",
   },
 };
 
