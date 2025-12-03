@@ -1,8 +1,10 @@
 from config.db import db
 from model.founa import *
 from flask import request
-import bcrypt
-import datetime
+from flask import request, jsonify
+
+from helpers.send_mailer import *
+
    
 
 
@@ -10,15 +12,15 @@ def LoginClient():
     reponse = {}
 
     try:
-        phone = request.json.get('phone')
+        email = request.json.get('email')
         password = request.json.get('password')
 
-        if not phone or not password:
+        if not email or not password:
             reponse['status'] = 'error'
-            reponse['message'] = 'Les champs phone et password sont requis.'
+            reponse['message'] = 'Les champs email et password sont requis.'
             return reponse
 
-        login_user = Client.query.filter_by(phone=phone).first()
+        login_user = Client.query.filter_by(email=email).first()
 
         if not login_user:
             reponse['status'] = 'error'
@@ -51,41 +53,24 @@ def LoginClient():
 
 
 
+
+
 def ForgotPassword():
     response = {}
+    email = request.json.get('email')
+    single_client = Client.query.filter_by(email=email).first()
 
-    try:
-        phone = request.json.get('phone')
-        new_password = request.json.get('new_password')
-
-        if not new_password:
-            response['status'] = 'error'
-            response['message'] = 'Le nouveau mot de passe est requis.'
-            return response
-
-        client = None
-        if phone:
-            client = Client.query.filter_by(phone=phone).first()
-    
-        if not client:
-            response['status'] = 'error'
-            response['message'] = 'Utilisateur introuvable.'
-            return response
-
-        client.password = new_password
-        client.updated_date = datetime.datetime.utcnow()
-
-        db.session.commit()
-
+    if single_client:
+        # send_mailer_update_password(email, single_client.uid)  # envoyer mail ici
         response['status'] = 'success'
-        response['message'] = 'Mot de passe réinitialisé avec succès.'
-
-    except Exception as e:
-        db.session.rollback()
+        response['message'] = 'Un email de réinitialisation a été envoyé.'
+        response['email'] = email
+    else:
         response['status'] = 'error'
-        response['message'] = str(e)
+        response['message'] = 'Utilisateur non trouvé'
 
-    return response
+    return jsonify(response)
+
 
 
 
@@ -93,7 +78,6 @@ def SaveNewPassword():
     response = {}
     try:
         email = request.json.get('email')
-        motpreferer = request.json.get('motpreferer')
         newpassword = request.json.get('newpassword')
         confirmpassword = request.json.get('confirmpassword')
         
@@ -101,23 +85,18 @@ def SaveNewPassword():
             response['status'] = 'error'
             response['message'] = "Les mots de passe ne correspondent pas."
             return response
-        single_user = User.query.filter_by(email=email).first()
+        single_user = Client.query.filter_by(email=email).first()
         
         if not single_user:
             response['status'] = 'error'
             response['message'] = "Aucun utilisateur avec cet email."
             return response
         
-        if single_user.motpreferer == motpreferer:
-            single_user.password = newpassword
-            db.session.commit()
-            response['status'] = 'success'
-            response['message'] = 'Mot de passe reinitialise avec succes.'
+        single_user.password = newpassword
+        db.session.commit()
+        response['status'] = 'success'
+        response['message'] = 'Mot de passe reinitialise avec succes.'
             
-        else:
-            response['status'] = 'error'
-            response['message'] = 'Code temporaire invalide'
-
     except Exception as e:
         response['status'] = 'error'
         response['message'] = str(e)

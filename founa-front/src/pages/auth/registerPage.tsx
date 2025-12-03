@@ -1,5 +1,43 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CreateClient } from "../../services/auth.service"; // ✅ AJOUT ICI
+
+const Toast: React.FC<{
+    message: string;
+    type: "success" | "error" | "info";
+}> = ({ message, type }) => {
+    const colors = {
+        success: "#00A884",
+        error: "#D9534F",
+        info: "#007BFF",
+    };
+
+    return (
+        <div
+            style={{
+                position: "fixed",
+                top: 20,
+                left: 0,
+                right: 0,
+                marginRight: 35,
+                width: "100%",
+                // maxWidth: "100%",
+                margin: "0",
+                background: colors[type],
+                color: "#fff",
+                padding: "14px 18px",
+                // borderRadius: 10,
+                fontSize: 17,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                textAlign: "center",
+                zIndex: 9999,
+            }}
+        >
+            {message}
+        </div>
+    );
+};
+
 
 const RegisterPage: React.FC = () => {
     const nav = useNavigate();
@@ -10,8 +48,14 @@ const RegisterPage: React.FC = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+    const showToast = (message: string, type: "success" | "error" | "info") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 2500); // disparaît après 2,5 sec
+    };
 
-    const handleRegister = (e: React.FormEvent) => {
+
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (password !== confirmPassword) {
@@ -19,14 +63,36 @@ const RegisterPage: React.FC = () => {
             return;
         }
 
-        // 👉 logique API plus tard
-        nav("/auth/login");
+        // 🔵 Construction du payload pour l'API
+        const payload = {
+            fullname,
+            phone,
+            adresse_livraison: adresse,
+            email,
+            password,
+            confirmpassword: confirmPassword,
+        };
+
+        try {
+            const response = await CreateClient(payload);
+
+            if (response.data.status === "success") {
+                showToast("Votre compte a été créé avec succès !", "success");
+                setTimeout(() => nav("/auth/login"), 2000);
+            } else {
+                showToast(response.data.error_description, "error");
+            }
+
+        } catch (error) {
+            console.error(error);
+            showToast("Erreur lors de l'inscription.", "error");
+        }
+
     };
 
     return (
         <div style={styles.container}>
 
-            {/* 🔵 LOGO GRAND ET CENTRÉ */}
             <div style={styles.logoWrapper}>
                 <img
                     src="/logo-founa.png"
@@ -55,7 +121,7 @@ const RegisterPage: React.FC = () => {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         required
-                        pattern="[0-9]{8,15}" // optionnel : accepte 8 à 15 chiffres
+                        pattern="[0-9]{8,15}"
                         title="Veuillez entrer un numéro de téléphone valide"
                     />
 
@@ -110,6 +176,8 @@ const RegisterPage: React.FC = () => {
                     </span>
                 </p>
             </div>
+            {/* 🔔 Rendu du toast */}
+        {toast && <Toast message={toast.message} type={toast.type} />}
         </div>
     );
 };
@@ -135,7 +203,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         textAlign: "center",
     },
 
-    /* 🔵 Nouveau block pour centrer et agrandir le logo */
     logoWrapper: {
         marginBottom: 20,
         display: "flex",
@@ -143,7 +210,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
 
     logo: {
-    width: 250,           // ← LOGO PLUS GRAND
+        width: 250,
         height: "auto",
     },
 

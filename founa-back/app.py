@@ -5,8 +5,9 @@ from flask_restful import Api
 from config.db import db
 from config.constant import *
 from model.founa import *
-from ressources.clients import ClientsApi
+from ressources.clients import ClientsApi 
 from ressources.commandes import CommandesApi
+from ressources.auth import AuthApi
 from ressources.fournisseurs import FournisseursApi
 from ressources.produits import ProduitsApi
 from flask_migrate import Migrate
@@ -43,10 +44,11 @@ def home():
     return render_template('index.html')
 
 
-api.add_resource(ClientsApi, '/api/clients/<string:route>', endpoint='all_clients', methods=['GET', 'POST', 'DELETE', 'PATCH'])
+api.add_resource(ClientsApi, '/api/clients/<string:route>', endpoint='all_clients', methods=['GET', 'POST', 'DELETE', 'PATCH']) 
 api.add_resource(CommandesApi, '/api/commandes/<string:route>', endpoint='all_commandes', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 api.add_resource(FournisseursApi, '/api/fournisseurs/<string:route>', endpoint='all_fournisseurs', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 api.add_resource(ProduitsApi, '/api/produits/<string:route>', endpoint='all_produits', methods=['GET', 'POST', 'DELETE', 'PATCH'])
+api.add_resource(AuthApi, '/api/auth/<string:route>', endpoint='all_auth', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 
 @app.route("/api/test", methods=["GET"])
 def test():

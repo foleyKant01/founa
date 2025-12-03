@@ -96,7 +96,6 @@ const CartPage: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     padding: 15,
-    paddingBottom: 100,
     minHeight: "100vh",
     backgroundColor: "#F5F5F5",
     fontFamily: "Arial, sans-serif",

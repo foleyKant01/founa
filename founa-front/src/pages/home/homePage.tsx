@@ -32,7 +32,7 @@ const HomePage: React.FC = () => {
             style={styles.searchInput}
           />
         </div>
-        <Bell size={24} style={{ cursor: "pointer", marginLeft: 15 }} />
+        <Bell size={24} style={{ cursor: "pointer", marginRight: 35 }} />
       </header>
 
       {/* PRODUITS AU TOP */}
@@ -74,19 +74,24 @@ const HomePage: React.FC = () => {
 /* 🎨 Styles */
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
+    paddingTop: 70,  // <-- AJOUT ESSENTIEL
     paddingBottom: 80,
     background: "#F5F5F5",
     minHeight: "100vh",
     fontFamily: "Arial, sans-serif",
   },
   header: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    zIndex: 1000,
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     padding: "10px 15px",
     backgroundColor: "#00A4A6",
     color: "#fff",
-    flexWrap: "wrap",
   },
   searchWrapper: {
     display: "flex",

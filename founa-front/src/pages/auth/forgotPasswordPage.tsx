@@ -1,24 +1,73 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ForgotPassword } from "../../services/auth.service"; // 🔹 Service
+
+const Toast: React.FC<{
+  message: string;
+  type: "success" | "error" | "info";
+}> = ({ message, type }) => {
+  const colors = {
+    success: "#00A884",
+    error: "#D9534F",
+    info: "#007BFF",
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 20,
+        left: 0,
+        right: 0,
+        width: "100%",
+        maxWidth: "100%",
+        margin: "0 auto",
+        background: colors[type],
+        color: "#fff",
+        padding: "14px 18px",
+        borderRadius: 10,
+        fontSize: 15,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        textAlign: "center",
+        zIndex: 9999,
+      }}
+    >
+      {message}
+    </div>
+  );
+};
 
 const ForgotPasswordPage: React.FC = () => {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
-  const handleReset = (e: React.FormEvent) => {
+  const showToast = (message: string, type: "success" | "error" | "info") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email) {
-      alert("Veuillez entrer votre adresse email.");
+      showToast("Veuillez entrer votre adresse email.", "error");
       return;
     }
 
-    // 🔹 Ici tu enverras l'email à ton API pour la réinitialisation
-    console.log("Email pour réinitialisation :", email);
-    alert("Un email de réinitialisation a été envoyé si le compte existe.");
+    try {
+      const response = await ForgotPassword({ email });
 
-    // Redirection vers login après reset (optionnel)
-    nav("/auth/login");
+      if (response.data.status === "success") {
+        showToast("Un email de réinitialisation a été envoyé !", "success");
+        setTimeout(() => nav("/auth/login"), 2000);
+      } else {
+        showToast(response.data.error_description || "Erreur lors de la réinitialisation", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("Erreur serveur. Veuillez réessayer.", "error");
+    }
   };
 
   return (
@@ -52,6 +101,9 @@ const ForgotPasswordPage: React.FC = () => {
           </span>
         </p>
       </div>
+
+      {/* 🔔 Rendu du toast */}
+      {toast && <Toast message={toast.message} type={toast.type} />}
     </div>
   );
 };
@@ -81,7 +133,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "center",
   },
   logo: {
-    width: 250,           // ← LOGO PLUS GRAND
+    width: 250,
     height: "auto",
   },
   title: {

@@ -1,21 +1,79 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LoginClient } from "../../services/auth.service"; // 🔹 Appel au service
+
+const Toast: React.FC<{
+    message: string;
+    type: "success" | "error" | "info";
+}> = ({ message, type }) => {
+    const colors = {
+        success: "#00A884",
+        error: "#D9534F",
+        info: "#007BFF",
+    };
+
+    return (
+        <div
+            style={{
+                position: "fixed",
+                top: 20,
+                left: 0,
+                right: 0,
+                marginRight: 35,
+                width: "100%",
+                // maxWidth: "100%",
+                margin: "0",
+                background: colors[type],
+                color: "#fff",
+                padding: "14px 18px",
+                // borderRadius: 10,
+                fontSize: 17,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                textAlign: "center",
+                zIndex: 9999,
+            }}
+        >
+            {message}
+        </div>
+    );
+};
 
 const LoginPage: React.FC = () => {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const showToast = (message: string, type: "success" | "error" | "info") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      nav("/home");
+
+    if (!email || !password) {
+      showToast("Veuillez remplir tous les champs", "error");
+      return;
+    }
+
+    try {
+      const response = await LoginClient({ email, password });
+
+      if (response.data.status === "success") {
+        showToast("Connexion réussie !", "success");
+        setTimeout(() => nav("/home"), 2000);
+      } else {
+        showToast(response.data.error_description || "Erreur lors de la connexion", "error");
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("Erreur serveur. Veuillez réessayer.", "error");
     }
   };
 
   return (
     <div style={styles.container}>
-
       {/* 🔵 LOGO GRAND ET CENTRÉ */}
       <div style={styles.logoWrapper}>
         <img
@@ -24,6 +82,7 @@ const LoginPage: React.FC = () => {
           style={styles.logo}
         />
       </div>
+
       <div style={styles.card}>
         <h2 style={styles.title}>Connexion</h2>
 
@@ -69,6 +128,9 @@ const LoginPage: React.FC = () => {
           </span>
         </p>
       </div>
+
+      {/* 🔔 Rendu du toast */}
+      {toast && <Toast message={toast.message} type={toast.type} />}
     </div>
   );
 };
@@ -84,7 +146,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: "#F5F5F5",
   },
 
-  /* 🔵 Nouveau block pour centrer et agrandir le logo */
   logoWrapper: {
     marginBottom: 20,
     display: "flex",
@@ -92,7 +153,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 
   logo: {
-    width: 250,           // ← LOGO PLUS GRAND
+    width: 250,
     height: "auto",
   },
 

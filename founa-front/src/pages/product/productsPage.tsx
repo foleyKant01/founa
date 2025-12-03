@@ -1,6 +1,5 @@
 // src/pages/ProductPage.tsx
 import React, { useState } from "react";
-import BottomBar from "../../components/layout/bottomBar";
 
 interface Product {
   name: string;
@@ -95,8 +94,6 @@ const ProductPage: React.FC = () => {
           ))}
         </div>
       </section>
-
-      <BottomBar />
     </div>
   );
 };
