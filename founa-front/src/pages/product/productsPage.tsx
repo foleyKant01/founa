@@ -1,5 +1,7 @@
 // src/pages/ProductPage.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { GetSingleProduit } from "../../services/product.service"; // chemin correct
 
 interface Product {
   name: string;
@@ -9,22 +11,36 @@ interface Product {
   stock: number;
 }
 
-const product: Product = {
-  name: "Smartphone Samsung Galaxy S23",
-  price: 350000,
-  description:
-    "Smartphone Samsung Galaxy S23 avec écran AMOLED, caméra 108MP, batterie longue durée et performance exceptionnelle.",
-  images: [
-    "https://via.placeholder.com/300x300.png?text=Produit+1",
-    "https://via.placeholder.com/300x300.png?text=Produit+2",
-    "https://via.placeholder.com/300x300.png?text=Produit+3",
-  ],
-  stock: 10,
-};
-
 const ProductPage: React.FC = () => {
-  const [selectedImage, setSelectedImage] = useState(product.images[0]);
-  const [quantity, setQuantity] = useState(1);
+  const { uid } = useParams<{ uid: string }>();
+  const [product, setProduct] = useState<Product>({
+    name: "",
+    price: 0,
+    description: "",
+    images: [],
+    stock: 0,
+  });
+  const [selectedImage, setSelectedImage] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
+
+  useEffect(() => {
+    if (uid) {
+      GetSingleProduit({ produit_id: uid })
+        .then((res) => {
+          const data = res.data.produit; // adapte selon la structure de ta réponse
+          const imagesArray = data.images ? data.images.split(",") : [];
+          setProduct({
+            name: data.nom,
+            price: data.prix_vente,
+            description: data.description,
+            images: imagesArray,
+            stock: data.stock_disponible,
+          });
+          if (imagesArray.length > 0) setSelectedImage(imagesArray[0]);
+        })
+        .catch((err) => console.error("Erreur récupération produit :", err));
+    }
+  }, [uid]);
 
   const handleQtyChange = (newQty: number) => {
     if (newQty < 1 || newQty > product.stock) return;
@@ -33,11 +49,12 @@ const ProductPage: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      {/* Image et détails */}
       <div style={styles.mainSection}>
         {/* Images */}
         <div style={styles.imageSection}>
-          <img src={selectedImage} alt={product.name} style={styles.mainImage} />
+          {selectedImage && (
+            <img src={selectedImage} alt={product.name} style={styles.mainImage} />
+          )}
           <div style={styles.thumbnailWrapper}>
             {product.images.map((img, index) => (
               <img
@@ -77,7 +94,7 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Produits similaires */}
+      {/* Produits similaires (exemple statique) */}
       <section style={styles.similarSection}>
         <h2 style={styles.sectionTitle}>Produits similaires</h2>
         <div style={styles.similarProducts}>

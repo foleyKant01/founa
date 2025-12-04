@@ -4,19 +4,16 @@ from helpers.fournisseurs import *
 
 class FournisseursApi(Resource):
     def post(self, route):
-        if route == "create":
-            return CreateUser()
+        if route == "create_fournisseur":
+            return CreateFournisseur()
         
-        if route == "login":
-            return LoginUser()
+        if route == "update_fournisseur":
+            return UpdateFournisseur()
         
-        if route == "save_new_password":
-            return SaveNewPassword()
-        
-        if route == "delete":
-            return DeleteUser()
+        if route == "delete_fournisseur":
+            return DeleteFournisseur()
         
     
     def get(self, route):
-        if route == "readall":
-            return ReadAllUser()
+        if route == "get_all_fournisseurs":
+            return GetAllFournisseurs()

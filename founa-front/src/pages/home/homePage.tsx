@@ -1,25 +1,41 @@
 // src/pages/HomePage.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
+import { GetAllProduits } from "../../services/product.service"; // chemin correct
+import { useNavigate } from "react-router-dom";
 
-// 🔹 Typage des produits
-interface Product {
-  name: string;
-  price: string;
-  emoji: string;
+
+
+// 🔹 Typage des produits récupérés depuis l'API
+interface Produit {
+  id: number;
+  uid: string;
+  nom: string;
+  description: string;
+  prix_vente: number;
+  stock_disponible: number;
+  images: string[];
+  fournisseur_id: string;
 }
 
-// 🔹 Produits au top
-const topProducts: Product[] = [
-  { name: "Smartphone Samsung", price: "350 000 FCFA", emoji: "📱" },
-  { name: "Robe élégante", price: "80 000 FCFA", emoji: "👗" },
-  { name: "Poulet frais", price: "3 500 FCFA", emoji: "🍗" },
-  { name: "Lampe design", price: "12 000 FCFA", emoji: "💡" },
-  { name: "Casque audio", price: "25 000 FCFA", emoji: "🎧" },
-  { name: "Sac à main", price: "45 000 FCFA", emoji: "👜" },
-];
 
 const HomePage: React.FC = () => {
+  const nav = useNavigate();
+
+  const [Allproduits, setProduits] = useState<Produit[]>([]);
+  // const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    GetAllProduits()
+      .then((res) => {
+        setProduits(res.data.produits); // récupère la clé "produits" de ton JSON Flask
+        // setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Erreur récupération produits:", err);
+        // setLoading(false);
+      });
+  }, []);
   return (
     <div style={styles.container}>
       {/* HEADER */}
@@ -38,12 +54,23 @@ const HomePage: React.FC = () => {
       {/* PRODUITS AU TOP */}
       <section style={styles.topProductsSection}>
         <h2 style={styles.sectionTitle}>Produits au top du classement</h2>
+
         <div style={styles.slider}>
-          {topProducts.map((prod, index) => (
-            <div key={index} style={styles.topProductCard}>
-              <div style={styles.productImage}>{prod.emoji}</div>
-              <h3 style={styles.productName}>{prod.name}</h3>
-              <p style={styles.productPrice}>{prod.price}</p>
+          {Allproduits.map((produit, index) => (
+            <div
+              key={index}
+              style={styles.topProductCard}
+              onClick={() => nav(`/singleproduct/${produit.uid}`)} // redirection fonctionnelle
+            >
+              <div style={styles.productImage}>
+                <img
+                  src={produit.images}
+                  alt={produit.nom}
+                  style={{ width: 130, height: 100, objectFit: "cover" }}
+                />
+              </div>
+              <h3 style={styles.productName}>{produit.nom}</h3>
+              <p style={styles.productPrice}>{produit.prix_vente}</p>
             </div>
           ))}
         </div>
@@ -52,11 +79,17 @@ const HomePage: React.FC = () => {
       <section style={styles.productsSection}>
         <h2 style={styles.sectionTitle}>Produits populaires</h2>
         <div style={styles.productList}>
-          {topProducts.slice(0, 4).map((prod, index) => (
-            <div key={index} style={styles.productCard}>
-              <div style={styles.productImage}>{prod.emoji}</div>
-              <h3 style={styles.productName}>{prod.name}</h3>
-              <p style={styles.productPrice}>{prod.price}</p>
+          {Allproduits.slice(0, 4).map((produit, index) => (
+            <div 
+              key={index} 
+              style={styles.productCard} 
+              onClick={() => nav(`/singleproduct/${produit.uid}`)} // redirection fonctionnelle
+            >
+              <div style={styles.productImage}>
+                <img src={produit.images} alt={produit.nom} style={{ width: 130, height: 100, objectFit: "cover" }} />
+              </div>
+              <h3 style={styles.productName}>{produit.nom}</h3>
+              <p style={styles.productPrice}>{produit.prix_vente}</p>
             </div>
           ))}
         </div>
@@ -119,15 +152,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   topProductCard: {
     backgroundColor: "#fff",
     borderRadius: 12,
-    padding: 15,
+    padding: 10,
     minWidth: 150,
     textAlign: "center",
-    flexShrink: 0,
     boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
     scrollSnapAlign: "start",
   },
 
-  productsSection: { marginTop: 30, padding: "0 15px" },
+  productsSection: { marginTop: 30, padding: "0 10px" },
   productList: {
     display: "flex",
     flexWrap: "wrap",
@@ -136,7 +168,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   productCard: {
     backgroundColor: "#fff",
     borderRadius: 12,
-    // maxWidth: 150,
+    minWidth: 150,
     padding: "15px 0px",
     width: "calc(50% - 15px)", // 50% moins le gap total
     margin: "7.5px", // espace entre cartes
@@ -146,7 +178,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: "transform 0.2s, box-shadow 0.2s",
   },
   productImage: { fontSize: 40, marginBottom: 10 },
-  productName: { fontSize: 14, fontWeight: "bold", marginBottom: 5 },
+  productName: { fontSize: 16, maxWidth: "100%", fontWeight: "bold", marginBottom: 5 },
   productPrice: { fontSize: 13, color: "#00A4A6" },
 };
 

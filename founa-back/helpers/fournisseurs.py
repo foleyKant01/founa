@@ -3,20 +3,25 @@ from model.founa import *
 from flask import request
 
 
-
 def CreateFournisseur():
     data = request.json
 
     fournisseur = Fournisseur(
         nom=data.get('nom'),
-        contact=data.get('contact'),
-        mode=data.get('mode')
+        contact_email=data.get('contact_email'),
+        contact_telephone=data.get('contact_telephone'),
+        mode_dropshipping=data.get('mode_dropshipping')
     )
 
     db.session.add(fournisseur)
     db.session.commit()
 
-    return {"status": "success", "message": "Fournisseur créé"}, 201
+    return {
+        "status": "success",
+        "message": "Fournisseur créé",
+        "fournisseur_uid": fournisseur.uid
+    }, 201
+
 
 
 
@@ -53,10 +58,11 @@ def UpdateFournisseur():
 
 
 
-def DeleteFournisseur(id):
-    fournisseur = Fournisseur.query.get_or_404(id)
+def DeleteFournisseur():
+    fournisseur_id = (request.json.get('uid'))
+    delete_fournisseur = Fournisseur.query.filter_by(uid=fournisseur_id).first()
 
-    db.session.delete(fournisseur)
+    db.session.delete(delete_fournisseur)
     db.session.commit()
 
     return {"message": "Fournisseur supprimé"}
