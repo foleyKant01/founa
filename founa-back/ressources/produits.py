@@ -4,19 +4,10 @@ from helpers.produits import *
 
 class ProduitsApi(Resource):
     def post(self, route):
-        if route == "create":
-            return CreateUser()
-        
-        if route == "login":
-            return LoginUser()
-        
-        if route == "save_new_password":
-            return SaveNewPassword()
-        
-        if route == "delete":
-            return DeleteUser()
+        if route == "create_produit":
+            return CreateProduit()
         
     
     def get(self, route):
-        if route == "readall":
-            return ReadAllUser()
+        if route == "get_all_produits":
+            return GetAllProduits()
