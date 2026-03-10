@@ -26,19 +26,31 @@ def upload_to_s3(files):
 def CreateProduit():
     nom = request.form.get('nom')
     description = request.form.get('description')
-    prix_fournisseur = request.form.get('prix_fournisseur')
-    prix_vente = request.form.get('prix_vente')
+    prix_fournisseur_str = request.form.get('prix_fournisseur')
+    try:
+        prix_fournisseur = float(prix_fournisseur_str)
+    except (TypeError, ValueError):
+        prix_fournisseur = 0.0  # valeur par défaut si l'entrée est invalide
+    prix_vente = round(prix_fournisseur * 1.25, 2)  # arrondi à 2 décimales
     stock_disponible = request.form.get('stock_disponible')
+    moq = request.form.get('moq')
     fournisseur_id = request.form.get('fournisseur_id')
+    lien_1 = request.form.get('lien_1')
+    lien_2 = request.form.get('lien_2')
+    teller_id = request.form.get('teller_id')
     files = request.files.getlist('images')
     images_urls = upload_to_s3(files)
     produit = Produit(
         nom=nom,
         description=description,
-        prix_fournisseur=float(prix_fournisseur),
-        prix_vente=float(prix_vente),
+        prix_fournisseur=prix_fournisseur,
+        prix_vente=prix_vente,
         stock_disponible=int(stock_disponible),
+        moq=int(moq),
         fournisseur_id=fournisseur_id,
+        lien_1=lien_1,
+        lien_2=lien_2,
+        teller_id=teller_id,
         images=images_urls,
     )
 
@@ -68,6 +80,7 @@ def GetAllProduits():
             "prix_fournisseur": p.prix_fournisseur,
             "prix_vente": p.prix_vente,
             "stock_disponible": p.stock_disponible,
+            "moq": p.moq,
             "fournisseur_id": p.fournisseur_id,
             "images": p.images
         })
@@ -96,11 +109,17 @@ def GetSingleProduit():
             "uid": produit.uid,
             "nom": produit.nom,
             "description": produit.description,
+            "lien_1": produit.lien_1,
+            "lien_2": produit.lien_2,
             "prix_fournisseur": produit.prix_fournisseur,
             "prix_vente": produit.prix_vente,
+            "images": images,
             "stock_disponible": produit.stock_disponible,
+            "moq": produit.moq,
+            "teller_id": produit.teller_id,
             "fournisseur_id": produit.fournisseur_id,
-            "images": images
+            "creation_date": str(produit.creation_date),
+            "update_date": str(produit.update_date),
         }
     })
     
@@ -118,17 +137,27 @@ def UpdateProduit():
     # Récupération des champs depuis le formulaire (si fournis)
     nom = request.form.get('nom')
     description = request.form.get('description')
-    prix_fournisseur = request.form.get('prix_fournisseur')
-    prix_vente = request.form.get('prix_vente')
+    prix_fournisseur_str = request.form.get('prix_fournisseur')
+    lien_1 = request.form.get('lien_1')
+    lien_2 = request.form.get('lien_2')
+    moq = request.form.get('moq')
+    try:
+        prix_fournisseur = float(prix_fournisseur_str)
+    except (TypeError, ValueError):
+        prix_fournisseur = 0.0  # valeur par défaut si l'entrée est invalide
+    prix_vente = round(prix_fournisseur * 1.25, 2)  # arrondi à 2 décimales
     stock_disponible = request.form.get('stock_disponible')
     fournisseur_id = request.form.get('fournisseur_id')
     if produit:
         produit.nom = nom
         produit.description = description
-        produit.prix_fournisseur = float(prix_fournisseur)
-        produit.prix_vente = float(prix_vente)
+        produit.prix_fournisseur = prix_fournisseur
+        produit.prix_vente = prix_vente
         produit.stock_disponible = int(stock_disponible)
+        produit.moq = int(moq)
         produit.fournisseur_id = fournisseur_id
+        produit.lien_1 = lien_1
+        produit.lien_2 = lien_2
 
     # Gestion des nouvelles images (optionnel)
     files = request.files.getlist('images')
@@ -211,6 +240,7 @@ def AllSimilarProducts():
                 "prix_fournisseur": product.prix_fournisseur,
                 "prix_vente": product.prix_vente,
                 "stock_disponible": product.stock_disponible,
+                "moq": product.moq,
                 "fournisseur_id": product.fournisseur_id,
                 "images": product.images
             })

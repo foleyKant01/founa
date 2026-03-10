@@ -214,3 +214,43 @@ def CommandeEnExpedition():
 
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
+    
+        
+def CommandeEnLivraison():
+    try:
+        commande_id = request.json.get('commande_id')
+        statut = request.json.get('statut')
+        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
+        if not update_commande:
+            return {"status": "error", "message": "Commande introuvable"}, 404
+
+        # Mise à jour simple
+        update_commande.statut = statut
+        update_commande.updated_date = datetime.datetime.utcnow()
+
+        db.session.commit()
+
+        return {"status": "success", "message": "Statut de la commande mis à jour"}, 200
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+    
+    
+def CommandeLivrer():
+    try:
+        commande_id = request.json.get('commande_id')
+        statut = request.json.get('statut')
+        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
+        if not update_commande:
+            return {"status": "error", "message": "Commande introuvable"}, 404
+
+        # Mise à jour simple
+        update_commande.statut = statut
+        update_commande.updated_date = datetime.datetime.utcnow()
+
+        db.session.commit()
+
+        return {"status": "success", "message": "Statut de la commande mis à jour"}, 200
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500

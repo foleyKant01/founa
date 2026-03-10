@@ -23,10 +23,16 @@ class Produit(db.Model):
 
     nom = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
+    lien_1 = db.Column(db.Text, nullable=False)
+    lien_2 = db.Column(db.Text, nullable=False)
     prix_fournisseur = db.Column(db.Float, nullable=False)
     prix_vente = db.Column(db.Float, nullable=False)
     images = db.Column(db.Text)  # JSON string : ["img1.jpg", "img2.jpg"]
     stock_disponible = db.Column(db.Integer, default=0)
+    moq = db.Column(db.Integer, default=0)
+    
+    teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=True)
+    teller = db.relationship('Teller', backref=db.backref('produit', lazy=True))
 
     fournisseur_id = db.Column(db.String(128), db.ForeignKey('fournisseur.uid'), nullable=False)
     fournisseur = db.relationship('Fournisseur', backref=db.backref('produit', lazy=True))
