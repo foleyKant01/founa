@@ -79,9 +79,10 @@ def GetAllProduits():
             "description": p.description,
             "prix_fournisseur": p.prix_fournisseur,
             "prix_vente": p.prix_vente,
-            "stock_disponible": p.stock_disponible,
+            "stock_disponible": p.stock_disponible, 
             "moq": p.moq,
             "fournisseur_id": p.fournisseur_id,
+            "teller_id": p.teller_id,
             "images": p.images
         })
 
@@ -147,7 +148,6 @@ def UpdateProduit():
         prix_fournisseur = 0.0  # valeur par défaut si l'entrée est invalide
     prix_vente = round(prix_fournisseur * 1.25, 2)  # arrondi à 2 décimales
     stock_disponible = request.form.get('stock_disponible')
-    fournisseur_id = request.form.get('fournisseur_id')
     if produit:
         produit.nom = nom
         produit.description = description
@@ -155,7 +155,6 @@ def UpdateProduit():
         produit.prix_vente = prix_vente
         produit.stock_disponible = int(stock_disponible)
         produit.moq = int(moq)
-        produit.fournisseur_id = fournisseur_id
         produit.lien_1 = lien_1
         produit.lien_2 = lien_2
 
@@ -239,9 +238,10 @@ def AllSimilarProducts():
                 "description": product.description,
                 "prix_fournisseur": product.prix_fournisseur,
                 "prix_vente": product.prix_vente,
-                "stock_disponible": product.stock_disponible,
+                "stock_disponible": product.stock_disponible, 
                 "moq": product.moq,
                 "fournisseur_id": product.fournisseur_id,
+                "teller_id": product.teller_id,
                 "images": product.images
             })
 
