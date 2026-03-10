@@ -8,9 +8,10 @@ class Fournisseur(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
     nom = db.Column(db.String(255), nullable=False)
-    contact_email = db.Column(db.String(128))
-    contact_telephone = db.Column(db.String(128))
-    mode_dropshipping = db.Column(db.String(128))  # API / mode dropshipping
+    email = db.Column(db.String(128))
+    phone = db.Column(db.String(128))
+    boutique = db.Column(db.String(128))
+    teller_id = db.Column(db.String(128))  # API / mode dropshipping
     creation_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     update_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
@@ -28,7 +29,7 @@ class Produit(db.Model):
     stock_disponible = db.Column(db.Integer, default=0)
 
     fournisseur_id = db.Column(db.String(128), db.ForeignKey('fournisseur.uid'), nullable=False)
-    fournisseur = db.relationship('Fournisseur', backref=db.backref('produits', lazy=True))
+    fournisseur = db.relationship('Fournisseur', backref=db.backref('produit', lazy=True))
 
     creation_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     update_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -59,17 +60,38 @@ class Teller(db.Model):
 
 class Commande(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    uid = db.Column(db.String(128), unique=True)
+    commande_id = db.Column(db.String(128), unique=True)
     client_id = db.Column(db.String(128), db.ForeignKey('client.uid'), nullable=False)
-    client = db.relationship('Client', backref=db.backref('commandes', lazy=True))
+    client = db.relationship('Client', backref=db.backref('commande', lazy=True))
     produit_id = db.Column(db.String(128), db.ForeignKey('produit.uid'), nullable=False)
-    produit = db.relationship('Produit', backref=db.backref('commandes', lazy=True))
-    teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=False)
-    teller = db.relationship('Teller', backref=db.backref('commandes', lazy=True))
+    produit = db.relationship('Produit', backref=db.backref('commande', lazy=True)) 
+    teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=True)
+    teller = db.relationship('Teller', backref=db.backref('commande', lazy=True))
+    fournisseur_id = db.Column(db.String(128), db.ForeignKey('fournisseur.uid'), nullable=False)
+    fournisseur = db.relationship('Fournisseur', backref=db.backref('commande', lazy=True))
     quantite = db.Column(db.Integer, nullable=False)
     prix_total = db.Column(db.Float, nullable=False)
-    statut = db.Column(db.String(128), default='Paiement reçu')
+    statut = db.Column(db.String(128), default='commande initie') # commande en charge, valider, payer, en expedition, en livraison, livrer
+    details = db.Column(db.Text, nullable=True)
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
+
+class Historiques(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    h_uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
+    produit_id = db.Column(db.String(128), db.ForeignKey('produit.uid'), nullable=False)
+    produit = db.relationship('Produit', backref=db.backref('historiques', lazy=True))
+    client_id = db.Column(db.String(128), db.ForeignKey('client.uid'))
+    client = db.relationship('Client', backref=db.backref('historiques', lazy=True))
+    visited_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+
+class Favoris(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    fa_uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
+    produit_id = db.Column(db.String(128), db.ForeignKey('produit.uid'), nullable=False)
+    produit = db.relationship('Produit', backref=db.backref('favoris', lazy=True))
+    client_id = db.Column(db.String(128), db.ForeignKey('client.uid'))
+    client = db.relationship('Client', backref=db.backref('favoris', lazy=True))
+    creation_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 

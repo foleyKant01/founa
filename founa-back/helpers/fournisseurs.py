@@ -8,9 +8,10 @@ def CreateFournisseur():
 
     fournisseur = Fournisseur(
         nom=data.get('nom'),
-        contact_email=data.get('contact_email'),
-        contact_telephone=data.get('contact_telephone'),
-        mode_dropshipping=data.get('mode_dropshipping')
+        email=data.get('email'),
+        phone=data.get('phone'),
+        boutique=data.get('boutique'),
+        teller_id=data.get('teller_id')
     )
 
     db.session.add(fournisseur)

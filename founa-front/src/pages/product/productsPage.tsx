@@ -1,6 +1,7 @@
 // src/pages/ProductPage.tsx
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { CreateCommande } from "../../services/order.service";
 import { GetSingleProduit } from "../../services/product.service"; // chemin correct
 
 interface Product {
@@ -20,6 +21,9 @@ const ProductPage: React.FC = () => {
     images: [],
     stock: 0,
   });
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const client_id = user.uid;
+
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
 
@@ -46,6 +50,41 @@ const ProductPage: React.FC = () => {
     if (newQty < 1 || newQty > product.stock) return;
     setQuantity(newQty);
   };
+
+  const handleCreateCommande = async () => {
+    if (!client_id) {
+      alert("Veuillez vous connecter pour passer une commande");
+      return;
+    }
+
+    if (!uid) {
+      alert("Produit invalide");
+      return;
+    }
+
+    try {
+      const payload = {
+        client_id: client_id,
+        produit_id: uid,
+        quantite: quantity,
+        details: `Commande de ${quantity} x ${product.name}`,
+      };
+
+      const response = await CreateCommande(payload);
+
+      if (response.data.status === "success") {
+        alert("✅ Commande envoyée avec succès !");
+        // optionnel : redirection
+        // nav("/mes-commandes");
+      } else {
+        alert(response.data.message || "Erreur lors de la commande");
+      }
+    } catch (error) {
+      console.error("Erreur création commande :", error);
+      alert("❌ Erreur serveur, veuillez réessayer");
+    }
+  };
+
 
   return (
     <div style={styles.container}>
@@ -89,8 +128,23 @@ const ProductPage: React.FC = () => {
               </button>
             </div>
           </div>
+          {/* Alerte information commande */}
+          <div style={styles.infoAlert}>
+            <span style={styles.infoIcon}>⚠️</span>
+            <p style={styles.infoText}>
+              Veuillez seulement choisir le nombre de pièces pour ce produit et cliquer sur
+              <strong> « Passer Commande »</strong>.  
+              Un conseiller vous contactera pour les détails.
+            </p>
+          </div>
 
-          <button style={styles.addToCartButton}>Ajouter au panier</button>
+          <button
+            style={styles.addToCartButton}
+            onClick={handleCreateCommande}
+            disabled={product.stock === 0}
+          >
+            {product.stock === 0 ? "Rupture de stock" : "Passer Commande"}
+          </button>
         </div>
       </div>
 
@@ -131,7 +185,7 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   detailsSection: { flex: "1 1 300px", display: "flex", flexDirection: "column", gap: 15 },
   productName: { fontSize: 22, fontWeight: "bold" },
-  productPrice: { fontSize: 20, color: "#00A4A6", fontWeight: "bold" },
+  productPrice: { fontSize: 20, color: "#00A4A6", fontWeight: "bold", margin:0},
   productDescription: { fontSize: 14, color: "#555", lineHeight: 1.5 },
 
   qtyWrapper: { display: "flex", alignItems: "center", gap: 10 },
@@ -148,6 +202,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 16,
     cursor: "pointer",
   },
+
+  infoAlert: {
+  display: "flex",
+  gap: 10,
+  alignItems: "flex-start",
+  backgroundColor: "#FFF8E1",
+  border: "1px solid #FFD54F",
+  borderRadius: 10,
+  padding: 12,
+  fontSize: 13,
+  color: "#795548",
+},
+
+infoIcon: {
+  fontSize: 18,
+  lineHeight: "20px",
+},
+
+infoText: {
+  margin: 0,
+  lineHeight: 1.4,
+},
+
 
   similarSection: { marginTop: 30 },
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15 },

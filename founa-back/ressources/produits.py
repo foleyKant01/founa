@@ -8,10 +8,13 @@ class ProduitsApi(Resource):
             return CreateProduit()
         
         if route == "get_single_produit":
-            return GetSingleProduit()
+            return GetSingleProduit() 
 
         if route == "update_produit":
             return UpdateProduit()   
+        
+        if route == "all_similar_products":
+            return AllSimilarProducts()   
              
     
     def get(self, route):

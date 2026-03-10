@@ -1,12 +1,12 @@
 // src/components/BottomBar.tsx
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { House, User, ShoppingCart, Package } from "lucide-react";
+import { House, User, Activity, Package } from "lucide-react";
 
 interface BottomBarItem {
   name: string;
-  path: string;
   icon: React.ReactNode;
+  path: string; // plus besoin de children ici
 }
 
 const BottomBar: React.FC = () => {
@@ -14,17 +14,17 @@ const BottomBar: React.FC = () => {
   const location = useLocation();
 
   const items: BottomBarItem[] = [
-  { name: "Accueil", path: "/home", icon: <House size={22} /> },
-  { name: "Panier", path: "/cart", icon: <ShoppingCart size={22} /> },
-  { name: "Commandes", path: "/orders", icon: <Package size={22} /> },
-  { name: "Profil", path: "/profile", icon: <User size={22} /> },
-];
-
+    { name: "Accueil", path: "/home", icon: <House size={22} /> },
+    { name: "Activité", path: "/activity", icon: <Activity size={22} /> }, // <-- vers ActivityPage
+    { name: "Commandes", path: "/orders", icon: <Package size={22} /> },
+    { name: "Profil", path: "/profile", icon: <User size={22} /> },
+  ];
 
   return (
     <nav style={styles.container}>
       {items.map((item) => {
         const isActive = location.pathname === item.path;
+
         return (
           <button
             key={item.name}

@@ -1,10 +1,10 @@
 from config.db import db
 from model.founa import *
 from config.constant import *
-from flask import request
 from flask import request, jsonify
 import uuid
-from flask import request, jsonify
+from sqlalchemy import or_
+
 
 def upload_to_s3(files):
     urls = []
@@ -144,3 +144,82 @@ def UpdateProduit():
         "produit_uid": produit.uid,
         "images": images_urls
     })
+    
+    
+    
+# def AllSimilarProducts():
+#     response = {}
+    
+#     try:
+#         product_type = request.json.get('type')
+#         uid = request.json.get('pr_uid')
+#         all_products = Produit.query.filter(Produit.type == product_type, Produit.pr_uid != uid).all()
+
+#         products_info = []
+
+#         for products  in all_products:
+#             products_infos = {
+#                 'name': products.name,              
+#                 'price': products.price,  
+#                 'image_file': str(IMGHOSTNAME)+str(products.image_file),              
+#                 'pr_uid': products.pr_uid,          
+#                 'type': products.type,          
+#             }
+#             products_info.append(products_infos)
+
+#         response['status'] = 'success'
+#         response['products'] = products_info
+
+#     except Exception as e:
+#         response['status'] = 'error'
+#         response['error_description'] = str(e)
+
+#     return response
+
+
+
+def AllSimilarProducts():
+    response = {}
+    try:
+        # product_type = request.json.get('type')
+        uid = request.json.get('uid')
+        product_name = request.json.get('nom')
+        product_description = request.json.get('description')
+
+        all_products = (
+            Produit.query
+            .filter(
+                Produit.uid != uid,
+                # Produit.type == product_type,
+                or_(
+                    Produit.nom.ilike(f"%{product_name}%"),
+                    Produit.description.ilike(f"%{product_description}%")
+                )
+            )
+            .distinct(Produit.nom)
+            .limit(10)   # 🔥 limite pour UX & perf
+            .all()
+        )
+
+        products_info = []
+        for product in all_products:
+            products_info.append({
+                "id": product.id,
+                "uid": product.uid,
+                "nom": product.nom,
+                "description": product.description,
+                "prix_fournisseur": product.prix_fournisseur,
+                "prix_vente": product.prix_vente,
+                "stock_disponible": product.stock_disponible,
+                "fournisseur_id": product.fournisseur_id,
+                "images": product.images
+            })
+
+        response['status'] = 'success'
+        response['products'] = products_info
+
+    except Exception as e:
+        response['status'] = 'error'
+        response['error_description'] = str(e)
+
+    return response

@@ -3,11 +3,13 @@ import LoginPage from "../pages/auth/loginPage";
 import RegisterPage from "../pages/auth/registerPage";
 import ForgotPasswordPage from "../pages/auth/forgotPasswordPage";
 import HomePage from "../pages/home/homePage";
-import CartPage from "../pages/cart/cartPage";
 import OrdersPage from "../pages/orders/orderTrackingPage";
 import ProfilePage from "../pages/profile/profilePage";
 import ProductPage from "../pages/product/productsPage";
 import BottomBar from "../components/layout/bottomBar";
+import ActivityPage from "../pages/activity/activityPage";
+import FavoritesPage from "../pages/activity/favorites";
+import HistoryPage from "../pages/activity/history";
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -31,9 +33,11 @@ const AppRoutes = () => {
 
           {/* 🏠 PAGES PRINCIPALES */}
           <Route path="/home" element={<HomePage />} />
-          <Route path="/cart" element={<CartPage />} />
+          <Route path="/activity" element={<ActivityPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/activity/favorites" element={<FavoritesPage />} />
+          <Route path="/activity/history" element={<HistoryPage />} />
           <Route path="/singleproduct/:uid" element={<ProductPage />} />
         </Routes>
       </div>

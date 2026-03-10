@@ -61,6 +61,8 @@ const LoginPage: React.FC = () => {
       const response = await LoginClient({ email, password });
 
       if (response.data.status === "success") {
+        const user = response.data.user_infos;
+        sessionStorage.setItem("user", JSON.stringify(user));
         showToast("Connexion réussie !", "success");
         setTimeout(() => nav("/home"), 2000);
       } else {

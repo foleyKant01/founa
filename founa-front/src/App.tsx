@@ -1,13 +1,13 @@
 // src/App.tsx
 import React from "react";
 import AppRoutes from "./router/appRouter";
-import { CartProvider } from "./context/cartContext";
+import { ActivityProvider } from "./context/activityContext";
 
 function App() {
   return (
-    <CartProvider>
+    <ActivityProvider>
       <AppRoutes />
-    </CartProvider>
+    </ActivityProvider>
   );
 }
 

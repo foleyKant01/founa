@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { GetAllProduits } from "../../services/product.service"; // chemin correct
+import { SaveFavoris, DeleteFavoris } from "../../services/product.service"; // chemin correct
 import { useNavigate } from "react-router-dom";
-
+import { useActivity, type FavoriteItem } from "../../context/activityContext"; // 🔹 hook favoris
 
 
 // 🔹 Typage des produits récupérés depuis l'API
@@ -18,12 +19,13 @@ interface Produit {
   fournisseur_id: string;
 }
 
-
 const HomePage: React.FC = () => {
   const nav = useNavigate();
 
   const [Allproduits, setProduits] = useState<Produit[]>([]);
   // const [loading, setLoading] = useState<boolean>(true);
+    const { addFavorite, removeFavorite, isFavorite } = useActivity();
+
 
   useEffect(() => {
     GetAllProduits()
@@ -36,6 +38,44 @@ const HomePage: React.FC = () => {
         // setLoading(false);
       });
   }, []);
+
+   // 🔹 gestion favoris
+  // const handleToggleFavorite = (produit: Produit) => {
+  //   if (isFavorite(produit.uid)) {
+  //     removeFavorite(produit.uid);
+  //   } else {
+  //     const favItem: FavoriteItem = { uid: produit.uid, nom: produit.nom, image: produit.images[0] };
+  //     addFavorite(favItem);
+  //   }
+  // };
+
+const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+const clientId = user.uid;
+
+const handleToggleFavorite = async (produit: Produit) => {
+  try {
+    if (isFavorite(produit.uid)) {
+      // ❌ SUPPRESSION
+      await DeleteFavoris(produit.uid, clientId);
+      removeFavorite(produit.uid);
+    } else {
+      // ➕ AJOUT
+      await SaveFavoris(produit.uid, clientId);
+
+      const favItem: FavoriteItem = {
+        uid: produit.uid,
+        nom: produit.nom,
+        image: produit.images[0],
+      };
+
+      addFavorite(favItem);
+    }
+  } catch (error) {
+    console.error("Erreur favoris :", error);
+  }
+};
+
+
   return (
     <div style={styles.container}>
       {/* HEADER */}
@@ -71,29 +111,75 @@ const HomePage: React.FC = () => {
               </div>
               <h3 style={styles.productName}>{produit.nom}</h3>
               <p style={styles.productPrice}>{produit.prix_vente}</p>
+              {/* 🔹 Boutons en bas : Commander + Cœur */}
+        <div style={styles.bottomButtons}>
+          <button
+            style={styles.commandButton}
+            onClick={() => nav(`/singleproduct/${produit.uid}`)}
+          >
+            Commander
+          </button>
+
+          {/* <button
+            style={{
+              ...styles.favoriteButton,
+              backgroundColor: isFavorite(produit.uid) ? "#ffffffff" : "#ffffffff",
+            }}
+            onClick={(e) => {
+              e.stopPropagation(); // empêche la navigation
+              handleToggleFavorite(produit);
+            }}
+          >
+            {isFavorite(produit.uid) ? "❤️" : "🤍"}
+          </button> */}
+        </div>
             </div>
           ))}
         </div>
       </section>
 
       <section style={styles.productsSection}>
-        <h2 style={styles.sectionTitle}>Produits populaires</h2>
-        <div style={styles.productList}>
-          {Allproduits.slice(0, 4).map((produit, index) => (
-            <div 
-              key={index} 
-              style={styles.productCard} 
-              onClick={() => nav(`/singleproduct/${produit.uid}`)} // redirection fonctionnelle
-            >
-              <div style={styles.productImage}>
-                <img src={produit.images} alt={produit.nom} style={{ width: 130, height: 100, objectFit: "cover" }} />
-              </div>
-              <h3 style={styles.productName}>{produit.nom}</h3>
-              <p style={styles.productPrice}>{produit.prix_vente}</p>
-            </div>
-          ))}
+  <h2 style={styles.sectionTitle}>Produits populaires</h2>
+  <div style={styles.productList}>
+    {Allproduits.slice(0, 4).map((produit, index) => (
+      <div 
+        key={index} 
+        style={styles.productCard} 
+        onClick={() => nav(`/singleproduct/${produit.uid}`)} // redirection fonctionnelle
+      >
+        <div style={styles.productImage}>
+          <img src={produit.images} alt={produit.nom} style={{ width: 130, height: 100, objectFit: "cover" }} />
         </div>
-      </section>
+        <h3 style={styles.productName}>{produit.nom}</h3>
+        <p style={styles.productPrice}>{produit.prix_vente}</p>
+
+        {/* 🔹 Boutons en bas : Commander + Cœur */}
+        <div style={styles.bottomButtons}>
+          <button
+            style={styles.commandButton}
+            onClick={() => nav(`/singleproduct/${produit.uid}`)}
+          >
+            Commander
+          </button>
+
+          {/* <button
+            style={{
+              ...styles.favoriteButton,
+              backgroundColor: isFavorite(produit.uid) ? "#ffffffff" : "#ffffffff",
+            }}
+            onClick={(e) => {
+              e.stopPropagation(); // empêche la navigation
+              handleToggleFavorite(produit);
+            }}
+          >
+            {isFavorite(produit.uid) ? "❤️" : "🤍"}
+          </button> */}
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
 
 
       {/* STYLES GLOBAUX */}
@@ -126,6 +212,44 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: "#00A4A6",
     color: "#fff",
   },
+  bottomButtons: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginTop: 10,
+  gap: 10,
+},
+commandButton: {
+  flex: 1,
+  padding: "8px 5px",
+  marginRight: "25px",
+  marginLeft: "25px",
+  borderRadius: 8,
+  border: "none",
+  cursor: "pointer",
+  backgroundColor: "#00A4A6",
+  color: "#fff",
+  fontWeight: "bold",
+  fontSize: 14,
+  transition: "all 0.2s",
+},
+favoriteButton: {
+  width: 25,
+  backgroundColor: "white",
+  height: 25,
+  borderRadius: 8,
+  marginTop: "2px",
+  border: "none",
+  cursor: "pointer",
+  color: "#fff",
+  fontSize: 14,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "all 0.2s",
+  // boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+},
+
   searchWrapper: {
     display: "flex",
     alignItems: "center",
