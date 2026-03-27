@@ -173,6 +173,7 @@ def GetSingleCommande():
     try:
         commande_id = (request.json.get('commande_id'))
         single_commande = Commande.query.filter_by(commande_id=commande_id).first()
+        single_product = Produit.query.filter_by(uid=single_commande.produit_id).first()
 
         if not single_commande:
             return {"status": "error", "message": "Commande introuvable"}, 404
@@ -182,11 +183,10 @@ def GetSingleCommande():
             "commande": {
                 "commande_id": single_commande.commande_id,
                 "client_id": single_commande.client_id,
-                "client": single_commande.client,
                 "produit_id": single_commande.produit_id,
-                "produit": single_commande.produit,
+                "nom": single_product.nom,
+                "images": single_product.images,
                 "teller_id": single_commande.teller_id,
-                "teller": single_commande.teller,
                 "quantite": single_commande.quantite,
                 "prix_total": single_commande.prix_total,
                 "statut": single_commande.statut,

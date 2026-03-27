@@ -16,6 +16,7 @@ import CreateProduct from "../pages/teller/createProduct";
 import ReadAllProducts from "../pages/teller/readAllProducts";
 import ReadSingleProduct from "../pages/teller/readSingleProduct";
 import EditProduct from "../pages/teller/editProduct";
+import OrderDetailsPage from "../pages/orders/OrderDetailsPage";
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -47,6 +48,7 @@ const AppRoutes = () => {
           <Route path="/activity/favorites" element={<FavoritesPage />} />
           <Route path="/activity/history" element={<HistoryPage />} />
           <Route path="/singleproduct/:uid" element={<ProductPage />} />
+          <Route path="/order/:commande_id" element={<OrderDetailsPage />} />
 
            {/* 🔥 TELLER */}
           <Route path="/teller/home" element={<HomeTeller />} />

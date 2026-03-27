@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import BottomBar from "../../components/layout/bottomBar";
 import { GetAllCommandeByClient } from "../../services/order.service"; // 🔹 service API commandes
+import { useNavigate } from "react-router-dom";
+
 
 interface Order {
   commande_id: string;
@@ -22,6 +24,7 @@ interface Order {
 
 const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const navigate = useNavigate()
   const user = JSON.parse(sessionStorage.getItem("user") || "{}");
   const clientId = user.uid;
 
@@ -84,7 +87,7 @@ const OrdersPage: React.FC = () => {
         <p>Aucune commande pour le moment.</p>
       ) : (
         orders.map((order) => (
-          <div key={order.commande_id} style={styles.orderCard}>
+          <div key={order.commande_id} style={styles.orderCard} onClick={() => navigate(`/order/${order.commande_id}`)}>
             <div style={styles.orderDetails}>
               <span style={styles.orderId}>{order.commande_id}</span>
               <span style={styles.orderDate}>Date: {order.created_date}</span>

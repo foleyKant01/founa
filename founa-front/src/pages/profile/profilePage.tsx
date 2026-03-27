@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { ReadSingleClient } from "../../services/auth.service";
 import { GetAllCommandeByClient } from "../../services/order.service";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   fullname: string;
@@ -28,6 +29,7 @@ interface Order {
 
 const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([]);
   const client = JSON.parse(sessionStorage.getItem("user") || "{}");
   const uid = client.uid;
@@ -119,7 +121,8 @@ const ProfilePage: React.FC = () => {
           )
           .slice(0, 5)
           .map((order) => (
-            <div key={order.commande_id} style={styles.orderCard}>
+            <div key={order.commande_id} style={styles.orderCard} onClick={() => navigate(`/order/${order.commande_id}`)}
+>
               <div style={styles.orderDetails}>
                 <span style={styles.orderId}>{order.commande_id}</span>
                 <span style={styles.orderProduit}>{order.nom}</span>
