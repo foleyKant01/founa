@@ -17,7 +17,7 @@ def upload_to_s3(files):
             filename,
             ExtraArgs={"ACL": "public-read"}  # rendre le fichier public
         )
-        url = URL + {filename}
+        url = URL + filename
         urls.append(url)
     return urls
 
@@ -73,17 +73,19 @@ def GetAllProduits():
     for p in produits:
 
         result.append({
-            "id": p.id,
             "uid": p.uid,
             "nom": p.nom,
             "description": p.description,
-            "prix_fournisseur": p.prix_fournisseur,
-            "prix_vente": p.prix_vente,
+            "lien_1": p.lien_1,
+            "lien_2": p.lien_2,
+            "prix_vente": p.prix_vente, 
+            "images": p.images, 
             "stock_disponible": p.stock_disponible, 
-            "moq": p.moq,
+            "moq": p.moq, 
+            "status": p.status, 
+            "teller_id": p.teller_id, 
             "fournisseur_id": p.fournisseur_id,
-            "teller_id": p.teller_id,
-            "images": p.images
+            "creation_date": str(p.creation_date),
         })
 
     return jsonify({
@@ -117,6 +119,7 @@ def GetSingleProduit():
             "images": images,
             "stock_disponible": produit.stock_disponible,
             "moq": produit.moq,
+            "status": produit.status,
             "teller_id": produit.teller_id,
             "fournisseur_id": produit.fournisseur_id,
             "creation_date": str(produit.creation_date),

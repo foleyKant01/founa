@@ -13,6 +13,7 @@ interface Produit {
   uid: string;
   nom: string;
   description: string;
+  status: string;
   prix_vente: number;
   stock_disponible: number;
   images: string[];
@@ -92,52 +93,55 @@ const handleToggleFavorite = async (produit: Produit) => {
       </header>
 
       {/* PRODUITS AU TOP */}
-      <section style={styles.topProductsSection}>
-        <h2 style={styles.sectionTitle}>Produits au top du classement</h2>
+      {/* PRODUITS AU TOP */}
+<section style={styles.topProductsSection}>
+  <h2 style={styles.sectionTitle}>Produits au top du classement</h2>
 
-        <div style={styles.slider}>
-          {Allproduits.map((produit, index) => (
-            <div
-              key={index}
-              style={styles.topProductCard}
-              onClick={() => nav(`/singleproduct/${produit.uid}`)} // redirection fonctionnelle
+  <div style={styles.slider}>
+    {Allproduits
+      .filter((produit) => produit.status === "Top") // 🔹 Filtrer uniquement les produits Top
+      .map((produit, index) => (
+        <div
+          key={index}
+          style={styles.topProductCard}
+          onClick={() => nav(`/singleproduct/${produit.uid}`)} // redirection fonctionnelle
+        >
+          <div style={styles.productImage}>
+            <img
+              src={produit.images} // 🔹 images est un tableau
+              alt={produit.nom}
+              style={{ width: 130, height: 100, objectFit: "cover" }}
+            />
+          </div>
+          <h3 style={styles.productName}>{produit.nom}</h3>
+          <p style={styles.productPrice}>{produit.prix_vente}</p>
+
+          <div style={styles.bottomButtons}>
+            <button
+              style={styles.commandButton}
+              onClick={() => nav(`/singleproduct/${produit.uid}`)}
             >
-              <div style={styles.productImage}>
-                <img
-                  src={produit.images}
-                  alt={produit.nom}
-                  style={{ width: 130, height: 100, objectFit: "cover" }}
-                />
-              </div>
-              <h3 style={styles.productName}>{produit.nom}</h3>
-              <p style={styles.productPrice}>{produit.prix_vente}</p>
-              {/* 🔹 Boutons en bas : Commander + Cœur */}
-        <div style={styles.bottomButtons}>
-          <button
-            style={styles.commandButton}
-            onClick={() => nav(`/singleproduct/${produit.uid}`)}
-          >
-            Commander
-          </button>
+              Commander
+            </button>
 
-          {/* <button
-            style={{
-              ...styles.favoriteButton,
-              backgroundColor: isFavorite(produit.uid) ? "#ffffffff" : "#ffffffff",
-            }}
-            onClick={(e) => {
-              e.stopPropagation(); // empêche la navigation
-              handleToggleFavorite(produit);
-            }}
-          >
-            {isFavorite(produit.uid) ? "❤️" : "🤍"}
-          </button> */}
+            {/* Bouton favoris (si nécessaire) */}
+            {/* <button
+              style={{
+                ...styles.favoriteButton,
+                backgroundColor: isFavorite(produit.uid) ? "#ffffffff" : "#ffffffff",
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleFavorite(produit);
+              }}
+            >
+              {isFavorite(produit.uid) ? "❤️" : "🤍"}
+            </button> */}
+          </div>
         </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
+      ))}
+  </div>
+</section>
       <section style={styles.productsSection}>
   <h2 style={styles.sectionTitle}>Produits populaires</h2>
   <div style={styles.productList}>

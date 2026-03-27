@@ -9,3 +9,9 @@ export const CreateCommande = (data: {
 }) => {
   return api.post("/commandes/create_commande", data);
 };
+
+export const GetAllCommandeByClient = (data: {
+  client_id: string;
+}) => {
+  return api.post('/commandes/get_all_commande_by_client', data);
+};

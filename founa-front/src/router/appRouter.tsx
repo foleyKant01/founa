@@ -10,13 +10,21 @@ import BottomBar from "../components/layout/bottomBar";
 import ActivityPage from "../pages/activity/activityPage";
 import FavoritesPage from "../pages/activity/favorites";
 import HistoryPage from "../pages/activity/history";
+import HomeTeller from "../pages/teller/homeTeller";
+import HomeAdmin from "../pages/admin/homeAdmin";
+import CreateProduct from "../pages/teller/createProduct";
+import ReadAllProducts from "../pages/teller/readAllProducts";
+import ReadSingleProduct from "../pages/teller/readSingleProduct";
+import EditProduct from "../pages/teller/editProduct";
 
 const AppRoutes = () => {
   const location = useLocation();
 
   // Pages où le BottomBar ne doit pas apparaître
   const authPages = ["/auth/login", "/auth/register", "/auth/forgotpassword"];
-  const showBottomBar = !authPages.includes(location.pathname);
+  // toutes les routes teller
+  const isTellerRoute = location.pathname.startsWith("/teller");
+  const showBottomBar = !authPages.includes(location.pathname) && !isTellerRoute;
 
   return (
     <>
@@ -39,6 +47,20 @@ const AppRoutes = () => {
           <Route path="/activity/favorites" element={<FavoritesPage />} />
           <Route path="/activity/history" element={<HistoryPage />} />
           <Route path="/singleproduct/:uid" element={<ProductPage />} />
+
+           {/* 🔥 TELLER */}
+          <Route path="/teller/home" element={<HomeTeller />} />
+          <Route path="/teller/create" element={<CreateProduct />} />
+          <Route path="/teller/readall" element={<ReadAllProducts />} />
+          <Route path="/teller/readsingle" element={<ReadSingleProduct />} />
+          <Route path="/teller/edit" element={<EditProduct />} />
+
+          {/* 🔥 ADMIN */}
+          <Route path="/admin/home" element={<HomeAdmin />} />
+          {/* <Route path="/admin/create" element={<CreateProduct />} />
+          <Route path="/admin/readall" element={<ReadAllProducts />} />
+          <Route path="/admin/readsingle" element={<ReadSingleProduct />} />
+          <Route path="/admin/edit" element={<EditProduct />} /> */}
         </Routes>
       </div>
 

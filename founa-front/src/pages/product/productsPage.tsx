@@ -1,6 +1,6 @@
 // src/pages/ProductPage.tsx
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { CreateCommande } from "../../services/order.service";
 import { GetSingleProduit } from "../../services/product.service"; // chemin correct
 
@@ -12,8 +12,41 @@ interface Product {
   stock: number;
 }
 
+// 🔹 Composant Toast
+const Toast: React.FC<{
+  message: string;
+  type: "success" | "error" | "info";
+}> = ({ message, type }) => {
+  const colors = {
+    success: "#00A884",
+    error: "#D9534F",
+    info: "#007BFF",
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 20,
+        left: 0,
+        right: 0,
+        width: "100%",
+        background: colors[type],
+        color: "#fff",
+        padding: "14px 18px",
+        fontSize: 17,
+        textAlign: "center",
+        zIndex: 9999,
+      }}
+    >
+      {message}
+    </div>
+  );
+};
+
 const ProductPage: React.FC = () => {
   const { uid } = useParams<{ uid: string }>();
+  const nav = useNavigate(); // ← ajouté ici
   const [product, setProduct] = useState<Product>({
     name: "",
     price: 0,
@@ -26,6 +59,17 @@ const ProductPage: React.FC = () => {
 
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
+
+    // 🔹 Toast state
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info";
+  } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error" | "info") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 2500);
+  };
 
   useEffect(() => {
     if (uid) {
@@ -53,12 +97,12 @@ const ProductPage: React.FC = () => {
 
   const handleCreateCommande = async () => {
     if (!client_id) {
-      alert("Veuillez vous connecter pour passer une commande");
+      showToast("Veuillez vous connecter pour passer une commande", "error");
       return;
     }
 
     if (!uid) {
-      alert("Produit invalide");
+      showToast("Produit invalide", "error");
       return;
     }
 
@@ -73,15 +117,18 @@ const ProductPage: React.FC = () => {
       const response = await CreateCommande(payload);
 
       if (response.data.status === "success") {
-        alert("✅ Commande envoyée avec succès !");
+        showToast("✅ Commande envoyée avec succès !", "success");
+        setTimeout(() => {
+          nav("/home"); // ← Redirection vers la page home
+        }, 2500);
         // optionnel : redirection
         // nav("/mes-commandes");
       } else {
-        alert(response.data.message || "Erreur lors de la commande");
+        showToast(response.data.message || "Erreur lors de la commande", "error");
       }
     } catch (error) {
       console.error("Erreur création commande :", error);
-      alert("❌ Erreur serveur, veuillez réessayer");
+      showToast("❌ Erreur serveur, veuillez réessayer", "error");
     }
   };
 
@@ -165,6 +212,8 @@ const ProductPage: React.FC = () => {
           ))}
         </div>
       </section>
+      {/* 🔔 Affichage du toast */}
+      {toast && <Toast message={toast.message} type={toast.type} />}
     </div>
   );
 };

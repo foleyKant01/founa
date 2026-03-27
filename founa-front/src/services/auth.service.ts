@@ -18,7 +18,7 @@ export const LoginClient = (data: {
   return api.post('/auth/login_client', data); 
 };
 
-export const ForgotPassword = (data: {
+export const ForgotPassword = (data: { 
   email: string;
 }) => {
   return api.post('/auth/forgot_password', data);
@@ -30,4 +30,10 @@ export const SaveNewPassword = (data: {
   confirmpassword: string;
 }) => {
   return api.post('/auth/save_new_password', data);
+};
+
+export const ReadSingleClient = (data: {
+  uid: string;
+}) => {
+  return api.post('/clients/read_single_client', data); 
 };

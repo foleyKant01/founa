@@ -1,60 +1,85 @@
-import React from "react";
+// src/pages/ProfilePage.tsx
+import React, { useEffect, useState } from "react";
+import { ReadSingleClient } from "../../services/auth.service";
+import { GetAllCommandeByClient } from "../../services/order.service";
 
 interface User {
   fullname: string;
   email: string;
   phone: string;
-  address: string;
+  adresse_livraison: string;
+  uid: string;
 }
 
 interface Order {
-  id: string;
-  date: string;
-  status: "Livré" | "En cours" | "Annulé";
-  total: number;
+  commande_id: string;
+  client_id: string;
+  produit_id: string;
+  nom: string;
+  teller_id: string;
+  fournisseur_id: string;
+  quantite: number;
+  prix_total: number;
+  statut: string; // "Initié", "Prise en charge", "Valider", "Payer", "Expédition", "Livraison", "Livré"
+  details: string;
+  created_date: string; 
+  updated_date?: string;
 }
-
-interface CartItem {
-  id: number;
-  name: string;
-  qty: number;
-  price: number;
-}
-
-const user: User = {
-  fullname: "Jean Kouadio",
-  email: "jean.kouadio@example.com",
-  phone: "0574530290",
-  address: "Yopougon, Abidjan",
-};
-
-const recentOrders: Order[] = [
-  { id: "ORD001", date: "01/12/2025", status: "Livré", total: 430000 },
-  { id: "ORD002", date: "28/11/2025", status: "En cours", total: 120000 },
-];
-
-const cartItems: CartItem[] = [
-  { id: 1, name: "Smartphone Samsung", qty: 1, price: 350000 },
-  { id: 2, name: "Robe élégante", qty: 2, price: 80000 },
-  { id: 3, name: "Poulet frais", qty: 5, price: 3500 },
-];
 
 const ProfilePage: React.FC = () => {
-  const getStatusColor = (status: Order["status"]) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const client = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const uid = client.uid;
+
+  useEffect(() => {
+    if (uid) {
+      // Récupérer les infos du client
+      ReadSingleClient({ uid })
+        .then((res) => {
+          if (res.data.status === "success") {
+            setUser(res.data.client);
+          }
+        })
+        .catch((err) => console.error("Erreur récupération client :", err));
+
+      // Récupérer les commandes du client
+      GetAllCommandeByClient({ client_id: uid })
+        .then((res) => {
+          if (res.data.status === "success") {
+            setOrders(res.data.commandes);
+          }
+        })
+        .catch((err) => console.error("Erreur récupération commandes :", err));
+    }
+  }, [uid]);
+
+  const getStatusColor = (status: Order["statut"]) => {
     switch (status) {
+      case "Initié":
+        return "#9E9E9E";
+      case "Prise en charge":
+        return "#2196F3";
+      case "Validé":
+        return "#3F51B5";
+      case "Payé":
+        return "#FFC107";
+      case "Expédition":
+        return "#FF9800";
+      case "Livraison":
+        return "#00BCD4";
       case "Livré":
         return "#4CAF50";
-      case "En cours":
-        return "#FF9800";
-      case "Annulé":
-        return "#F44336";
       default:
         return "#000";
     }
   };
 
-    const totalCartItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
-    const totalCartPrice = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
+  const paidOrders = orders.filter((order) => order.statut === "Payer");
+  const totalCartItems = paidOrders.reduce((acc, item) => acc + item.quantite, 0);
+  const totalCartPrice = paidOrders.reduce((acc, item) => acc + item.prix_total, 0);
+
+  if (!user) return <p>Chargement du profil...</p>;
 
   return (
     <div style={styles.container}>
@@ -65,16 +90,16 @@ const ProfilePage: React.FC = () => {
         <p><strong>Nom :</strong> {user.fullname}</p>
         <p><strong>Email :</strong> {user.email}</p>
         <p><strong>Téléphone :</strong> {user.phone}</p>
-        <p><strong>Adresse :</strong> {user.address}</p>
+        <p><strong>Adresse :</strong> {user.adresse_livraison}</p>
       </div>
 
       {/* Actions */}
       <button style={styles.editButton}>Modifier le profil</button>
       <button style={styles.settingsButton}>Changer le mot de passe</button>
 
-      {/* Panier */}
+      {/* Panier / dépenses */}
       <div style={styles.section}>
-        <h3 style={styles.sectionTitle}>Panier actuel</h3>
+        <h3 style={styles.sectionTitle}>Dépense actuel</h3>
         <div style={styles.cartCard}>
           <p><strong>Articles :</strong> {totalCartItems}</p>
           <p><strong>Total :</strong> {totalCartPrice.toLocaleString()} FCFA</p>
@@ -83,112 +108,67 @@ const ProfilePage: React.FC = () => {
 
       {/* Commandes récentes */}
       <h3 style={styles.sectionTitle}>Commandes récentes</h3>
-      {recentOrders.map((order) => (
-        <div key={order.id} style={styles.orderCard}>
-          <div style={styles.orderDetails}>
-            <span style={styles.orderId}>{order.id}</span>
-            <span style={styles.orderDate}>{order.date}</span>
-            <span style={styles.orderTotal}>{order.total.toLocaleString()} FCFA</span>
-          </div>
-          <span
-            style={{
-              ...styles.orderStatus,
-              backgroundColor: getStatusColor(order.status),
-            }}
-          >
-            {order.status}
-          </span>
-        </div>
-      ))}
-      <button style={styles.logoutButton}>Se déconnecter</button>
+      {orders.length === 0 ? (
+        <p>Aucune commande pour le moment.</p>
+      ) : (
+        orders
+          .sort(
+            (a, b) =>
+              new Date(b.created_date).getTime() -
+              new Date(a.created_date).getTime()
+          )
+          .slice(0, 5)
+          .map((order) => (
+            <div key={order.commande_id} style={styles.orderCard}>
+              <div style={styles.orderDetails}>
+                <span style={styles.orderId}>{order.commande_id}</span>
+                <span style={styles.orderProduit}>{order.nom}</span>
+                <span style={styles.orderDate}>{order.created_date}</span>
+                <span style={styles.orderTotal}>
+                  {order.prix_total.toLocaleString()} FCFA
+                </span>
+              </div>
+              <span
+                style={{
+                  ...styles.orderStatus,
+                  backgroundColor: getStatusColor(order.statut),
+                }}
+              >
+                {order.statut}
+              </span>
+            </div>
+          ))
+      )}
+      <button
+        style={styles.logoutButton}
+        onClick={() => {
+          sessionStorage.removeItem("user"); // supprime les infos du client
+          window.location.href = "/auth/login";   // redirige vers la page de connexion
+        }}
+      >
+        Se déconnecter
+      </button>
     </div>
   );
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    padding: 15,
-    paddingBottom: 100,
-    minHeight: "100vh",
-    backgroundColor: "#F5F5F5",
-    fontFamily: "Arial, sans-serif",
-  },
+  container: { padding: 5, paddingBottom: 100, minHeight: "100vh", backgroundColor: "#F5F5F5", fontFamily: "Arial, sans-serif" },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 15 },
-  profileCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-    lineHeight: 1.6,
-  },
-  editButton: {
-    width: "100%",
-    padding: 12,
-    backgroundColor: "#00A4A6",
-    color: "#fff",
-    border: "none",
-    borderRadius: 10,
-    fontSize: 16,
-    cursor: "pointer",
-    marginBottom: 10,
-  },
-  settingsButton: {
-    width: "100%",
-    padding: 12,
-    backgroundColor: "#4ECDC4",
-    color: "#fff",
-    border: "none",
-    borderRadius: 10,
-    fontSize: 16,
-    cursor: "pointer",
-    marginBottom: 10,
-  },
-  logoutButton: {
-    width: "100%",
-    padding: 12,
-    backgroundColor: "#FF6B6B",
-    color: "#fff",
-    border: "none",
-    borderRadius: 10,
-    fontSize: 16,
-    cursor: "pointer",
-    marginTop: 20,
-  },
+  profileCard: { backgroundColor: "#fff", borderRadius: 12, padding: 20, marginBottom: 20, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", lineHeight: 1.6 },
+  editButton: { width: "100%", padding: 12, backgroundColor: "#00A4A6", color: "#fff", border: "none", borderRadius: 10, fontSize: 16, cursor: "pointer", marginBottom: 10 },
+  settingsButton: { width: "100%", padding: 12, backgroundColor: "#4ECDC4", color: "#fff", border: "none", borderRadius: 10, fontSize: 16, cursor: "pointer", marginBottom: 10 },
+  logoutButton: { width: "100%", padding: 12, backgroundColor: "#ff0000ff", color: "#fff", border: "none", borderRadius: 10, fontSize: 16, cursor: "pointer", marginTop: 20 },
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  cartCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 15,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-    display: "flex",
-    justifyContent: "space-between",
-  },
-  orderCard: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 15,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-    cursor: "pointer",
-  },
+  cartCard: { backgroundColor: "#fff", borderRadius: 12, padding: 15, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", display: "flex", justifyContent: "space-between" },
+  orderCard: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: 15, backgroundColor: "#fff", borderRadius: 12, marginBottom: 15, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", cursor: "pointer" },
   orderDetails: { display: "flex", flexDirection: "column", gap: 5 },
   orderId: { fontWeight: "bold", fontSize: 16 },
   orderDate: { fontSize: 14, color: "#757575" },
+  orderProduit: { fontSize: 14, color: "#333" },
   orderTotal: { fontSize: 16, fontWeight: "bold", color: "#00A4A6" },
-  orderStatus: {
-    padding: "5px 12px",
-    borderRadius: 20,
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 12,
-    minWidth: 80,
-    textAlign: "center",
-  },
+  orderStatus: { padding: "5px 12px", borderRadius: 20, color: "#fff", fontWeight: "bold", fontSize: 12, minWidth: 80, textAlign: "center" },
+  section: { marginBottom: 20 },
 };
 
 export default ProfilePage;
-

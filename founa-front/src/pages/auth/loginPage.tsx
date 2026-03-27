@@ -64,8 +64,18 @@ const LoginPage: React.FC = () => {
         const user = response.data.user_infos;
         sessionStorage.setItem("user", JSON.stringify(user));
         showToast("Connexion réussie !", "success");
-        setTimeout(() => nav("/home"), 2000);
-      } else {
+        setTimeout(() => {
+              if (user.role === "Client") {
+                nav("/home");
+              } else if (user.role === "Teller") {
+                nav("/teller/home");
+              } else if (user.role === "Admin") {
+                nav("/admin/home"); // par exemple pour Admin
+              } else {
+                nav("/"); // fallback
+              }
+            }, 2000);
+        } else {
         showToast(response.data.error_description || "Erreur lors de la connexion", "error");
       }
     } catch (error) {

@@ -6,6 +6,8 @@ from config.db import db
 from config.constant import *
 from model.founa import *
 from ressources.clients import ClientsApi 
+from ressources.teller import TellerApi 
+from ressources.admin import AdminApi 
 from ressources.commandes import CommandesApi
 from ressources.auth import AuthApi
 from ressources.fournisseurs import FournisseursApi
@@ -46,6 +48,8 @@ def home():
 
 
 api.add_resource(ClientsApi, '/api/clients/<string:route>', endpoint='all_clients', methods=['GET', 'POST', 'DELETE', 'PATCH']) 
+api.add_resource(TellerApi, '/api/teller/<string:route>', endpoint='all_tellers', methods=['GET', 'POST', 'DELETE', 'PATCH']) 
+api.add_resource(AdminApi, '/api/admin/<string:route>', endpoint='all_admins', methods=['GET', 'POST', 'DELETE', 'PATCH']) 
 api.add_resource(CommandesApi, '/api/commandes/<string:route>', endpoint='all_commandes', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 api.add_resource(FournisseursApi, '/api/fournisseurs/<string:route>', endpoint='all_fournisseurs', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 api.add_resource(ProduitsApi, '/api/produits/<string:route>', endpoint='all_produits', methods=['GET', 'POST', 'DELETE', 'PATCH'])
