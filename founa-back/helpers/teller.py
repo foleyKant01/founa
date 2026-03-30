@@ -1,6 +1,8 @@
 from config.db import db
 from model.founa import *
 from flask import request
+from sqlalchemy import func, extract
+
 
 
 
@@ -126,6 +128,39 @@ def UpdateTeller():
 
     return response
 
+
+
+def StatistiquesTeller():
+    try:
+        teller_id = request.json.get("teller_id")
+        if not teller_id:
+            return {"status": "error", "message": "teller_id requis"}, 400
+        nb_livrees = Commande.query.filter_by(teller_id=teller_id, statut="Livrer").count()
+        total_revenu = db.session.query(func.sum(Commande.prix_total * 0.08)) \
+            .filter_by(teller_id=teller_id, statut="Livrer").scalar() or 0
+        revenu_par_mois = (
+            db.session.query(
+                extract('year', Commande.created_date).label('year'),
+                extract('month', Commande.created_date).label('month'),
+                func.sum(Commande.prix_total * 0.08).label('revenu')
+            )
+            .filter_by(teller_id=teller_id, statut="Livrer")
+            .group_by('year', 'month')
+            .order_by('year', 'month')
+            .all()
+        )
+        revenu_mois_dict = [
+            {"year": int(r.year), "month": int(r.month), "revenu": float(r.revenu)}
+            for r in revenu_par_mois
+        ]
+        return {
+            "status": "success",
+            "nombre_commandes_livrees": nb_livrees,
+            "revenu_total": float(total_revenu),
+            "revenu_par_mois": revenu_mois_dict
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
 
 
 # def DeleteUser():

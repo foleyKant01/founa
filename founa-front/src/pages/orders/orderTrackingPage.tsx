@@ -15,7 +15,7 @@ interface Order {
   teller: string;
   quantite: string;
   prix_total: string;
-  statut: string; // "Livré" | "En cours" | "Annulé"
+  statut: string; // "Livrer" | "En cours" | "Annulé"
   details: string;
   nom: string;
   created_date: string;
@@ -60,19 +60,19 @@ const OrdersPage: React.FC = () => {
 
   const getStatusColor = (status: Order["statut"]) => {
     switch (status) {
-    case "Initié":
+    case "Initier":
       return "#9E9E9E"; // gris
     case "Prise en charge":
       return "#2196F3"; // bleu
-    case "Validé":
+    case "Valider":
       return "#3F51B5"; // indigo
-    case "Payé":
+    case "Payer":
       return "#FFC107"; // jaune
-    case "Expédition":
+    case "Expedition":
       return "#FF9800"; // orange
     case "Livraison":
       return "#00BCD4"; // cyan
-    case "Livré":
+    case "Livrer":
       return "#4CAF50"; // vert
     default:
       return "#000"; // noir pour inconnu
@@ -117,7 +117,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   container: {
     padding: 15,
     paddingBottom: 100,
-    minHeight: "100vh",
+    minHeight: "80vh",
     backgroundColor: "#F5F5F5",
     fontFamily: "Arial, sans-serif",
   },

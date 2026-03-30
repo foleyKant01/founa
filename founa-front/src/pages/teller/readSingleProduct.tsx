@@ -1,270 +1,350 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { DeleteProduitByTeller, GetSingleProduit } from "../../services/product.service";
+import Swal from "sweetalert2";
+
 
 interface Product {
-  name: string;
-  type: string;
+  uid: string;
+  nom: string;
   description: string;
-  price: number;
-  price_received: number;
-  inventory_level: number;
-  color: string;
-  pr_uid: string;
-  image_file: string[];
-  pointure?: string;
-  model?: string;
-  style?: string;
-  material?: string;
+  lien_1: string;
+  lien_2: string;
+  prix_fournisseur: number;
+  prix_vente: string;
+  images: string[];
+  stock_disponible: string;
+  moq?: string;
+  status?: string;
+  teller_id?: string;
+  fournisseur_id?: string;
   creation_date: string;
   update_date: string;
 }
 
 const ReadSingleProduct = () => {
   const navigate = useNavigate();
+  const { uid } = useParams();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [mainImage, setMainImage] = useState<string>("");
+  const [mainImage, setMainImage] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // 🔥 Fake data (remplace par ton API)
   useEffect(() => {
-    const fakeProduct: Product = {
-      name: "Nike Air Max",
-      type: "Chaussures Homme",
-      description: "Chaussure confortable et stylée",
-      price: 30000,
-      price_received: 20000,
-      inventory_level: 12,
-      color: "Noir",
-      pr_uid: "PR999",
-      image_file: [
-        "https://via.placeholder.com/400",
-        "https://via.placeholder.com/401",
-        "https://via.placeholder.com/402"
-      ],
-      pointure: "40-45",
-      model: "Air Max 2024",
-      style: "Sport",
-      material: "Cuir",
-      creation_date: new Date().toISOString(),
-      update_date: new Date().toISOString(),
+    if (uid) fetchProduct(uid);
+  }, [uid]);
+
+  const fetchProduct = async (id: string) => {
+  try {
+    setLoading(true);
+
+    const res = await GetSingleProduit({
+      produit_id: id,
+    });
+
+    console.log("API RESPONSE 👉", res.data);
+
+    if (res.data.status === "success" && res.data.produit) {
+      const prod = res.data.produit;
+
+      // 🔥 CORRECTION ICI
+      let imagesArray: string[] = [];
+
+      if (Array.isArray(prod.images)) {
+        imagesArray = prod.images;
+      } else if (typeof prod.images === "string") {
+        try {
+          imagesArray = JSON.parse(prod.images);
+        } catch {
+          imagesArray = [];
+        }
+      }
+
+      setProduct({
+        ...prod,
+        images: imagesArray,
+      });
+
+      setMainImage(imagesArray[0] || "");
+    }
+  } catch (err) {
+    console.error("Erreur serveur", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+   const deleteProduct = async (uid: string) => {
+    const result = await Swal.fire({
+        title: "Supprimer le produit ?",
+        text: "Cette action est irréversible",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Oui, supprimer",
+        cancelButtonText: "Annuler",
+      });
+  
+    if (!result.isConfirmed) return;
+      try {
+        const teller = JSON.parse(sessionStorage.getItem("teller") || "{}");
+  
+        const res = await DeleteProduitByTeller({
+          produit_id: uid,
+          teller_id: teller.uid,
+        });
+  
+        if (res.data.status === "success") {
+          setData((prev) => prev.filter((p) => p.uid !== uid));
+  
+          Swal.fire({
+            icon: "success",
+            title: "Supprimé !",
+            text: res.data.message || "Produit supprimé avec succès",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+  
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: res.data.message || "Une erreur est survenue",
+          });
+        }
+      } 
+      catch (error: any) {
+        console.error(error);
+  
+        Swal.fire({
+          icon: "error",
+          title: "Erreur",
+          text:
+            error?.response?.data?.message ||
+            "Erreur serveur",
+        });
+      }
+  
     };
 
-    setProduct(fakeProduct);
-    setMainImage(fakeProduct.image_file[0]);
-  }, []);
-
-  // 🗑️ supprimer
-  const deleteProduct = (uid: string) => {
-    console.log("delete", uid);
-    navigate("/admin/view-all-products");
+  const editProduct = () => {
+    navigate(`/teller/edit/${product?.uid}`);
   };
 
-  // ✏️ modifier
-  const editProduct = (uid: string) => {
-    navigate(`/admin/update-product/${uid}`);
-  };
+  if (loading) return <div className="loader"></div>;
+  if (!product) return <p className="empty">Produit introuvable</p>;
 
   return (
     <>
-      {product && (
-        <div className="container product-admin">
+      <div className="container">
 
-          {/* HEADER */}
-          <div className="header">
-            <div>
-              <span
-                className="back-btn"
-                onClick={() => navigate("/admin/view-all-products")}
-              >
-                ← Retour
-              </span>
-              <h2 className="mt-2">Détails du produit</h2>
-            </div>
+        {/* HEADER */}
+        <div className="header">
+          <div>
+            <span className="back" onClick={() => navigate(-1)}>← Retour</span>
+            <h2>{product.nom}</h2>
+          </div>
 
-            <div className="actions-top">
-              <button
-                className="btn warning"
-                onClick={() => editProduct(product.pr_uid)}
-              >
-                Modifier
-              </button>
+          <div className="actions">
+            <button className="btn edit" onClick={editProduct}>
+              Modifier
+            </button>
+            <button className="btn delete" onClick={() => deleteProduct(product.uid)}>
+              Supprimer
+            </button>
+          </div>
+        </div>
 
-              <button
-                className="btn danger"
-                onClick={() => deleteProduct(product.pr_uid)}
-              >
-                Supprimer
-              </button>
+        {/* CARD */}
+        <div className="card">
+
+          {/* IMAGES */}
+          <div className="images">
+
+            <img
+              src={mainImage || "https://via.placeholder.com/400"}
+              className="main-img"
+            />
+
+            <div className="thumbs">
+              {product.images?.map((img, i) => (
+                <img
+                  key={i}
+                  src={img}
+                  onClick={() => setMainImage(img)}
+                  className={mainImage === img ? "active" : ""}
+                />
+              ))}
             </div>
           </div>
 
-          {/* CONTENT */}
-          <div className="product-card">
+          {/* INFOS */}
+          <div className="infos">
 
-            {/* IMAGE */}
-            <div className="image-section">
+            <p className="price">{product.prix_vente} FCFA</p>
 
-              {mainImage && (
-                <img src={mainImage} className="main-img" />
-              )}
+            <p className="desc">{product.description}</p>
 
-              <div className="thumbs">
-                {product.image_file.map((img, index) => (
-                  <img
-                    key={index}
-                    src={img}
-                    className="thumb"
-                    onClick={() => setMainImage(img)}
-                  />
-                ))}
-              </div>
+            <div className="grid">
 
-            </div>
+              {/* <div><strong>UID</strong><span>{product.uid}</span></div> */}
+              <div><strong>Stock</strong><span>{product.stock_disponible}</span></div>
+              <div><strong>MOQ</strong><span>{product.moq || "-"}</span></div>
 
-            {/* INFOS */}
-            <div className="product-info">
+              <div><strong>Prix fournisseur</strong><span>{product.prix_fournisseur}</span></div>
+              {/* <div><strong>Status</strong><span className="status">{product.status}</span></div> */}
 
-              <h3>{product.name}</h3>
-              <p className="text-muted">{product.type}</p>
+              <div><strong>Lien 1</strong><a href={product.lien_1} target="_blank">Voir</a></div>
+              <div><strong>Lien 2</strong><a href={product.lien_2} target="_blank">Voir</a></div>
 
-              <h4 className="price">{product.price} FCFA</h4>
-
-              <p>
-                <strong>Description :</strong> {product.description}
-              </p>
-
-              <div className="info-grid">
-
-                <p><strong>Référence :</strong> {product.pr_uid}</p>
-                <p><strong>Stock :</strong> {product.inventory_level}</p>
-                <p><strong>Prix reçu :</strong> {product.price_received}</p>
-
-                <p><strong>Couleur :</strong> {product.color}</p>
-                <p><strong>Pointure :</strong> {product.pointure || "—"}</p>
-
-                <p><strong>Modèle :</strong> {product.model || "—"}</p>
-                <p><strong>Style :</strong> {product.style || "—"}</p>
-                <p><strong>Matière :</strong> {product.material || "—"}</p>
-
-                <p>
-                  <strong>Créé le :</strong>{" "}
-                  {new Date(product.creation_date).toLocaleString()}
-                </p>
-
-                <p>
-                  <strong>Mis à jour :</strong>{" "}
-                  {new Date(product.update_date).toLocaleString()}
-                </p>
-
-              </div>
+              <div><strong>Créé</strong><span>{new Date(product.creation_date).toLocaleString()}</span></div>
+              <div><strong>Mis à jour</strong><span>{new Date(product.update_date).toLocaleString()}</span></div>
 
             </div>
 
           </div>
         </div>
-      )}
+      </div>
 
-      {/* 🎨 STYLE */}
+      {/* STYLE PRO */}
       <style>{`
-        .product-admin {
+        * { box-sizing: border-box; }
+
+        .container {
+          max-width: 1100px;
+          margin: auto;
           padding: 20px;
-          font-family: 'Poppins', sans-serif;
+          font-family: Arial;
         }
 
         .header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 20px;
         }
 
-        .back-btn {
+        .back {
           cursor: pointer;
-          color: #555;
+          color: #777;
           font-size: 14px;
         }
 
-        .actions-top {
+        .actions {
           display: flex;
           gap: 10px;
         }
 
         .btn {
-          padding: 8px 15px;
+          padding: 8px 14px;
           border: none;
           border-radius: 6px;
           cursor: pointer;
-          color: #fff;
+          color: white;
         }
 
-        .warning {
-          background: #ff9800;
-        }
+        .edit { background: orange; }
+        .delete { background: red; }
 
-        .danger {
-          background: #f44336;
-        }
-
-        .product-card {
+        .card {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 25px;
-          background: #fff;
-          border-radius: 15px;
-          padding: 25px;
-          box-shadow: 0 5px 25px rgba(0,0,0,0.05);
+          background: white;
+          padding: 20px;
+          border-radius: 12px;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
         .main-img {
           width: 100%;
-          max-height: 350px;
+          height: 320px;
           object-fit: cover;
           border-radius: 10px;
         }
 
         .thumbs {
           display: flex;
-          justify-content: center;
+          gap: 8px;
           margin-top: 10px;
+          flex-wrap: wrap;
         }
 
-        .thumb {
+        .thumbs img {
           width: 60px;
           height: 60px;
           object-fit: cover;
-          margin: 5px;
-          border-radius: 8px;
           cursor: pointer;
+          border-radius: 6px;
           border: 2px solid transparent;
-          transition: 0.3s;
         }
 
-        .thumb:hover {
-          border-color: #007bff;
-          transform: scale(1.05);
+        .thumbs img.active {
+          border-color: #4CAF50;
         }
 
         .price {
-          color: #28a745;
+          font-size: 22px;
+          color: green;
           font-weight: bold;
-          margin-bottom: 15px;
         }
 
-        .info-grid {
+        .desc {
+          margin: 10px 0;
+          color: #555;
+        }
+
+        .grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 10px;
         }
 
-        .info-grid p {
-          background: #f8f9fa;
-          padding: 8px;
+        .grid div {
+          background: #f7f7f7;
+          padding: 10px;
           border-radius: 6px;
-          margin: 0;
+          display: flex;
+          flex-direction: column;
+          font-size: 14px;
+        }
+
+        .grid strong {
+          color: #333;
+        }
+
+        .grid span, .grid a {
+          margin-top: 5px;
+          color: #555;
+          text-decoration: none;
+        }
+
+        .status {
+          color: green;
+          font-weight: bold;
+        }
+
+        .loader {
+          margin: 100px auto;
+          width: 40px;
+          height: 40px;
+          border: 4px solid #eee;
+          border-top: 4px solid green;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          100% { transform: rotate(360deg); }
+        }
+
+        .empty {
+          text-align: center;
+          margin-top: 50px;
         }
 
         @media(max-width: 768px){
-          .product-card {
+          .card {
             grid-template-columns: 1fr;
           }
         }

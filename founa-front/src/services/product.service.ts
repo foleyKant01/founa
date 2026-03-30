@@ -12,12 +12,48 @@ export const GetSingleProduit = (data: {
   return api.post('/produits/get_single_produit', data);
 };
 
+// services/product.service.ts
+export const CreateProduit = (data: FormData) => {
+  return api.post('/produits/create_produit', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
+export const UpdateProduit = (data: FormData) => {
+  return api.post('/produits/update_produit', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
 export const AllSimilarProducts = (data: {
   uid: string;
   nom: string;
   description: string;
 }) => {
   return api.post('/produits/all_similar_products', data);
+};
+
+export const GetAllProduitByTeller = (data: {
+  teller_id: string;
+}) => {
+  return api.post('/produits/get_all_produit_by_teller', data);
+};
+
+export const DeleteProduitByTeller = (data: {
+  teller_id: string;
+  produit_id: string;
+}) => {
+  return api.post('/produits/delete_produit_by_teller', data);
+};
+
+export const SearchProduct = (data: {
+  textSearch: string;
+}) => {
+  return api.post('/produits/search_product', data);
 };
 
 /* ➕ Ajouter un favori */

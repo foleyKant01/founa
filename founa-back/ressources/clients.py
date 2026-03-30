@@ -13,8 +13,11 @@ class ClientsApi(Resource):
         if route == "update_client":
             return UpdateClient()
         
+        if route == "update_password":
+            return UpdatePassword()
+        
         # if route == "delete":
-        #     return DeleteUser()
+        #     return DeleteUser() 
         
     
     def get(self, route):

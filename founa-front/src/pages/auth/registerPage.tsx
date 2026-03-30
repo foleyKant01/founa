@@ -122,7 +122,7 @@ const RegisterPage: React.FC = () => {
                         onChange={(e) => setPhone(e.target.value)}
                         required
                         pattern="[0-9]{8,15}"
-                        title="Veuillez entrer un numéro de téléphone valide"
+                        title="Veuillez entrer un numéro de téléphone Valider"
                     />
 
                     <input

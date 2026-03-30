@@ -1,10 +1,9 @@
 from config.db import db
 from model.founa import *
 from flask import request
-
-
-import random
 from datetime import datetime
+import random
+
 
 def generate_order_id():
     date_part = datetime.now().strftime("%Y%m%d")  # ex: 20260104
@@ -45,7 +44,7 @@ def CreateCommande():
             details=details,
             teller_id=produit.teller_id,
             prix_total=prix_total,
-            statut="Commande initie"
+            statut="Initier"
         )
 
         db.session.add(commande)
@@ -114,6 +113,9 @@ def GetAllCommandeByClient():
         result = []
         for c in all_commande:
             single_product = Produit.query.filter_by(uid=c.produit_id).first()
+            print(c.produit_id)
+            if not single_product:
+                return {"status": "error", "message": "Produit introuvable alors Commande impossible"}, 404
             
             result.append({
                 "commande_id": c.commande_id,
@@ -138,22 +140,29 @@ def GetAllCommandeByClient():
     
 def GetAllCommandeByTeller():
     try:
-        teller_id = (request.json.get('teller_id'))
+        teller_id = request.json.get('teller_id')
         all_commande = Commande.query.filter_by(teller_id=teller_id).all()
 
         if not all_commande:
             return {"status": "error", "message": "Commande introuvable"}, 404
-        
+
         result = []
         for c in all_commande:
             result.append({
                 "commande_id": c.commande_id,
-                "client_id": c.client_id,
-                "client": c.client,
-                "produit_id": c.produit_id,
-                "produit": c.produit,
+                "client": {
+                    "uid": c.client.uid,
+                    "nom": c.client.fullname,
+                    "email": c.client.email,
+                    # ajoute d'autres champs nécessaires
+                },
+                "produit": {
+                    "uid": c.produit.uid,
+                    "nom": c.produit.nom,
+                    "prix_vente": c.produit.prix_vente,
+                    # ajoute d'autres champs nécessaires
+                },
                 "teller_id": c.teller_id,
-                "teller": c.teller,
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
@@ -161,7 +170,7 @@ def GetAllCommandeByTeller():
                 "created_date": str(c.created_date),
                 "updated_date": str(c.updated_date),
             })
-            
+
         return {"status": "success", "commandes": result}, 200
 
     except Exception as e:
@@ -215,7 +224,7 @@ def UpdateCommande():
         update_commande.statut = statut
         update_commande.details = details
         update_commande.teller_id = teller_id
-        update_commande.updated_date = datetime.datetime.utcnow()
+        update_commande.updated_date = datetime.utcnow()
 
         db.session.commit()
 
@@ -225,7 +234,7 @@ def UpdateCommande():
         return {"status": "error", "message": str(e)}, 500
     
     
-def ValideCommande():
+def ValiderCommande():
     try:
         commande_id = request.json.get('commande_id')
         statut = request.json.get('statut')
@@ -245,7 +254,7 @@ def ValideCommande():
         return {"status": "error", "message": str(e)}, 500
     
     
-def CommandePayer():
+def CommandePayerr():
     try:
         commande_id = request.json.get('commande_id')
         statut = request.json.get('statut')
@@ -307,7 +316,7 @@ def CommandeEnLivraison():
         return {"status": "error", "message": str(e)}, 500
     
     
-def CommandeLivrer():
+def CommandeLivrerr():
     try:
         commande_id = request.json.get('commande_id')
         statut = request.json.get('statut')

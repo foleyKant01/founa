@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CreateCommande } from "../../services/order.service";
-import { GetSingleProduit } from "../../services/product.service"; // chemin correct
+import { GetSingleProduit } from "../../services/product.service";
 
 interface Product {
   name: string;
@@ -46,7 +46,7 @@ const Toast: React.FC<{
 
 const ProductPage: React.FC = () => {
   const { uid } = useParams<{ uid: string }>();
-  const nav = useNavigate(); // ← ajouté ici
+  const nav = useNavigate();
   const [product, setProduct] = useState<Product>({
     name: "",
     price: 0,
@@ -60,7 +60,7 @@ const ProductPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
 
-    // 🔹 Toast state
+  // 🔹 Toast state
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error" | "info";
@@ -75,8 +75,16 @@ const ProductPage: React.FC = () => {
     if (uid) {
       GetSingleProduit({ produit_id: uid })
         .then((res) => {
-          const data = res.data.produit; // adapte selon la structure de ta réponse
-          const imagesArray = data.images ? data.images.split(",") : [];
+          const data = res.data.produit;
+
+          // 🔹 Ici on parse correctement la chaîne JSON des images
+          let imagesArray: string[] = [];
+          try {
+            imagesArray = JSON.parse(data.images);
+          } catch (err) {
+            console.error("Erreur parsing images :", err);
+          }
+
           setProduct({
             name: data.nom,
             price: data.prix_vente,
@@ -84,6 +92,7 @@ const ProductPage: React.FC = () => {
             images: imagesArray,
             stock: data.stock_disponible,
           });
+
           if (imagesArray.length > 0) setSelectedImage(imagesArray[0]);
         })
         .catch((err) => console.error("Erreur récupération produit :", err));
@@ -102,7 +111,7 @@ const ProductPage: React.FC = () => {
     }
 
     if (!uid) {
-      showToast("Produit invalide", "error");
+      showToast("Produit inValider", "error");
       return;
     }
 
@@ -119,10 +128,8 @@ const ProductPage: React.FC = () => {
       if (response.data.status === "success") {
         showToast("✅ Commande envoyée avec succès !", "success");
         setTimeout(() => {
-          nav("/home"); // ← Redirection vers la page home
+          nav("/home");
         }, 2500);
-        // optionnel : redirection
-        // nav("/mes-commandes");
       } else {
         showToast(response.data.message || "Erreur lors de la commande", "error");
       }
@@ -131,7 +138,6 @@ const ProductPage: React.FC = () => {
       showToast("❌ Erreur serveur, veuillez réessayer", "error");
     }
   };
-
 
   return (
     <div style={styles.container}>
@@ -175,7 +181,7 @@ const ProductPage: React.FC = () => {
               </button>
             </div>
           </div>
-          {/* Alerte information commande */}
+
           <div style={styles.infoAlert}>
             <span style={styles.infoIcon}>⚠️</span>
             <p style={styles.infoText}>
@@ -195,7 +201,7 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Produits similaires (exemple statique) */}
+      {/* Produits similaires */}
       <section style={styles.similarSection}>
         <h2 style={styles.sectionTitle}>Produits similaires</h2>
         <div style={styles.similarProducts}>
@@ -212,81 +218,35 @@ const ProductPage: React.FC = () => {
           ))}
         </div>
       </section>
-      {/* 🔔 Affichage du toast */}
+
       {toast && <Toast message={toast.message} type={toast.type} />}
     </div>
   );
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    padding: 15,
-    paddingBottom: 100,
-    minHeight: "100vh",
-    backgroundColor: "#F5F5F5",
-    fontFamily: "Arial, sans-serif",
-  },
+  container: { padding: 15, paddingBottom: 100, minHeight: "100vh", backgroundColor: "#F5F5F5", fontFamily: "Arial, sans-serif" },
   mainSection: { display: "flex", flexWrap: "wrap", gap: 20 },
   imageSection: { flex: "1 1 300px" },
   mainImage: { width: "100%", borderRadius: 12, marginBottom: 10 },
   thumbnailWrapper: { display: "flex", gap: 10 },
   thumbnail: { width: 60, height: 60, borderRadius: 8, objectFit: "cover", cursor: "pointer" },
-
   detailsSection: { flex: "1 1 300px", display: "flex", flexDirection: "column", gap: 15 },
   productName: { fontSize: 22, fontWeight: "bold" },
-  productPrice: { fontSize: 20, color: "#00A4A6", fontWeight: "bold", margin:0},
+  productPrice: { fontSize: 20, color: "#00A4A6", fontWeight: "bold", margin: 0 },
   productDescription: { fontSize: 14, color: "#555", lineHeight: 1.5 },
-
   qtyWrapper: { display: "flex", alignItems: "center", gap: 10 },
   qtyControls: { display: "flex", alignItems: "center", gap: 5 },
   qtyButton: { padding: "4px 10px", border: "1px solid #ccc", borderRadius: 6, cursor: "pointer" },
   qtyText: { minWidth: 25, textAlign: "center" },
-  addToCartButton: {
-    marginTop: 10,
-    padding: 12,
-    backgroundColor: "#00A4A6",
-    color: "#fff",
-    border: "none",
-    borderRadius: 10,
-    fontSize: 16,
-    cursor: "pointer",
-  },
-
-  infoAlert: {
-  display: "flex",
-  gap: 10,
-  alignItems: "flex-start",
-  backgroundColor: "#FFF8E1",
-  border: "1px solid #FFD54F",
-  borderRadius: 10,
-  padding: 12,
-  fontSize: 13,
-  color: "#795548",
-},
-
-infoIcon: {
-  fontSize: 18,
-  lineHeight: "20px",
-},
-
-infoText: {
-  margin: 0,
-  lineHeight: 1.4,
-},
-
-
+  addToCartButton: { marginTop: 10, padding: 12, backgroundColor: "#00A4A6", color: "#fff", border: "none", borderRadius: 10, fontSize: 16, cursor: "pointer" },
+  infoAlert: { display: "flex", gap: 10, alignItems: "flex-start", backgroundColor: "#FFF8E1", border: "1px solid #FFD54F", borderRadius: 10, padding: 12, fontSize: 13, color: "#795548" },
+  infoIcon: { fontSize: 18, lineHeight: "20px" },
+  infoText: { margin: 0, lineHeight: 1.4 },
   similarSection: { marginTop: 30 },
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15 },
   similarProducts: { display: "flex", gap: 15, flexWrap: "wrap" },
-  similarCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 10,
-    width: "calc(50% - 7.5px)",
-    textAlign: "center",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-    cursor: "pointer",
-  },
+  similarCard: { backgroundColor: "#fff", borderRadius: 12, padding: 10, width: "calc(50% - 7.5px)", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", cursor: "pointer" },
   similarImage: { width: "100%", borderRadius: 8, marginBottom: 5 },
   similarName: { fontSize: 14, fontWeight: "bold", marginBottom: 3 },
   similarPrice: { fontSize: 13, color: "#00A4A6" },

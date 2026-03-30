@@ -1,79 +1,137 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { DeleteProduitByTeller, GetAllProduitByTeller } from "../../services/product.service";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2";
 
 interface Product {
-  name: string;
-  type: string;
-  price: number;
-  pr_uid: string;
-  inventory_level: number;
-  image_file: string[];
+  nom: string;
+  description: string;
+  prix_vente: number;
+  uid: string;
+  stock_disponible: number;
+  images: string[];
+  type?: string;
 }
 
 const ReadAllProducts = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 🔥 Fake data (remplace par ton API)
   useEffect(() => {
-    const fakeData: Product[] = [
-      {
-        name: "Nike Air",
-        type: "Chaussures Homme",
-        price: 25000,
-        pr_uid: "PR001",
-        inventory_level: 3,
-        image_file: ["https://via.placeholder.com/300"],
-      },
-      {
-        name: "Sandale Femme",
-        type: "Chaussures Femme",
-        price: 15000,
-        pr_uid: "PR002",
-        inventory_level: 10,
-        image_file: ["https://via.placeholder.com/300"],
-      },
-    ];
-
-    setData(fakeData);
+    fetchProducts();
   }, []);
 
-  // 👁️ Voir produit
-  const viewsingleProducts = (uid: string) => {
+  const fetchProducts = async () => {
+    setLoading(true);
+
+    try {
+      const teller = JSON.parse(sessionStorage.getItem("teller") || "{}");
+      const teller_id = teller.uid;
+
+      const response = await GetAllProduitByTeller({ teller_id });
+
+      if (response.data.status === "success") {
+        setData(response.data.produits || []);
+        toast.success("Produits chargés ✅");
+      } else {
+        toast.error(response.data.message || "Erreur chargement");
+      }
+    } catch (error) {
+      toast.error("Erreur serveur");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const viewSingleProduct = (uid: string) => {
     navigate(`/admin/product/${uid}`);
   };
 
-  // 🗑️ Supprimer produit
-  const deleteProduct = (uid: string) => {
-    setData(prev => prev.filter(p => p.pr_uid !== uid));
+  const deleteProduct = async (uid: string) => {
+  const result = await Swal.fire({
+      title: "Supprimer le produit ?",
+      text: "Cette action est irréversible",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Oui, supprimer",
+      cancelButtonText: "Annuler",
+    });
+
+  if (!result.isConfirmed) return;
+    try {
+      const teller = JSON.parse(sessionStorage.getItem("teller") || "{}");
+
+      const res = await DeleteProduitByTeller({
+        produit_id: uid,
+        teller_id: teller.uid,
+      });
+
+      if (res.data.status === "success") {
+        setData((prev) => prev.filter((p) => p.uid !== uid));
+
+        Swal.fire({
+          icon: "success",
+          title: "Supprimé !",
+          text: res.data.message || "Produit supprimé avec succès",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Erreur",
+          text: res.data.message || "Une erreur est survenue",
+        });
+      }
+    } 
+    catch (error: any) {
+      console.error(error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Erreur",
+        text:
+          error?.response?.data?.message ||
+          "Erreur serveur",
+      });
+    }
+
   };
 
   return (
     <>
-      <div className="admin-products-page">
-
+      <div className="container">
         {/* HEADER */}
+          <span className="back" onClick={() => navigate(-1)}>
+            ←
+          </span>
         <div className="header">
-          <div className="left">
-            <span className="back-btn" onClick={() => navigate("/admin/ad-home")}>
-              ←
-            </span>
-            <div>
-              <h2>Produits</h2>
-              <p>Gérez vos produits facilement</p>
-            </div>
+          <div>
+            <h2>Produits</h2>
+            <p>Gestion des produits</p>
           </div>
         </div>
 
-        {/* LISTE */}
-        {data.length > 0 ? (
-          <div className="table-container">
-
-            <table className="product-table">
+        {/* CONTENT */}
+        {loading ? (
+          <div className="loader"></div>
+        ) : data.length === 0 ? (
+          <div className="empty">
+            📦
+            <p>Aucun produit disponible</p>
+          </div>
+        ) : (
+          <div className="table-wrapper">
+            <table>
               <thead>
                 <tr>
                   <th>Nom</th>
-                  <th>Type</th>
                   <th>Prix</th>
                   <th>Stock</th>
                   <th>Actions</th>
@@ -81,31 +139,24 @@ const ReadAllProducts = () => {
               </thead>
 
               <tbody>
-                {data.map((product) => (
-                  <tr key={product.pr_uid}>
-                    <td>{product.name}</td>
-                    <td>{product.type}</td>
-                    <td className="price">{product.price} FCFA</td>
+                {data.map((p) => (
+                  <tr key={p.uid}>
+                    <td className="truncate">{p.nom}</td>
+                    <td className="price">{p.prix_vente} FCFA</td>
                     <td>
                       <span
                         className={`stock ${
-                          product.inventory_level < 5 ? "low" : ""
+                          p.stock_disponible < 5 ? "low" : ""
                         }`}
                       >
-                        {product.inventory_level}
+                        {p.stock_disponible}
                       </span>
                     </td>
                     <td className="actions">
+                      <button onClick={() => navigate(`/teller/readsingle/${p.uid}`)}>👁️</button>
                       <button
-                        className="btn-view"
-                        onClick={() => viewsingleProducts(product.pr_uid)}
-                      >
-                        👁️
-                      </button>
-
-                      <button
-                        className="btn-delete"
-                        onClick={() => deleteProduct(product.pr_uid)}
+                        className="delete"
+                        onClick={() => deleteProduct(p.uid)}
                       >
                         🗑️
                       </button>
@@ -114,118 +165,137 @@ const ReadAllProducts = () => {
                 ))}
               </tbody>
             </table>
-
-          </div>
-        ) : (
-          <div className="empty-state">
-            📦
-            <p>Aucun produit disponible</p>
           </div>
         )}
-
       </div>
 
-      {/* STYLE INLINE */}
+      <ToastContainer autoClose={2500} />
+
+      {/* STYLE */}
       <style>{`
-        .admin-products-page {
-          padding: 5px;
-          background: #f4f6f9;
-          min-height: 100vh;
-          font-family: 'Poppins', sans-serif;
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+        }
+
+        .container {
+          max-width: 1200px;
+          margin: auto;
+          padding: 15px;
         }
 
         .header {
           display: flex;
           align-items: center;
-          margin-bottom: 25px;
+          gap: 12px;
+          margin-bottom: 20px;
         }
 
-        .left {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-        }
-
-        .back-btn {
-          font-size: 20px;
+        .back {
+          font-size: 22px;
           cursor: pointer;
         }
 
-        .table-container {
-          background: #fff;
-          border-radius: 12px;
-          padding: 15px;
-          box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-          overflow-x: auto;
+        /* LOADER */
+        .loader {
+          border: 4px solid #eee;
+          border-top: 4px solid #4CAF50;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 1s linear infinite;
+          margin: 60px auto;
         }
 
-        .product-table {
+        @keyframes spin {
+          100% { transform: rotate(360deg); }
+        }
+
+        .empty {
+          text-align: center;
+          color: #777;
+          margin-top: 50px;
+        }
+
+        /* TABLE */
+        .table-wrapper {
           width: 100%;
+          overflow-x: auto; /* 🔥 empêche débordement */
+          background: white;
+          border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        table {
+          width: 100%;
+          min-width: 600px; /* 🔥 évite casse layout */
           border-collapse: collapse;
         }
 
-        .product-table th {
+        th, td {
+          padding: 12px;
           text-align: left;
-          padding: 12px;
-          background: #f4f6f9;
-          font-size: 14px;
-          color: #555;
         }
 
-        .product-table td {
-          padding: 12px;
-          border-top: 1px solid #eee;
-          font-size: 14px;
+        th {
+          background: #f7f7f7;
         }
 
-        .product-table tr:hover {
+        tr {
+          border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
           background: #fafafa;
         }
 
+        .truncate {
+          max-width: 180px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
         .price {
+          color: green;
           font-weight: bold;
-          color: #28a745;
         }
 
         .stock {
-          padding: 5px 10px;
-          border-radius: 20px;
-          background: #e8f5e9;
-          color: #2e7d32;
-          font-size: 12px;
+          padding: 4px 8px;
+          border-radius: 6px;
+          background: #e6f9ed;
+          color: green;
         }
 
         .stock.low {
-          background: #ffebee;
-          color: #c62828;
-        }
-
-        .actions {
-          display: flex;
-          gap: 10px;
+          background: #ffe5e5;
+          color: red;
         }
 
         .actions button {
+          margin-right: 5px;
+          padding: 6px 8px;
           border: none;
-          padding: 6px 10px;
           border-radius: 6px;
           cursor: pointer;
+          background: #eee;
         }
 
-        .btn-view {
-          background: #2196f3;
-          color: #fff;
+        .actions button:hover {
+          background: #ddd;
         }
 
-        .btn-delete {
-          background: #f44336;
-          color: #fff;
+        .delete {
+          background: #ff0000 !important;
+          color: white;
         }
 
-        .empty-state {
-          text-align: center;
-          padding: 50px;
-          color: #777;
+        .delete:hover {
+          background: #cc0000 !important;
         }
       `}</style>
     </>

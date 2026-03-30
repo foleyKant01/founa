@@ -111,14 +111,17 @@ def UpdateClient():
 
     try:
         cliend_id = (request.json.get('uid'))
+        password = (request.json.get('password'))
+        
         update_client = Client.query.filter_by(uid=cliend_id).first()
+        if password != update_client.password:
+            return {"status": "error", "message": "Mot de passe incorrecte"}
         
         if update_client:
             update_client.fullname = request.json.get('fullname', update_client.fullname)
             update_client.email = request.json.get('email', update_client.email)
             update_client.phone = request.json.get('phone', update_client.phone)
             update_client.adresse_livraison = request.json.get('adresse_livraison', update_client.adresse_livraison)
-            update_client.password = request.json.get('password', update_client.password)
      
         db.session.add(update_client)
         db.session.commit() 
@@ -132,6 +135,35 @@ def UpdateClient():
 
     return response
 
+
+def UpdatePassword():
+    response = {}
+
+    try:
+        cliend_id = (request.json.get('uid'))
+        old_password = (request.json.get('old_password'))
+        new_password = (request.json.get('password'))
+        
+        update_client = Client.query.filter_by(uid=cliend_id).first()
+        if not update_client:
+            return {"status": "error", "message": "Utilisateur introuvable"}
+            
+        if old_password != update_client.password:
+            return {"status": "error", "message": "Ancien mot de passe incorrecte"}
+            
+        update_client.password = new_password
+
+        db.session.add(update_client)
+        db.session.commit() 
+        
+        response['status'] = 'success'
+        response['message'] = "Mise à jour effectuer"
+
+    except Exception as e:
+        response['status'] = 'error'
+        response['error_description'] = str(e)
+
+    return response
 
 
 # def DeleteUser():

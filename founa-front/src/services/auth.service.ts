@@ -18,6 +18,25 @@ export const LoginClient = (data: {
   return api.post('/auth/login_client', data); 
 };
 
+export const UpdateClient = (data: {
+  uid: string;
+  password: string;
+  fullname: string;
+  email: string;
+  phone: string;
+  adresse_livraison: string;
+}) => {
+  return api.post('/clients/update_client', data); 
+};
+
+export const UpdatePassword = (data: {
+  uid: string;
+  old_password: string;
+  password: string;
+}) => {
+  return api.post('/clients/update_password', data); 
+};
+
 export const ForgotPassword = (data: { 
   email: string;
 }) => {

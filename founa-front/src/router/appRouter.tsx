@@ -17,6 +17,13 @@ import ReadAllProducts from "../pages/teller/readAllProducts";
 import ReadSingleProduct from "../pages/teller/readSingleProduct";
 import EditProduct from "../pages/teller/editProduct";
 import OrderDetailsPage from "../pages/orders/OrderDetailsPage";
+import UpdateClient from "../pages/profile/updateClient";
+import UpdatePassword from "../pages/profile/updatePasswordClient";
+import OrderTellerPage from "../pages/teller/orderStatusEdit";
+import StatistiquesTellerPage from "../pages/teller/stateTeller";
+import ProtectedRouteTeller from "../components/routes/ProtectedRouteTeller"; // chemin correct
+import ProtectedRouteClient from "../components/routes/ProtectedRouteClient";
+
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -41,21 +48,25 @@ const AppRoutes = () => {
           <Route path="/auth/forgotpassword" element={<ForgotPasswordPage />} />
 
           {/* 🏠 PAGES PRINCIPALES */}
-          <Route path="/home" element={<HomePage />} />
+          <Route path="/home" element={<ProtectedRouteClient><HomePage /></ProtectedRouteClient>} />
           <Route path="/activity" element={<ActivityPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/update" element={<UpdateClient />} />
+          <Route path="/updatepassword" element={<UpdatePassword />} />
           <Route path="/activity/favorites" element={<FavoritesPage />} />
           <Route path="/activity/history" element={<HistoryPage />} />
           <Route path="/singleproduct/:uid" element={<ProductPage />} />
           <Route path="/order/:commande_id" element={<OrderDetailsPage />} />
 
            {/* 🔥 TELLER */}
-          <Route path="/teller/home" element={<HomeTeller />} />
-          <Route path="/teller/create" element={<CreateProduct />} />
-          <Route path="/teller/readall" element={<ReadAllProducts />} />
-          <Route path="/teller/readsingle" element={<ReadSingleProduct />} />
-          <Route path="/teller/edit" element={<EditProduct />} />
+          <Route path="/teller/home" element={<ProtectedRouteTeller><HomeTeller /></ProtectedRouteTeller>} />
+          <Route path="/teller/create" element={<ProtectedRouteTeller><CreateProduct /></ProtectedRouteTeller>} />
+          <Route path="/teller/readall" element={<ProtectedRouteTeller><ReadAllProducts /></ProtectedRouteTeller>} />
+          <Route path="/teller/readsingle/:uid" element={<ProtectedRouteTeller><ReadSingleProduct /></ProtectedRouteTeller>} />
+          <Route path="/teller/allorderteller" element={<ProtectedRouteTeller><OrderTellerPage /></ProtectedRouteTeller>} />
+          <Route path="/teller/stateteller" element={<ProtectedRouteTeller><StatistiquesTellerPage /></ProtectedRouteTeller>} />
+          <Route path="/teller/edit/:id" element={<ProtectedRouteTeller><EditProduct /></ProtectedRouteTeller>} />
 
           {/* 🔥 ADMIN */}
           <Route path="/admin/home" element={<HomeAdmin />} />

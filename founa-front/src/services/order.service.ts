@@ -21,3 +21,25 @@ export const GetSingleCommande = (data: {
 }) => {
   return api.post('/commandes/get_single_commande', data);
 };
+
+
+export const GetAllCommandeByTeller = (data: {
+  teller_id: string;
+}) => {
+  return api.post('/commandes/get_all_commande_by_teller', data);
+};
+
+
+export const UpdateCommande = (data: {
+  commande_id: string;
+  details: string;
+  teller_id: string;
+}) => {
+  return api.post('/commandes/update_commande', data);
+};
+
+export const StatistiquesTeller = (data: {
+  teller_id: string;
+}) => {
+  return api.post('/teller/statistiques_teller', data);
+};

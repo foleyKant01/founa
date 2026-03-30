@@ -21,7 +21,7 @@ interface Order {
   fournisseur_id: string;
   quantite: number;
   prix_total: number;
-  statut: string; // "Initié", "Prise en charge", "Valider", "Payer", "Expédition", "Livraison", "Livré"
+  statut: string; // "Initier", "Prise en charge", "Validerr", "Payerr", "Expedition", "Livraison", "Livrer"
   details: string;
   created_date: string; 
   updated_date?: string;
@@ -58,19 +58,19 @@ const ProfilePage: React.FC = () => {
 
   const getStatusColor = (status: Order["statut"]) => {
     switch (status) {
-      case "Initié":
+      case "Initier":
         return "#9E9E9E";
       case "Prise en charge":
         return "#2196F3";
-      case "Validé":
+      case "Valider":
         return "#3F51B5";
-      case "Payé":
+      case "Payer":
         return "#FFC107";
-      case "Expédition":
+      case "Expedition":
         return "#FF9800";
       case "Livraison":
         return "#00BCD4";
-      case "Livré":
+      case "Livrer":
         return "#4CAF50";
       default:
         return "#000";
@@ -96,8 +96,8 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Actions */}
-      <button style={styles.editButton}>Modifier le profil</button>
-      <button style={styles.settingsButton}>Changer le mot de passe</button>
+      <button style={styles.editButton} onClick={() => navigate(`/update`)}>Modifier le profil</button>
+      <button style={styles.settingsButton} onClick={() => navigate(`/updatepassword`)}>Changer le mot de passe</button>
 
       {/* Panier / dépenses */}
       <div style={styles.section}>

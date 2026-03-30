@@ -8,6 +8,11 @@ const TellerDashboard: React.FC = () => {
 
     if (!admin) return null;
 
+    const handleLogout = () => {
+        sessionStorage.removeItem("teller"); // supprime le teller
+        navigate("/auth/login"); // redirige vers la page login
+    };
+
     return (
         <div style={styles.container}>
 
@@ -28,7 +33,7 @@ const TellerDashboard: React.FC = () => {
 
                 <div
                     style={styles.card}
-                    onClick={() => navigate("/admin/create-products")}
+                    onClick={() => navigate("/teller/create")}
                 >
                     <div style={styles.icon}>➕</div>
                     <h3 style={styles.cardTitle}>Créer un produit</h3>
@@ -39,7 +44,7 @@ const TellerDashboard: React.FC = () => {
 
                 <div
                     style={styles.card}
-                    onClick={() => navigate("/admin/view-all-products")}
+                    onClick={() => navigate("/teller/readall")}
                 >
                     <div style={styles.icon}>📦</div>
                     <h3 style={styles.cardTitle}>Voir les produits</h3>
@@ -48,7 +53,18 @@ const TellerDashboard: React.FC = () => {
                     </p>
                 </div>
 
-                <div style={{ ...styles.card, ...styles.disabled }}>
+                <div
+                    style={styles.card}
+                    onClick={() => navigate("/teller/allorderteller")}
+                >
+                    <div style={styles.icon}>🛒</div>
+                    <h3 style={styles.cardTitle}>Commandes</h3>
+                    <p style={styles.cardText}>
+                        Voir toutes les commandes passées par les utilisateurs
+                    </p>
+                </div> 
+
+                <div style={styles.card} onClick={() => navigate("/teller/stateteller")}>
                     <div style={styles.icon}>📊</div>
                     <h3 style={styles.cardTitle}>Statistiques</h3>
                     <p style={styles.cardText}>Bientôt disponible</p>
@@ -65,6 +81,13 @@ const TellerDashboard: React.FC = () => {
                 </p>
             </div>
 
+            {/* Bouton Déconnexion */}
+            <div style={{ textAlign: "center", marginTop: 40 }}>
+                <button style={styles.logoutButton} onClick={handleLogout}>
+                    Déconnexion
+                </button>
+            </div>
+
         </div>
     );
 };
@@ -72,7 +95,7 @@ const TellerDashboard: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
 
     container: {
-        minHeight: "100vh",
+        minHeight: "80vh",
         padding: "30px 20px",
         background: "linear-gradient(135deg, #f4f7fb, #eaeef5)",
         fontFamily: "Segoe UI, sans-serif",
@@ -162,6 +185,18 @@ const styles: { [key: string]: React.CSSProperties } = {
         color: "#4b5563",
         lineHeight: 1.6,
     },
+
+    logoutButton: {
+        backgroundColor: "#EF4444",
+        color: "#fff",
+        border: "none",
+        padding: "12px 28px",
+        borderRadius: 12,
+        fontWeight: 600,
+        fontSize: 16,
+        cursor: "pointer",
+        transition: "0.2s",
+    }
 };
 
 export default TellerDashboard;

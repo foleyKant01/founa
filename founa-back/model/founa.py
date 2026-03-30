@@ -28,14 +28,15 @@ class Produit(db.Model):
     lien_2 = db.Column(db.Text, nullable=False)
     prix_fournisseur = db.Column(db.Float, nullable=False)
     prix_vente = db.Column(db.Float, nullable=False)
-    images = db.Column(db.Text)  # JSON string : ["img1.jpg", "img2.jpg"]
+    # images = db.Column(db.Text)  # JSON string : ["img1.jpg", "img2.jpg"]
+    images = db.Column(db.JSON, nullable=False)
     stock_disponible = db.Column(db.Integer, default=0)
     moq = db.Column(db.Integer, default=0)
     
     teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=False)
     teller = db.relationship('Teller', backref=db.backref('produit', lazy=True))
 
-    fournisseur_id = db.Column(db.String(128), db.ForeignKey('fournisseur.uid'), nullable=False)
+    fournisseur_id = db.Column(db.String(128), db.ForeignKey('fournisseur.uid'), nullable=True)
     fournisseur = db.relationship('Fournisseur', backref=db.backref('produit', lazy=True))
 
     creation_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -89,7 +90,7 @@ class Commande(db.Model):
     fournisseur = db.relationship('Fournisseur', backref=db.backref('commande', lazy=True))
     quantite = db.Column(db.Integer, nullable=False)
     prix_total = db.Column(db.Float, nullable=False)
-    statut = db.Column(db.String(128), default='commande initie') # commande en charge, valider, payer, en expedition, en livraison, livrer
+    statut = db.Column(db.String(128), default='commande Initier') # commande en charge, Validerr, Payerr, en expedition, en livraison, Livrerr
     details = db.Column(db.Text, nullable=True)
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)

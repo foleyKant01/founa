@@ -35,15 +35,30 @@ const OrderDetailsPage: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Initié": return "#9E9E9E";
+      case "Initier": return "#9E9E9E";
       case "Prise en charge": return "#2196F3";
-      case "Validé": return "#3F51B5";
-      case "Payé": return "#FFC107";
-      case "Expédition": return "#FF9800";
+      case "Valider": return "#3F51B5";
+      case "Payer": return "#FFC107";
+      case "Expedition": return "#FF9800";
       case "Livraison": return "#00BCD4";
-      case "Livré": return "#4CAF50";
+      case "Livrer": return "#4CAF50";
       default: return "#000";
     }
+  };
+    // 🔹 Helper pour récupérer la première image
+  const getFirstImage = (images: string | string[]): string => {
+    if (!images) return "/default-image.png";
+    let imgArray: string[] = [];
+    if (typeof images === "string") {
+      try {
+        imgArray = JSON.parse(images);
+      } catch {
+        imgArray = [];
+      }
+    } else {
+      imgArray = images;
+    }
+    return imgArray.length > 0 ? imgArray[0] : "/default-image.png";
   };
 
   if (loading) {
@@ -76,7 +91,7 @@ const OrderDetailsPage: React.FC = () => {
             {/* Image */}
             <div style={styles.imageContainer}>
               <img
-                src={order.images || "https://via.placeholder.com/150"}
+                src={getFirstImage(order.images) || "https://via.placeholder.com/150"}
                 alt={order.nom}
                 style={styles.image}
               />
@@ -102,6 +117,32 @@ const OrderDetailsPage: React.FC = () => {
             {order.details || "Aucun détail disponible."}
           </p>
         </div>
+        {order.statut === "Valider" && (
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 15 }}>
+            <a
+              // href={`https://pay.wave.com/m/M_ci_0GTnAxYCJ8tW/c/ci/?amount=${order.prix_total}`}
+              href={`https://pay.wave.com/m/M_ci_0GTnAxYCJ8tW/c/ci/?amount=${order.prix_total}&return_url=https://google.com`}
+
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#007bff",
+                color: "#fff",
+                borderRadius: 8,
+                fontWeight: "bold",
+                textDecoration: "none",
+                cursor: "pointer",
+                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseOver={e => (e.currentTarget.style.backgroundColor = "#0056b3")}
+              onMouseOut={e => (e.currentTarget.style.backgroundColor = "#007bff")}
+            >
+              Payer maintenant
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

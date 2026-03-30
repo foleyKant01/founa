@@ -13,8 +13,8 @@ class TellerApi(Resource):
         if route == "update_teller":
             return UpdateTeller()
         
-        # if route == "delete":
-        #     return DeleteUser()
+        if route == "statistiques_teller":
+            return StatistiquesTeller()
         
     
     def get(self, route):
