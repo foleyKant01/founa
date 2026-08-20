@@ -7,29 +7,53 @@ import json
 import re
 from sqlalchemy import or_
 import unicodedata
+import cloudinary.uploader
 from werkzeug.utils import secure_filename
 
 
-def upload_to_s3(files):
+# def upload_to_s3(files):
+#     urls = []
+
+#     for file in files:
+#         print('file', file)    
+#         original_name = file.filename
+#         print('original_name', original_name)    
+#         clean_name = secure_filename(original_name)
+#         print('clean_name', clean_name)    
+#         clean_name = re.sub(r"\s+", "+", clean_name)
+#         print('clean_name', clean_name)    
+#         filename = f"{uuid.uuid4().hex}_{clean_name}"
+#         S3_CLIENT.upload_fileobj(
+#             file,
+#             BUCKET_NAME,
+#             filename,
+#             ExtraArgs={"ACL": "public-read"}
+#         )
+#         url = URL + filename
+#         urls.append(url)
+
+#     return urls
+
+
+def upload_to_cloudinary(files):
     urls = []
 
     for file in files:
-        print('file', file)    
+
         original_name = file.filename
-        print('original_name', original_name)    
         clean_name = secure_filename(original_name)
-        print('clean_name', clean_name)    
-        clean_name = re.sub(r"\s+", "+", clean_name)
-        print('clean_name', clean_name)    
-        filename = f"{uuid.uuid4().hex}_{clean_name}"
-        S3_CLIENT.upload_fileobj(
+        clean_name = re.sub(r"\s+", "_", clean_name)
+
+        public_id = f"products/{uuid.uuid4().hex}_{clean_name}"
+
+        result = cloudinary.uploader.upload(
             file,
-            BUCKET_NAME,
-            filename,
-            ExtraArgs={"ACL": "public-read"}
+            public_id=public_id,
+            folder="founa",
+            resource_type="image"
         )
-        url = URL + filename
-        urls.append(url)
+
+        urls.append(result["secure_url"])
 
     return urls
 
@@ -53,7 +77,7 @@ def CreateProduit():
     lien_2 = request.form.get('lien_2')
     teller_id = request.form.get('teller_id')
     files = request.files.getlist('images')
-    images_urls = upload_to_s3(files)
+    images_urls = upload_to_cloudinary(files)
     produit = Produit(
         nom=nom,
         description=description,

@@ -2,16 +2,19 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { House, User, Activity, Package } from "lucide-react";
+import { useApp } from "../context/appContext";
 
 interface BottomBarItem {
   name: string;
   icon: React.ReactNode;
-  path: string; // plus besoin de children ici
+  path: string;
+  badge?: number;
 }
 
 const BottomBar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { commandeCount } = useApp();
 
   const items: BottomBarItem[] = [
     { name: "Accueil", path: "/home", icon: <House size={22} /> },
@@ -34,7 +37,16 @@ const BottomBar: React.FC = () => {
               color: isActive ? "#00A4A6" : "#555",
             }}
           >
-            {item.icon}
+            <div style={styles.iconWrapper}>
+              {item.icon}
+
+              {item.badge && item.badge > 0 && (
+                <span style={styles.badge}>
+                  {item.badge}
+                </span>
+              )}
+            </div>
+
             <span style={styles.label}>{item.name}</span>
           </button>
         );
@@ -73,6 +85,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: 2,
     fontWeight: 500,
   },
+
+  
 };
 
 export default BottomBar;

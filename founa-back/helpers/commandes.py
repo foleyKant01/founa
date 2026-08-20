@@ -101,9 +101,10 @@ def GetAllCommandes():
     
 def GetAllCommandeByClient():
     try:
-        data = request.get_json(force=True)  # ✅ plus sûr
-        client_id = data.get("client_id")
-        if not client_id:
+        # data = request.get_json(force=True)  # ✅ plus sûr
+        # client_id = data.get("client_id")
+        client_id = request.json.get("client_id")
+        if not client_id: 
             return {"status": "error", "message": "client_id manquant"}, 400
 
         all_commande = Commande.query.filter_by(client_id=client_id).all()
@@ -128,6 +129,7 @@ def GetAllCommandeByClient():
                 "prix_total": c.prix_total,
                 "statut": c.statut,
                 "details": c.details,
+                "view": c.view,
                 "created_date": str(c.created_date),
                 "updated_date": str(c.updated_date),
             })
