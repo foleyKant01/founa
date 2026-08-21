@@ -228,101 +228,103 @@ const OrderDetailsPage: React.FC = () => {
         </div>
 
         {/* EXPÉDITION */}
-        <div style={styles.card}>
+        {order.statut === "Valider" && (
+          <div style={styles.card}>
 
-          <h3 style={styles.subtitle}>
-            Mode d'expédition
-          </h3>
+            <h3 style={styles.subtitle}>
+              Mode d'expédition
+            </h3>
 
-          <p style={styles.shippingDescription}>
-            Choisissez votre mode de livraison :
-          </p>
+            <p style={styles.shippingDescription}>
+              Choisissez votre mode de livraison :
+            </p>
 
-          {/* Maritime */}
-          <div
-            style={{
-              ...styles.shippingOption,
-              ...(modeExpedition === "maritime"
-                ? styles.shippingOptionSelected
-                : {}),
-            }}
-            onClick={() =>
-              handleOptionEnvoie("maritime")
-            }
-          >
-            <div style={styles.shippingLeft}>
+            {/* Maritime */}
+            <div
+              style={{
+                ...styles.shippingOption,
+                ...(modeExpedition === "maritime"
+                  ? styles.shippingOptionSelected
+                  : {}),
+              }}
+              onClick={() =>
+                handleOptionEnvoie("maritime")
+              }
+            >
+              <div style={styles.shippingLeft}>
 
-              <input
-                type="radio"
-                name="expedition"
-                checked={
-                  modeExpedition === "maritime"
-                }
-                onChange={() =>
-                  handleOptionEnvoie("maritime")
-                }
-              />
+                <input
+                  type="radio"
+                  name="expedition"
+                  checked={
+                    modeExpedition === "maritime"
+                  }
+                  onChange={() =>
+                    handleOptionEnvoie("maritime")
+                  }
+                />
 
-              <div>
-                <strong>
-                  🚢 Expédition maritime
-                </strong>
+                <div>
+                  <strong>
+                    🚢 Expédition maritime
+                  </strong>
 
-                <div style={styles.shippingSubtext}>
-                  Transport par voie maritime
+                  <div style={styles.shippingSubtext}>
+                    Transport par voie maritime
+                  </div>
                 </div>
+
               </div>
 
+              <strong style={styles.shippingPrice}>
+                {coutMaritime.toLocaleString()} FCFA
+              </strong>
             </div>
 
-            <strong style={styles.shippingPrice}>
-              {coutMaritime.toLocaleString()} FCFA
-            </strong>
-          </div>
+            {/* Aérienne */}
+            <div
+              style={{
+                ...styles.shippingOption,
+                ...(modeExpedition === "aérienne"
+                  ? styles.shippingOptionSelected
+                  : {}),
+              }}
+              onClick={() =>
+                handleOptionEnvoie("aérienne")
+              }
+            >
+              <div style={styles.shippingLeft}>
 
-          {/* Aérienne */}
-          <div
-            style={{
-              ...styles.shippingOption,
-              ...(modeExpedition === "aérienne"
-                ? styles.shippingOptionSelected
-                : {}),
-            }}
-            onClick={() =>
-              handleOptionEnvoie("aérienne")
-            }
-          >
-            <div style={styles.shippingLeft}>
+                <input
+                  type="radio"
+                  name="expedition"
+                  checked={
+                    modeExpedition === "aérienne"
+                  }
+                  onChange={() =>
+                    handleOptionEnvoie("aérienne")
+                  }
+                />
 
-              <input
-                type="radio"
-                name="expedition"
-                checked={
-                  modeExpedition === "aérienne"
-                }
-                onChange={() =>
-                  handleOptionEnvoie("aérienne")
-                }
-              />
+                <div>
+                  <strong>
+                    ✈️ Expédition aérienne
+                  </strong>
 
-              <div>
-                <strong>
-                  ✈️ Expédition aérienne
-                </strong>
-
-                <div style={styles.shippingSubtext}>
-                  Transport par voie aérienne
+                  <div style={styles.shippingSubtext}>
+                    Transport par voie aérienne
+                  </div>
                 </div>
+
               </div>
 
+              <strong style={styles.shippingPrice}>
+                {coutAerienne.toLocaleString()} FCFA
+              </strong>
             </div>
 
-            <strong style={styles.shippingPrice}>
-              {coutAerienne.toLocaleString()} FCFA
-            </strong>
           </div>
-
-        </div>
+        )}
 
         {/* RÉCAPITULATIF */}
         {modeExpedition && (
