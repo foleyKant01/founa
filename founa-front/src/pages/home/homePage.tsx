@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { GetAllProduits, SearchProduct } from "../../services/product.service";
 import { useNavigate } from "react-router-dom";
-import { useActivity, type FavoriteItem } from "../../context/activityContext";
+// import { useActivity, type FavoriteItem } from "../../context/activityContext";
 import { GetAllCommandeByClient } from "../../services/order.service";
+// import { useApp } from "../../context/AppContext";
 
 interface Produit {
   id: number;
@@ -18,32 +19,32 @@ interface Produit {
   fournisseur_id: string;
 }
 
-interface Commande {
-  id: number;
-  commande_id: string;
-  client_id: string;
-  client: string;
-  produit_id: string;
-  produit: string;
-  teller_id: string;
-  teller: string;
-  fournisseur_id: string;
-  fournisseur: string;
-  quantite: number;
-  prix_total: number;
-  statut: string;
-  details: string;
-  view: string;
-}
+// interface Commande {
+//   id: number;
+//   commande_id: string;
+//   client_id: string;
+//   client: string;
+//   produit_id: string;
+//   produit: string;
+//   teller_id: string;
+//   teller: string;
+//   fournisseur_id: string;
+//   fournisseur: string;
+//   quantite: number;
+//   prix_total: number;
+//   statut: string;
+//   details: string;
+//   view: string;
+// }
 
 const HomePage: React.FC = () => {
   const nav = useNavigate();
   const [Allproduits, setProduits] = useState<Produit[]>([]);
-  const [Allcommandes, setCommandes] = useState<Commande[]>([]);
+  // const [Allcommandes, setCommandes] = useState<Commande[]>([]);
   const [searchText, setSearchText] = useState("");
   const [searchResults, setSearchResults] = useState<Produit[]>([]);
-  const { addFavorite, removeFavorite, isFavorite } = useActivity();
-  const { setCommandeCount } = useApp();
+  // const { addFavorite, removeFavorite, isFavorite } = useActivity();
+  // const { setCommandeCount } = useApp();
 
   const user = JSON.parse(sessionStorage.getItem("user") || "{}");
   const client_id = user.uid;
@@ -67,13 +68,13 @@ const HomePage: React.FC = () => {
 
         console.log("Commandes :", res.data);
 
-        const commandes = res.data.commandes || [];
+        // const commandes = res.data.commandes || [];
 
         // stockage local HomePage
-        setCommandes(commandes);
+        // setCommandes(commandes);
 
         // envoi au BottomBar
-        setCommandeCount(commandes.length);
+        // setCommandeCount(commandes.length);
 
     })
     .catch((err) => {
@@ -81,7 +82,7 @@ const HomePage: React.FC = () => {
       console.error("Erreur récupération commandes :", err);
 
       // si aucune commande
-      setCommandeCount(0);
+      // setCommandeCount(0);
 
   });
 

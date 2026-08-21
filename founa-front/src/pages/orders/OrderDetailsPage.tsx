@@ -46,7 +46,7 @@ const OrderDetailsPage: React.FC = () => {
     }
   };
     // 🔹 Helper pour récupérer la première image
-  const getFirstImage = (images: string | string[]): string => {
+  const getFirstImage = (images?: string | string[]): string => {
     if (!images) return "/default-image.png";
     let imgArray: string[] = [];
     if (typeof images === "string") {

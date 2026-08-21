@@ -11,7 +11,8 @@ interface Favorite {
   creation_date: string;
 }
 
-const API_URL = "http://localhost:5000";
+// const API_URL = "http://localhost:5000";
+const API_URL = "";
 
 const FavoritesPage: React.FC = () => {
   const [favorites, setFavorites] = useState<Favorite[]>([]);

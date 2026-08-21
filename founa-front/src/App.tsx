@@ -1,5 +1,4 @@
 // src/App.tsx
-import React from "react";
 import AppRoutes from "./router/appRouter";
 import { ActivityProvider } from "./context/activityContext";
 

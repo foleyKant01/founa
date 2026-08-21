@@ -46,9 +46,9 @@ const ReadAllProducts = () => {
     }
   };
 
-  const viewSingleProduct = (uid: string) => {
-    navigate(`/admin/product/${uid}`);
-  };
+  // const viewSingleProduct = (uid: string) => {
+  //   navigate(`/admin/product/${uid}`);
+  // };
 
   const deleteProduct = async (uid: string) => {
   const result = await Swal.fire({

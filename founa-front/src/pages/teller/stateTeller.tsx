@@ -105,8 +105,11 @@ const StatistiquesTellerPage: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip formatter={(value: number) => `${value.toLocaleString()} FCFA`} />
-                  <Bar dataKey="revenu" fill="#16A34A" />
+                  <Tooltip
+                    formatter={(value) =>
+                      `${Number(value ?? 0).toLocaleString()} FCFA`
+                    }
+                  />                  <Bar dataKey="revenu" fill="#16A34A" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

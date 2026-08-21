@@ -13,6 +13,7 @@ interface Commande {
   prix_total: number;
   statut: string;
   details: string;
+  teller_id: string;
   created_date: string;
 }
 

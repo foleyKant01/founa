@@ -96,16 +96,15 @@ const ReadSingleProduct = () => {
         });
   
         if (res.data.status === "success") {
-          setData((prev) => prev.filter((p) => p.uid !== uid));
-  
-          Swal.fire({
+          await Swal.fire({
             icon: "success",
             title: "Supprimé !",
             text: res.data.message || "Produit supprimé avec succès",
             timer: 1500,
             showConfirmButton: false,
           });
-  
+
+          navigate("/teller/readall");
         } else {
           Swal.fire({
             icon: "error",

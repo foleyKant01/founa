@@ -1,4 +1,5 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect } from "react";
+import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Product {
@@ -18,7 +19,6 @@ interface Product {
 const EditProduct = () => {
   const navigate = useNavigate();
 
-  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -50,7 +50,6 @@ const EditProduct = () => {
       material: "Cuir",
     };
 
-    setProduct(fakeProduct);
     setFormData(fakeProduct);
   }, []);
 
@@ -215,7 +214,7 @@ const EditProduct = () => {
 
         .form-row {
           display: flex;
-        //   gap: 10px;
+        /* gap: 10px; */
         }
 
         .btn {

@@ -41,18 +41,22 @@ const EditProduct: React.FC = () => {
 
   // 🔥 FETCH PRODUIT
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
+  if (!id) return;
 
-        const res = await GetSingleProduit({ produit_id : id });
-        console.log(id)
-        console.log(id)
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
 
-        if (res.data.status === "success") {
-          const p = res.data.produit;
+      const res = await GetSingleProduit({
+        produit_id: id,
+      });
 
-          setForm({
+      console.log("ID produit :", id);
+
+      if (res.data.status === "success") {
+        const p = res.data.produit;
+
+        setForm({
           nom: p.nom ?? "",
           description: p.description ?? "",
           prix_fournisseur: String(p.prix_fournisseur ?? ""),
@@ -63,18 +67,18 @@ const EditProduct: React.FC = () => {
           images: [],
         });
 
-          setExistingImages(normalizeImages(p.images));
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Erreur chargement produit");
-      } finally {
-        setLoading(false);
+        setExistingImages(normalizeImages(p.images));
       }
-    };
+    } catch (err) {
+      console.error(err);
+      alert("Erreur chargement produit");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    if (id) fetchProduct();
-  }, [id]);
+  fetchProduct();
+}, [id]);
 
   // 🔥 HANDLE INPUT
   const handleChange = (
