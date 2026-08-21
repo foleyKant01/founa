@@ -188,7 +188,7 @@ const HomePage: React.FC = () => {
 
             <h2 style={{ ...styles.sectionTitle, marginTop: 30 }}>Produits populaires</h2>
             <div style={styles.productList}>
-              {Allproduits.slice(0, 4).map((produit, i) => (
+              {Allproduits.map((produit, i) => (                
                 <div
                   key={i}
                   style={styles.productCard}
