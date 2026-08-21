@@ -46,8 +46,15 @@ const OrderTellerPage: React.FC = () => {
   const handleUpdate = async () => {
     if (!editing) return;
 
+    const payload = {
+      commande_id: editing.commande_id,
+      statut: editing.statut,
+      details: editing.details || "",
+      teller_id: teller.uid,
+    };
+
     try {
-      const res = await UpdateCommande(editing);
+      const res = await UpdateCommande(payload);
       if (res.data.status === "success") {
         Swal.fire({ icon: "success", title: "Succès", text: "Commande mise à jour", timer: 1500, showConfirmButton: false });
         setEditing(null);
@@ -150,14 +157,22 @@ const OrderTellerPage: React.FC = () => {
             <label>Statut</label>
             <select
               value={editing.statut}
-              onChange={(e) => setEditing({ ...editing, statut: e.target.value })}
+              onChange={(e) =>
+                setEditing({
+                  ...editing,
+                  statut: e.target.value,
+                })
+              }
             >
-              <option>Prise en charge</option>
-              <option>Valider</option>
-              {/* <option>Payer</option> */}
-              <option>Expedition</option>
-              <option>Livraison</option>
-              <option>Livrer</option>
+              {editing.statut === "Initier" && (
+                <option value="Initier">Initier</option>
+              )}
+
+              <option value="Prise en charge">Prise en charge</option>
+              <option value="Valider">Valider</option>
+              <option value="Expedition">Expedition</option>
+              <option value="Livraison">Livraison</option>
+              <option value="Livrer">Livrer</option>
             </select>
 
             <label>Détails</label>

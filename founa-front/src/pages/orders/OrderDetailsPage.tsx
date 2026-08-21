@@ -40,7 +40,6 @@ const OrderDetailsPage: React.FC = () => {
       case "Valider": return "#3F51B5";
       case "Payer": return "#FFC107";
       case "Expedition": return "#FF9800";
-      case "Livraison": return "#00BCD4";
       case "Livrer": return "#4CAF50";
       default: return "#000";
     }

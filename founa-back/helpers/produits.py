@@ -380,3 +380,51 @@ def SearchProduct():
         response = {'status': 'error', 'error_description': str(e)}
 
     return response
+
+
+# import iop
+
+# def testAlibab():
+#     url = "TON_URL_API"
+#     appkey = "503830"
+#     appSecret = "TON_APP_SECRET"
+#     access_token = "TON_ACCESS_TOKEN"
+
+#     client = iop.IopClient(url, appkey, appSecret)
+
+#     request = iop.IopRequest(
+#         "/icbu/product/category/get"
+#     )
+
+#     request.add_api_param(
+#         "cat_id",
+#         "127686030"
+#     )
+
+#     response = client.execute(
+#         request,
+#         access_token
+#     )
+
+#     print(response.type)
+#     print(response.body)
+
+#     return response
+
+
+# def GenerateAccessToken():
+    
+#     url = "https://openapi-api.alibaba.com/rest"
+#     appkey = "503830"
+#     appSecret = "ujrarI5lyCQlVoytNnQM5se36vxyY6NW"
+
+#     client = iop.IopClient(url, appkey ,appSecret)
+#     request = iop.IopRequest('/auth/token/create')
+#     request.add_api_param('code', '0_100132_2DL4DV3jcU1UOT7WGI1A4rY91')
+#     request.add_api_param('uuid', '1')
+#     response = client.execute(request)
+#     print(response.type)
+#     print(response.body)
+
+#     return response
+ 

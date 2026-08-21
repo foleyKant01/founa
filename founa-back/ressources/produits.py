@@ -24,6 +24,9 @@ class ProduitsApi(Resource):
         
         if route == "search_product":
             return SearchProduct()   
+        
+        if route == "GenerateAccessToken":
+            return GenerateAccessToken()   
              
     
     def get(self, route):

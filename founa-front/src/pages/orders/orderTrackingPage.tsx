@@ -104,6 +104,36 @@ const OrdersPage: React.FC = () => {
             >
               {order.statut}
             </span>
+            {order.statut === "Valider" && (
+              <div style={styles.paymentAlert}>
+                <span>Cliquez pour payer</span>
+              </div>
+            )}
+            {order.statut === "Prise en charge" && (
+              <div style={styles.paymentAlert}>
+                <span>En attente de validation</span>
+              </div>
+            )}
+            {order.statut === "Initier" && (
+              <div style={styles.paymentAlert}>
+                <span>En attente</span>
+              </div>
+            )}
+            {order.statut === "Payer" && (
+              <div style={styles.paymentAlert}>
+                <span>En cours d'expedition</span>
+              </div>
+            )}
+            {order.statut === "Expedition" && (
+              <div style={styles.paymentAlert}>
+                <span>En cours de livraison</span>
+              </div>
+            )}
+            {/* {order.statut === "Livrer" && (
+              <div style={styles.paymentAlert}>
+                <span>Livraison effectuer</span>
+              </div>
+            )} */}
           </div>
         ))
       )}
@@ -156,6 +186,34 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: "center",
     alignSelf: "center",
   },
+  statusContainer: {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-end",
+  gap: 7,
+  marginLeft: 10,
+},
+
+paymentAlert: {
+  // display: "flex",
+  alignItems: "center",
+  textAlign: "center",
+  gap: 5,
+  margin: "5px 0px",
+  padding: "5px 8px",
+  borderRadius: 8,
+  backgroundColor: "#FFF8E1",
+  border: "1px solid #FFE082",
+  color: "#B77900",
+  fontSize: 10,
+  width: "100%",
+  fontWeight: 600,
+  whiteSpace: "nowrap",
+},
+
+paymentAlertIcon: {
+  fontSize: 12,
+},
 };
 
 export default OrdersPage;
