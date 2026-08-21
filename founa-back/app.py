@@ -1,5 +1,5 @@
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import os
 from flask_restful import Api
 from config.db import db
