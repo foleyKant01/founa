@@ -12,6 +12,7 @@ interface Favorite {
 }
 
 // const API_URL = "http://localhost:5000";
+
 const API_URL = "";
 
 const FavoritesPage: React.FC = () => {
