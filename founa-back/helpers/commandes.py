@@ -202,6 +202,8 @@ def GetSingleCommande():
                 "prix_total": single_commande.prix_total,
                 "statut": single_commande.statut,
                 "details": single_commande.details,
+                "cout_envoie_maritime": single_commande.cout_envoie_maritime,
+                "cout_envoie_aérienne": single_commande.cout_envoie_aérienne,
                 "created_date": str(single_commande.created_date),
                 "updated_date": str(single_commande.updated_date),
             }
@@ -214,26 +216,88 @@ def GetSingleCommande():
 
 def UpdateCommande():
     try:
-        commande_id = request.json.get('commande_id')
-        statut = request.json.get('statut')
-        details = request.json.get('details')
-        teller_id = request.json.get('teller_id')
-        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
-        if not update_commande:
-            return {"status": "error", "message": "Commande introuvable"}, 404
+        data = request.json
 
-        # Mise à jour simple
+        commande_id = data.get('commande_id')
+        statut = data.get('statut')
+        details = data.get('details')
+        teller_id = data.get('teller_id')
+
+        cout_envoie_maritime = data.get('cout_envoie_maritime', 0)
+        cout_envoie_aerienne = data.get('cout_envoie_aérienne', 0)
+
+        update_commande = Commande.query.filter_by(
+            commande_id=commande_id
+        ).first()
+
+        if not update_commande:
+            return {
+                "status": "error",
+                "message": "Commande introuvable"
+            }, 404
+
         update_commande.statut = statut
         update_commande.details = details
         update_commande.teller_id = teller_id
+
+        update_commande.cout_envoie_maritime = float(
+            cout_envoie_maritime or 0
+        )
+
+        update_commande.cout_envoie_aérienne = float(
+            cout_envoie_aerienne or 0
+        )
+
         update_commande.updated_date = datetime.utcnow()
 
         db.session.commit()
 
-        return {"status": "success", "message": "Statut de la commande mis à jour"}, 200
+        return {
+            "status": "success",
+            "message": "Commande mise à jour"
+        }, 200
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
+        db.session.rollback()
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+    
+    
+def OptionEnvoie():
+    try:
+        data = request.json
+        commande_id = data.get('commande_id')
+        option_envoie = data.get('option_envoie')
+
+        update_commande = Commande.query.filter_by(
+            commande_id=commande_id
+        ).first()
+
+        if not update_commande:
+            return {
+                "status": "error",
+                "message": "Commande introuvable"
+            }, 404
+        update_commande.option_envoie = option_envoie
+        update_commande.updated_date = datetime.utcnow()
+        db.session.commit()
+
+        return {
+            "status": "success",
+            "message": "Commande mise à jour"
+        }, 200
+
+    except Exception as e:
+        db.session.rollback()
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+    
     
     
 def ValiderCommande():

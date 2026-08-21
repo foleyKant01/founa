@@ -8,10 +8,13 @@ class CommandesApi(Resource):
             return CreateCommande()
         
         if route == "get_single_commande":
-            return GetSingleCommande()
+            return GetSingleCommande() 
         
         if route == "update_commande":
             return UpdateCommande()
+        
+        if route == "option_envoie":
+            return OptionEnvoie()
         
         if route == "get_all_commande_by_client":
             return GetAllCommandeByClient()

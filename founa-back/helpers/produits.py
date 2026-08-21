@@ -4,6 +4,7 @@ from config.constant import *
 from flask import request, jsonify
 import uuid
 import json
+import math
 import re
 from sqlalchemy import or_
 import unicodedata
@@ -67,7 +68,8 @@ def CreateProduit():
         prix_fournisseur = float(prix_fournisseur_str)
     except ValueError:
         prix_fournisseur = 0.0
-    prix_vente = round(prix_fournisseur * 1.25, 2)
+
+    prix_vente = math.ceil(prix_fournisseur * 1.25 / 10) * 10    
     stock_disponible_str = request.form.get('stock_disponible') or "0"
     moq_str = request.form.get('moq') or "0"
     stock_disponible = int(stock_disponible_str)

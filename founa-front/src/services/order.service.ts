@@ -38,6 +38,13 @@ export const UpdateCommande = (data: {
   return api.post('/commandes/update_commande', data);
 };
 
+export const OptionEnvoie = (data: {
+  commande_id: string;
+  option_envoie: string;
+}) => {
+  return api.post('/commandes/option_envoie', data);
+};
+
 export const StatistiquesTeller = (data: {
   teller_id: string;
 }) => {

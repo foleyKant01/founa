@@ -15,6 +15,9 @@ interface Commande {
   details: string;
   teller_id: string;
   created_date: string;
+
+  cout_envoie_maritime?: number;
+  cout_envoie_aérienne?: number;
 }
 
 const OrderTellerPage: React.FC = () => {
@@ -51,6 +54,8 @@ const OrderTellerPage: React.FC = () => {
       statut: editing.statut,
       details: editing.details || "",
       teller_id: teller.uid,
+      cout_envoie_maritime: Number(editing.cout_envoie_maritime) || 0,
+      cout_envoie_aérienne: Number(editing.cout_envoie_aérienne) || 0,
     };
 
     try {
@@ -152,9 +157,14 @@ const OrderTellerPage: React.FC = () => {
       {editing && (
         <div className="modal-overlay">
           <div className="modal animate-fadeIn">
-            <h3 className="modal-title">Modifier commande</h3>
 
+            <h3 className="modal-title">
+              Modifier commande
+            </h3>
+
+            {/* STATUT */}
             <label>Statut</label>
+
             <select
               value={editing.statut}
               onChange={(e) =>
@@ -168,30 +178,101 @@ const OrderTellerPage: React.FC = () => {
                 <option value="Initier">Initier</option>
               )}
 
-              <option value="Prise en charge">Prise en charge</option>
-              <option value="Valider">Valider</option>
-              <option value="Expedition">Expedition</option>
-              <option value="Livraison">Livraison</option>
-              <option value="Livrer">Livrer</option>
+              <option value="Prise en charge">
+                Prise en charge
+              </option>
+
+              <option value="Valider">
+                Valider
+              </option>
+
+              <option value="Expedition">
+                Expedition
+              </option>
+
+              <option value="Livraison">
+                Livraison
+              </option>
+
+              <option value="Livrer">
+                Livrer
+              </option>
             </select>
 
+            {/* EXPÉDITION MARITIME */}
+            <label>
+              Coût d'expédition maritime
+            </label>
+
+            <input
+              type="number"
+              min="0"
+              step="1"
+              placeholder="Ex : 5000"
+              value={editing.cout_envoie_maritime ?? ""}
+              onChange={(e) =>
+                setEditing({
+                  ...editing,
+                  cout_envoie_maritime: Number(e.target.value),
+                })
+              }
+            />
+
+            {/* EXPÉDITION AÉRIENNE */}
+            <label>
+              Coût d'expédition aérienne
+            </label>
+
+            <input
+              type="number"
+              min="0"
+              step="1"
+              placeholder="Ex : 10000"
+              value={editing.cout_envoie_aérienne ?? ""}
+              onChange={(e) =>
+                setEditing({
+                  ...editing,
+                  cout_envoie_aérienne: Number(e.target.value),
+                })
+              }
+            />
+
+            {/* DÉTAILS */}
             <label>Détails</label>
+
             <textarea
               value={editing.details || ""}
-              onChange={(e) => setEditing({ ...editing, details: e.target.value })}
+              onChange={(e) =>
+                setEditing({
+                  ...editing,
+                  details: e.target.value,
+                })
+              }
               rows={4}
               style={{
-                fontSize: "16px", // IMPORTANT pour éviter le zoom iPhone
+                fontSize: "16px",
                 padding: "6px",
                 borderRadius: "6px",
-                border: "1px solid #ccc"
+                border: "1px solid #ccc",
               }}
             />
 
             <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setEditing(null)}>Annuler</button>
-              <button className="save-btn" onClick={handleUpdate}>Enregistrer</button>
+              <button
+                className="cancel-btn"
+                onClick={() => setEditing(null)}
+              >
+                Annuler
+              </button>
+
+              <button
+                className="save-btn"
+                onClick={handleUpdate}
+              >
+                Enregistrer
+              </button>
             </div>
+
           </div>
         </div>
       )}

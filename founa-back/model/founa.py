@@ -92,6 +92,9 @@ class Commande(db.Model):
     prix_total = db.Column(db.Float, nullable=False)
     statut = db.Column(db.String(128), default='commande Initier') # commande en charge, Validerr, Payerr, en expedition, en livraison, Livrerr
     details = db.Column(db.Text, nullable=True)
+    cout_envoie_maritime = db.Column(db.Float, nullable=False)
+    cout_envoie_aérienne = db.Column(db.Float, nullable=False)
+    option_envoie = db.Column(db.String(128), nullable=True) # maritime, aerien
     view = db.Column(db.String(1), nullable=False, default='0')
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
