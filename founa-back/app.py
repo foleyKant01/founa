@@ -35,6 +35,23 @@ api = Api(app)
 
 CORS(app, resources={r"/*": {"origins": "*"}}) 
 
+@app.route('/api/alibaba/callback', methods=['GET'])
+def alibaba_callback():
+    code = request.args.get('code')
+
+    if not code:
+        return {
+            "success": False,
+            "message": "Authorization code manquant"
+        }, 400
+
+    print("Alibaba authorization code reçu :", code)
+
+    return {
+        "success": True,
+        "message": "Alibaba authorization code reçu"
+    }, 200
+
 @app.after_request
 def after_request(response):
     response.headers["Content-Type"] = "application/json"
