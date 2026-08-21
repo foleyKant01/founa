@@ -20,9 +20,10 @@ import OrderDetailsPage from "../pages/orders/OrderDetailsPage";
 import UpdateClient from "../pages/profile/updateClient";
 import UpdatePassword from "../pages/profile/updatePasswordClient";
 import OrderTellerPage from "../pages/teller/orderStatusEdit";
-import StatistiquesTellerPage from "../pages/teller/stateTeller";
+import StatistiquesTellerPage from "../pages/teller/stateTeller"; 
 import ProtectedRouteTeller from "../components/routes/ProtectedRouteTeller"; // chemin correct
 import ProtectedRouteClient from "../components/routes/ProtectedRouteClient";
+import ProtectedAdminRoute from "../components/routes/ProtectedRouteAdmin";
 
 
 const AppRoutes = () => {
@@ -31,8 +32,9 @@ const AppRoutes = () => {
   // Pages où le BottomBar ne doit pas apparaître
   const authPages = ["/auth/login", "/auth/register", "/auth/forgotpassword"];
   // toutes les routes teller
+  const isAdminRoute = location.pathname.startsWith("/admin");
   const isTellerRoute = location.pathname.startsWith("/teller");
-  const showBottomBar = !authPages.includes(location.pathname) && !isTellerRoute;
+  const showBottomBar = !authPages.includes(location.pathname) && !isTellerRoute && !isAdminRoute;
 
   return (
     <>
@@ -69,7 +71,7 @@ const AppRoutes = () => {
           <Route path="/teller/edit/:id" element={<ProtectedRouteTeller><EditProduct /></ProtectedRouteTeller>} />
 
           {/* 🔥 ADMIN */}
-          <Route path="/admin/home" element={<HomeAdmin />} />
+          <Route path="/admin/home" element={<ProtectedAdminRoute><HomeAdmin /></ProtectedAdminRoute>} />
           {/* <Route path="/admin/create" element={<CreateProduct />} />
           <Route path="/admin/readall" element={<ReadAllProducts />} />
           <Route path="/admin/readsingle" element={<ReadSingleProduct />} />
