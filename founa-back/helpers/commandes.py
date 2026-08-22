@@ -158,7 +158,6 @@ def GetAllCommandeByTeller():
                     "nom": c.client.fullname,
                     "email": c.client.email,
                     "phone": c.client.phone,
-                    # ajoute d'autres champs nécessaires
                 },
                 "produit": {
                     "uid": c.produit.uid,
