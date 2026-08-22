@@ -19,10 +19,22 @@ const ReadAllProducts = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  const filteredProducts = data.filter((product) => {
+    const search = searchText.trim().toLowerCase();
+
+    if (!search) return true;
+
+    return (
+      product.nom.toLowerCase().includes(search) ||
+      product.uid.toLowerCase().includes(search)
+    );
+  });
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -118,6 +130,26 @@ const ReadAllProducts = () => {
           </div>
         </div>
 
+        {/* SEARCH */}
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Rechercher par nom ou UID..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="search-input"
+          />
+
+          {searchText && (
+            <button
+              className="clear-search"
+              onClick={() => setSearchText("")}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
         {/* CONTENT */}
         {loading ? (
           <div className="loader"></div>
@@ -126,11 +158,20 @@ const ReadAllProducts = () => {
             📦
             <p>Aucun produit disponible</p>
           </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="empty">
+            🔍
+            <p>Aucun produit trouvé</p>
+            <small>
+              Aucun produit ne correspond à "{searchText}"
+            </small>
+          </div>
         ) : (
           <div className="table-wrapper">
             <table>
               <thead>
                 <tr>
+                  <th>Id</th>
                   <th>Nom</th>
                   <th>Prix</th>
                   <th>Stock</th>
@@ -139,10 +180,18 @@ const ReadAllProducts = () => {
               </thead>
 
               <tbody>
-                {data.map((p) => (
+                {filteredProducts.map((p) => (
                   <tr key={p.uid}>
-                    <td className="truncate">{p.nom}</td>
-                    <td className="price">{p.prix_vente} FCFA</td>
+                    <td className="uid">{p.uid}</td>
+
+                    <td className="truncate">
+                      {p.nom}
+                    </td>
+
+                    <td className="price">
+                      {p.prix_vente} FCFA
+                    </td>
+
                     <td>
                       <span
                         className={`stock ${
@@ -152,8 +201,16 @@ const ReadAllProducts = () => {
                         {p.stock_disponible}
                       </span>
                     </td>
+
                     <td className="actions">
-                      <button onClick={() => navigate(`/teller/readsingle/${p.uid}`)}>👁️</button>
+                      <button
+                        onClick={() =>
+                          navigate(`/teller/readsingle/${p.uid}`)
+                        }
+                      >
+                        👁️
+                      </button>
+
                       <button
                         className="delete"
                         onClick={() => deleteProduct(p.uid)}
@@ -259,6 +316,13 @@ const ReadAllProducts = () => {
           text-overflow: ellipsis;
         }
 
+        .uid {
+          max-width: 200px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
         .price {
           color: green;
           font-weight: bold;
@@ -296,6 +360,45 @@ const ReadAllProducts = () => {
 
         .delete:hover {
           background: #cc0000 !important;
+        }
+        .search-container {
+          position: relative;
+          width: 100%;
+          margin: 20px 0;
+        }
+
+        .search-input {
+          width: 100%;
+          height: 45px;
+          padding: 0 45px 0 16px;
+          border: 1px solid #ddd;
+          border-radius: 12px;
+          outline: none;
+          font-size: 14px;
+          background: #fff;
+          box-sizing: border-box;
+          transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+          border-color: #00A4A6;
+          box-shadow: 0 0 0 3px rgba(0, 164, 166, 0.1);
+        }
+
+        .clear-search {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          border: none;
+          background: transparent;
+          color: #777;
+          cursor: pointer;
+          font-size: 16px;
+        }
+
+        .clear-search:hover {
+          color: #00A4A6;
         }
       `}</style>
     </>

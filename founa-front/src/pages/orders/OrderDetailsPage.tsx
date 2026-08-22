@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { GetSingleCommande, OptionEnvoie } from "../../services/order.service";
+import { useApp } from "../../context//appContext";
 
 interface Order {
   commande_id: string;
@@ -24,6 +25,8 @@ type ModeExpedition = "maritime" | "aérienne";
 const OrderDetailsPage: React.FC = () => {
   const { commande_id } = useParams();
 
+  const { refreshCommandeCount } = useApp();
+
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,18 +34,37 @@ const OrderDetailsPage: React.FC = () => {
   const [modeExpedition, setModeExpedition] =
     useState<ModeExpedition | null>(null);
 
-  useEffect(() => {
-    if (commande_id) {
-      GetSingleCommande({ commande_id })
-        .then((res) => {
-          if (res.data.status === "success") {
-            setOrder(res.data.commande);
+    useEffect(() => {
+    if (!commande_id) return;
+
+    const loadCommande = async () => {
+      try {
+        const res = await GetSingleCommande({
+          commande_id,
+        });
+
+        if (res.data.status === "success") {
+          const commande = res.data.commande;
+
+          setOrder(commande);
+
+          // 🔔 Si la commande était non lue
+          if (commande.view === "0") {
+            await refreshCommandeCount();
           }
-        })
-        .catch((err) => console.error(err))
-        .finally(() => setLoading(false));
-    }
-  }, [commande_id]);
+        }
+      } catch (error) {
+        console.error(
+          "Erreur lors du chargement de la commande :",
+          error
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCommande();
+  }, [commande_id, refreshCommandeCount]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -18,6 +18,7 @@ interface Order {
   statut: string; // "Livrer" | "En cours" | "Annulé"
   details: string;
   nom: string;
+  view: string;
   created_date: string;
   updated_date?: string;
 }
@@ -46,6 +47,7 @@ const OrdersPage: React.FC = () => {
               statut: c.statut,
               details: c.details,
               nom: c.nom,
+              view: c.view,
               created_date: c.created_date,
               updated_date: c.updated_date,
             }));
@@ -87,7 +89,7 @@ const OrdersPage: React.FC = () => {
         <p>Aucune commande pour le moment.</p>
       ) : (
         orders.map((order) => (
-          <div key={order.commande_id} style={styles.orderCard} onClick={() => navigate(`/order/${order.commande_id}`)}>
+          <div key={order.commande_id}style={{...styles.orderCard,...(order.view === "0" ? styles.orderCardRead : {}),}}onClick={() => navigate(`/order/${order.commande_id}`)}>
             <div style={styles.orderDetails}>
               <span style={styles.orderId}>{order.commande_id}</span>
               <span style={styles.orderDate}>Date: {order.created_date}</span>
@@ -157,13 +159,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "space-between",
     alignItems: "flex-start",
     padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 12,
+
+    // ⚠️ background et non backgroundColor
+    background:
+      "linear-gradient(135deg, rgba(0, 163, 166, 0.1), rgba(0, 163, 166, 0.4))",
+
+    border: "1px solid rgba(0, 163, 166, 0.09)",
+    borderRadius: 14,
     marginBottom: 15,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-    transition: "transform 0.2s",
+
+    boxShadow: "0 4px 14px rgba(0, 164, 166, 0.10)",
+
+    transition:
+      "transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease",
+
     cursor: "pointer",
     flexWrap: "wrap",
+  },
+
+  orderCardRead: {
+    background:"linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1))",
+    border: "1px solid rgba(0, 164, 166, 0.08)",
+    boxShadow: "0 2px 7px rgba(0, 0, 0, 0.04)",
+    opacity: 0.72,
   },
   orderDetails: {
     display: "flex",

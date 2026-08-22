@@ -1,8 +1,13 @@
-// src/components/BottomBar.tsx
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { House, User, Activity, Package } from "lucide-react";
-// import { useApp } from "../../context/appContext";
+import {
+  House,
+  User,
+  Activity,
+  Package,
+} from "lucide-react";
+
+import { useApp } from "../../context/appContext";
 
 interface BottomBarItem {
   name: string;
@@ -14,19 +19,38 @@ interface BottomBarItem {
 const BottomBar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  // const { commandeCount } = useApp();
+
+  const { commandeCount } = useApp();
 
   const items: BottomBarItem[] = [
-    { name: "Accueil", path: "/home", icon: <House size={22} /> },
-    { name: "Activité", path: "/activity", icon: <Activity size={22} /> }, // <-- vers ActivityPage
-    { name: "Commandes", path: "/orders", icon: <Package size={22} /> },
-    { name: "Profil", path: "/profile", icon: <User size={22} /> },
+    {
+      name: "Accueil",
+      path: "/home",
+      icon: <House size={22} />,
+    },
+    {
+      name: "Activité",
+      path: "/activity",
+      icon: <Activity size={22} />,
+    },
+    {
+      name: "Commandes",
+      path: "/orders",
+      icon: <Package size={22} />,
+      badge: commandeCount,
+    },
+    {
+      name: "Profil",
+      path: "/profile",
+      icon: <User size={22} />,
+    },
   ];
 
   return (
     <nav style={styles.container}>
       {items.map((item) => {
-        const isActive = location.pathname === item.path;
+        const isActive =
+          location.pathname === item.path;
 
         return (
           <button
@@ -34,20 +58,27 @@ const BottomBar: React.FC = () => {
             onClick={() => navigate(item.path)}
             style={{
               ...styles.item,
-              color: isActive ? "#00A4A6" : "#555",
+              color: isActive
+                ? "#00A4A6"
+                : "#555",
             }}
           >
             <div style={styles.iconWrapper}>
               {item.icon}
 
-              {item.badge && item.badge > 0 && (
-                <span style={styles.badge}>
-                  {item.badge}
-                </span>
-              )}
+              {item.badge !== undefined &&
+                item.badge > 0 && (
+                  <span style={styles.badge}>
+                    {item.badge > 99
+                      ? "99+"
+                      : item.badge}
+                  </span>
+                )}
             </div>
 
-            <span style={styles.label}>{item.name}</span>
+            <span style={styles.label}>
+              {item.name}
+            </span>
           </button>
         );
       })}
@@ -55,8 +86,9 @@ const BottomBar: React.FC = () => {
   );
 };
 
-/* 🎨 Styles */
-const styles: { [key: string]: React.CSSProperties } = {
+const styles: {
+  [key: string]: React.CSSProperties;
+} = {
   container: {
     height: 60,
     width: "100%",
@@ -67,9 +99,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "space-around",
     alignItems: "center",
     backgroundColor: "#fff",
-    boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
+    boxShadow:
+      "0 -2px 10px rgba(0,0,0,0.1)",
     zIndex: 1000,
   },
+
   item: {
     display: "flex",
     flexDirection: "column",
@@ -81,12 +115,37 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: 0,
     transition: "color 0.2s",
   },
+
+  iconWrapper: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  badge: {
+    position: "absolute",
+    top: -8,
+    right: -12,
+    minWidth: 18,
+    height: 18,
+    padding: "0 5px",
+    borderRadius: 20,
+    backgroundColor: "#e53935",
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "2px solid #fff",
+    boxSizing: "border-box",
+  },
+
   label: {
     marginTop: 2,
     fontWeight: 500,
   },
-
-  
 };
 
 export default BottomBar;

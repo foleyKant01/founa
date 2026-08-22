@@ -234,45 +234,88 @@ def UpdateProduit():
 def AllSimilarProducts():
     response = {}
     try:
-        uid = request.json.get('uid')
-        product_name = request.json.get('nom')
-        product_description = request.json.get('description')
+        data = request.json or {}
+        uid = data.get("uid")
+        product_name = (data.get("nom") or "").strip()
+        product_description = (data.get("description") or "").strip()
+        product_categorie = (data.get("categorie") or "").strip()
+        filters = []
+        if product_categorie:
+            filters.append(
+                Produit.categorie.ilike(f"%{product_categorie}%"))
+        if product_name:
+            filters.append(
+                Produit.nom.ilike(f"%{product_name}%"))
+        if product_description:
+            filters.append(
+                Produit.description.ilike(f"%{product_description}%"))
+        if not filters:
+            response["status"] = "success"
+            response["products"] = []
+            return response
         all_products = (
             Produit.query
             .filter(
                 Produit.uid != uid,
-                # Produit.type == product_type,
-                or_(
-                    Produit.nom.ilike(f"%{product_name}%"),
-                    Produit.description.ilike(f"%{product_description}%")
-                )
+                or_(*filters)
             )
-            .distinct(Produit.nom)
-            .limit(10)   # 🔥 limite pour UX & perf
-            .all()
-        )
+            .all())
         products_info = []
         for product in all_products:
-            products_info.append({
-                "id": product.id,
-                "uid": product.uid,
-                "nom": product.nom,
-                "description": product.description,
-                "prix_fournisseur": product.prix_fournisseur,
-                "prix_vente": product.prix_vente,
-                "stock_disponible": product.stock_disponible, 
-                "moq": product.moq,
-                "fournisseur_id": product.fournisseur_id,
-                "teller_id": product.teller_id,
-                "images": product.images
-            })
-        response['status'] = 'success'
-        response['products'] = products_info
+            score = 0
+            categorie = (product.categorie or "").strip().lower()
+            nom = (product.nom or "").strip().lower()
+            description = (product.description or "").strip().lower()
+            search_categorie = product_categorie.lower()
+            search_name = product_name.lower()
+            search_description = product_description.lower()
+            if (
+                search_categorie
+                and categorie == search_categorie
+            ):
+                score += 50
+            elif (
+                search_categorie
+                and search_categorie in categorie
+            ):
+                score += 50
+            if (
+                search_name
+                and search_name in nom
+            ):
+                score += 30
+            if (
+                search_description
+                and search_description in description
+            ):
+                score += 20
+            if score > 0:
+                products_info.append({
+                    "id": product.id,
+                    "uid": product.uid,
+                    "nom": product.nom,
+                    "description": product.description,
+                    "categorie": product.categorie,
+                    "prix_fournisseur": product.prix_fournisseur,
+                    "prix_vente": product.prix_vente,
+                    "stock_disponible": product.stock_disponible,
+                    "moq": product.moq,
+                    "fournisseur_id": product.fournisseur_id,
+                    "teller_id": product.teller_id,
+                    "images": product.images,
+                    "similarity_score": score
+                })
+        products_info.sort(
+            key=lambda product: product["similarity_score"],
+            reverse=True
+        )
+        products_info = products_info[:10]
+        response["status"] = "success"
+        response["products"] = products_info
     except Exception as e:
-        response['status'] = 'error'
-        response['error_description'] = str(e)
+        response["status"] = "error"
+        response["error_description"] = str(e)
     return response
-
 
 
 def DeleteProduitByTeller():
@@ -322,42 +365,97 @@ def normalize_text(text):
 
 def SearchProduct():
     """
-    Recherche des produits selon un texte et retourne les résultats paginés.
+    Recherche des produits selon un texte.
+    Recherche dans :
+        - nom
+        - categorie
+        - description
+
+    Les résultats sont classés selon un score de pertinence.
     """
     response = {}
     try:
         data = request.json or {}
-        text = data.get('textSearch', '').strip()
-        page = max(int(data.get('page', 1)), 1)
-        per_page = max(int(data.get('per_page', 10)), 1)
+        text = data.get("textSearch", "").strip()
+        page = max(int(data.get("page", 1)), 1)
+        per_page = max(int(data.get("per_page", 10)), 1)
         if not text:
-            return {'status': 'error', 'error_description': 'textSearch is required'}, 400
+            return {
+                "status": "error",
+                "error_description": "textSearch is required"
+            }, 400
         text_search = remove_accents(text.lower())
-        words = [w for w in normalize_text(text_search) if len(w) > 2]
-
+        words = [
+            w
+            for w in normalize_text(text_search)
+            if len(w) > 2
+        ]
         if not words:
-            return jsonify({'status': 'error', 'error_description': 'textSearch too short'}), 400
-
-        # Construction du filtre SQL
+            return {
+                "status": "error",
+                "error_description": "textSearch too short"
+            }, 400
         filters = []
         for word in words:
             pattern = f"%{word}%"
-            filters.append(Produit.nom.ilike(pattern))
-            filters.append(Produit.description.ilike(pattern))
-
-        query = Produit.query.filter(or_(*filters))
-
-        # Pagination SQL
-        total = query.count()
-        results = query.offset((page - 1) * per_page).limit(per_page).all()
-
-        # Formatage du JSON
+            filters.append(
+                Produit.nom.ilike(pattern)
+            )
+            filters.append(
+                Produit.categorie.ilike(pattern)
+            )
+            filters.append(
+                Produit.description.ilike(pattern)
+            )
+        query = Produit.query.filter(
+            or_(*filters)
+        )
+        all_results = query.all()
+        products_scored = []
+        for product in all_results:
+            score = 0
+            nom = remove_accents(
+                (product.nom or "").lower()
+            )
+            categorie = remove_accents(
+                (product.categorie or "").lower()
+            )
+            description = remove_accents(
+                (product.description or "").lower()
+            )
+            for word in words:
+                if word in nom:
+                    score += 50
+                if word in categorie:
+                    score += 30
+                if word in description:
+                    score += 20
+            if score > 0:
+                products_scored.append({
+                    "product": product,
+                    "score": score
+                })
+        products_scored.sort(
+            key=lambda item: item["score"],
+            reverse=True
+        )
+        total = len(products_scored)
+        start = (page - 1) * per_page
+        end = start + per_page
+        results = products_scored[start:end]
         products_list = []
-        for product in results:
+        for item in results:
+            product = item["product"]
             products_list.append({
                 "uid": product.uid,
                 "nom": product.nom or "",
-                "description": (product.description[:150] + "...") if product.description and len(product.description) > 150 else (product.description or ""),
+                "categorie": product.categorie or "",
+                "description": (
+                    product.description[:150] + "..."
+                    if product.description
+                    and len(product.description) > 150
+                    else product.description or ""
+                ),
                 "lien_1": product.lien_1 or "",
                 "lien_2": product.lien_2 or "",
                 "prix_vente": product.prix_vente or 0,
@@ -367,20 +465,26 @@ def SearchProduct():
                 "status": product.status or "",
                 "teller_id": product.teller_id or "",
                 "fournisseur_id": product.fournisseur_id or "",
-                "creation_date": str(product.creation_date),
+                "creation_date": str(
+                    product.creation_date
+                ),
+                "search_score": item["score"]
             })
-
         response = {
-            'status': 'success',
-            'total': total,
-            'pages': (total + per_page - 1) // per_page,
-            'current_page': page,
-            'products': products_list
+            "status": "success",
+            "total": total,
+            "pages": (
+                (total + per_page - 1)
+                // per_page
+            ),
+            "current_page": page,
+            "products": products_list
         }
-
     except Exception as e:
-        response = {'status': 'error', 'error_description': str(e)}
-
+        response = {
+            "status": "error",
+            "error_description": str(e)
+        }
     return response
 
 

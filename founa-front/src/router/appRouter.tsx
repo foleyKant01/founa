@@ -24,6 +24,7 @@ import StatistiquesTellerPage from "../pages/teller/stateTeller";
 import ProtectedRouteTeller from "../components/routes/ProtectedRouteTeller"; // chemin correct
 import ProtectedRouteClient from "../components/routes/ProtectedRouteClient";
 import ProtectedAdminRoute from "../components/routes/ProtectedRouteAdmin";
+import { AppProvider } from "../context/appContext";
 
 
 const AppRoutes = () => {
@@ -89,7 +90,9 @@ const AppRoutes = () => {
 // on enveloppe AppRoutes avec BrowserRouter dans un wrapper
 const AppRoutesWrapper = () => (
   <BrowserRouter>
-    <AppRoutes />
+    <AppProvider>
+      <AppRoutes />
+    </AppProvider>
   </BrowserRouter>
 );
 

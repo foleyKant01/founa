@@ -33,6 +33,7 @@ export const AllSimilarProducts = (data: {
   uid: string;
   nom: string;
   description: string;
+  categorie: string;
 }) => {
   return api.post('/produits/all_similar_products', data);
 };

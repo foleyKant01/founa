@@ -44,7 +44,8 @@ def CreateCommande():
             details=details,
             teller_id=produit.teller_id,
             prix_total=prix_total,
-            statut="Initier"
+            statut="Initier",
+            view="1"
         )
 
         db.session.add(commande)
@@ -156,6 +157,7 @@ def GetAllCommandeByTeller():
                     "uid": c.client.uid,
                     "nom": c.client.fullname,
                     "email": c.client.email,
+                    "phone": c.client.phone,
                     # ajoute d'autres champs nécessaires
                 },
                 "produit": {
@@ -188,7 +190,10 @@ def GetSingleCommande():
 
         if not single_commande:
             return {"status": "error", "message": "Commande introuvable"}, 404
-
+        
+        single_commande.view = "0"
+        db.session.commit()
+        
         return {
             "status": "success",
             "commande": {
@@ -204,6 +209,7 @@ def GetSingleCommande():
                 "details": single_commande.details,
                 "cout_envoie_maritime": single_commande.cout_envoie_maritime,
                 "cout_envoie_aérienne": single_commande.cout_envoie_aérienne,
+                "view": single_commande.view,
                 "created_date": str(single_commande.created_date),
                 "updated_date": str(single_commande.updated_date),
             }
@@ -222,13 +228,10 @@ def UpdateCommande():
         statut = data.get('statut')
         details = data.get('details')
         teller_id = data.get('teller_id')
-
         cout_envoie_maritime = data.get('cout_envoie_maritime', 0)
         cout_envoie_aerienne = data.get('cout_envoie_aérienne', 0)
 
-        update_commande = Commande.query.filter_by(
-            commande_id=commande_id
-        ).first()
+        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
 
         if not update_commande:
             return {
@@ -239,17 +242,11 @@ def UpdateCommande():
         update_commande.statut = statut
         update_commande.details = details
         update_commande.teller_id = teller_id
-
-        update_commande.cout_envoie_maritime = float(
-            cout_envoie_maritime or 0
-        )
-
-        update_commande.cout_envoie_aérienne = float(
-            cout_envoie_aerienne or 0
-        )
-
+        update_commande.cout_envoie_maritime = float(cout_envoie_maritime or 0)
+        update_commande.cout_envoie_aérienne = float(cout_envoie_aerienne or 0)
+        update_commande.view = "1"
         update_commande.updated_date = datetime.utcnow()
-
+        
         db.session.commit()
 
         return {
@@ -271,11 +268,7 @@ def OptionEnvoie():
         data = request.json
         commande_id = data.get('commande_id')
         option_envoie = data.get('option_envoie')
-
-        update_commande = Commande.query.filter_by(
-            commande_id=commande_id
-        ).first()
-
+        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
         if not update_commande:
             return {
                 "status": "error",
@@ -284,61 +277,19 @@ def OptionEnvoie():
         update_commande.option_envoie = option_envoie
         update_commande.updated_date = datetime.utcnow()
         db.session.commit()
-
         return {
             "status": "success",
             "message": "Commande mise à jour"
         }, 200
-
     except Exception as e:
         db.session.rollback()
-
         return {
             "status": "error",
             "message": str(e)
         }, 500
     
     
-    
-def ValiderCommande():
-    try:
-        commande_id = request.json.get('commande_id')
-        statut = request.json.get('statut')
-        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
-        if not update_commande:
-            return {"status": "error", "message": "Commande introuvable"}, 404
 
-        # Mise à jour simple
-        update_commande.statut = statut
-        update_commande.updated_date = datetime.datetime.utcnow()
-
-        db.session.commit()
-
-        return {"status": "success", "message": "Statut de la commande mis à jour"}, 200
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
-    
-    
-def CommandePayerr():
-    try:
-        commande_id = request.json.get('commande_id')
-        statut = request.json.get('statut')
-        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
-        if not update_commande:
-            return {"status": "error", "message": "Commande introuvable"}, 404
-
-        # Mise à jour simple
-        update_commande.statut = statut
-        update_commande.updated_date = datetime.datetime.utcnow()
-
-        db.session.commit()
-
-        return {"status": "success", "message": "Statut de la commande mis à jour"}, 200
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
-    
     
 def CommandeEnExpedition():
     try:
@@ -352,46 +303,6 @@ def CommandeEnExpedition():
         # Mise à jour simple
         update_commande.statut = statut
         update_commande.fournisseur_id = fournisseur_id
-        update_commande.updated_date = datetime.datetime.utcnow()
-
-        db.session.commit()
-
-        return {"status": "success", "message": "Statut de la commande mis à jour"}, 200
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
-    
-        
-def CommandeEnLivraison():
-    try:
-        commande_id = request.json.get('commande_id')
-        statut = request.json.get('statut')
-        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
-        if not update_commande:
-            return {"status": "error", "message": "Commande introuvable"}, 404
-
-        # Mise à jour simple
-        update_commande.statut = statut
-        update_commande.updated_date = datetime.datetime.utcnow()
-
-        db.session.commit()
-
-        return {"status": "success", "message": "Statut de la commande mis à jour"}, 200
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
-    
-    
-def CommandeLivrerr():
-    try:
-        commande_id = request.json.get('commande_id')
-        statut = request.json.get('statut')
-        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
-        if not update_commande:
-            return {"status": "error", "message": "Commande introuvable"}, 404
-
-        # Mise à jour simple
-        update_commande.statut = statut
         update_commande.updated_date = datetime.datetime.utcnow()
 
         db.session.commit()

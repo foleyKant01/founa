@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 interface Commande {
   commande_id: string;
   produit: { nom: string };
-  client: { nom: string };
+  client: { nom: string, phone: string };
   quantite: number;
   prix_total: number;
   statut: string;
@@ -24,6 +24,7 @@ const OrderTellerPage: React.FC = () => {
   const [data, setData] = useState<Commande[]>([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Commande | null>(null);
+  const [searchText, setSearchText] = useState("");
 
   const teller = JSON.parse(sessionStorage.getItem("teller") || "{}");
   const navigate = useNavigate();
@@ -91,24 +92,62 @@ const OrderTellerPage: React.FC = () => {
     return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
   };
 
+  const filteredCommandes = data.filter((commande) => {
+    const search = searchText.trim().toLowerCase();
+
+    if (!search) return true;
+
+    return (
+      commande.client?.nom?.toLowerCase().includes(search) ||
+      commande.client?.phone?.toLowerCase().includes(search) ||
+      commande.commande_id?.toLowerCase().includes(search) 
+
+    );
+  });
+
   return (
     <div className="order-page">
       <span className="back" onClick={() => navigate(-1)}>
             ←
         </span>
       <h2 className="page-title">Gestion des commandes</h2>
+      <div className="search-container">
+      <input
+        type="text"
+        placeholder="Rechercher par client ou ID commande..."
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        className="search-input"
+      />
+
+      {searchText && (
+        <button
+          className="clear-search"
+          onClick={() => setSearchText("")}
+        >
+          ✕
+        </button>
+      )}
+    </div>
 
       {loading ? (
         <div className="loading">Chargement des commandes...</div>
       ) : data.length === 0 ? (
-        <div className="no-data">Aucune commande trouvée.</div>
-      ) : (
+          <div className="no-data">
+            Aucune commande trouvée.
+          </div>
+        ) : filteredCommandes.length === 0 ? (
+          <div className="no-data">
+            🔍 Aucune commande ne correspond à "{searchText}"
+          </div>
+        ) : (
         <div className="table-wrapper">
           <table className="commande-table">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Client</th>
+                <th>Tel</th>
                 <th>Produit</th>
                 <th>Quantité</th>
                 <th>Prix</th>
@@ -118,10 +157,11 @@ const OrderTellerPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {data.map((cmd) => (
+              {filteredCommandes.map((cmd) => (
                 <tr key={cmd.commande_id}>
                   <td>{cmd.commande_id}</td>
                   <td>{cmd.client?.nom}</td>
+                  <td>{cmd.client?.phone}</td>
                   <td>{cmd.produit?.nom}</td>
                   <td>{cmd.quantite}</td>
                   <td>{cmd.prix_total.toLocaleString()} FCFA</td>
@@ -307,6 +347,58 @@ const OrderTellerPage: React.FC = () => {
 
         @keyframes fadeIn { from {opacity:0; transform:translateY(-10px);} to {opacity:1; transform:translateY(0);} }
         .animate-fadeIn { animation:fadeIn 0.3s ease-out; }
+        .search-container {
+  position: relative;
+  width: 100%;
+  margin: 20px 0;
+}
+
+.search-input {
+  width: 100%;
+  height: 45px;
+  padding: 0 45px 0 16px;
+  box-sizing: border-box;
+
+  border: 1px solid #ddd;
+  border-radius: 12px;
+
+  background-color: #fff;
+
+  font-size: 14px;
+  outline: none;
+
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #00A4A6;
+  box-shadow: 0 0 0 3px rgba(0, 164, 166, 0.1);
+}
+
+.clear-search {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  border: none;
+  background: transparent;
+
+  color: #777;
+  font-size: 16px;
+
+  cursor: pointer;
+}
+
+.clear-search:hover {
+  color: #00A4A6;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px 20px;
+  color: #777;
+}
       `}</style>
     </div>
   );

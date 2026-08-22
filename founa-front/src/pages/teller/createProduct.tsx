@@ -94,7 +94,7 @@ const CreateProduct: React.FC = () => {
     <div style={styles.container}>
       {/* HEADER */}
       <div style={styles.header}>
-        <img src="/logo-founa.png" alt="logo" style={styles.logo} />
+        {/* <img src="/logo-founa.png" alt="logo" style={styles.logo} /> */}
         <h2 style={styles.title}>Créer un produit</h2>
         <p style={styles.subtitle}>Ajoutez un produit à votre catalogue rapidement et facilement</p>
       </div>

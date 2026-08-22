@@ -1,11 +1,12 @@
-// src/pages/HomePage.tsx
 import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
-import { GetAllProduits, SearchProduct } from "../../services/product.service";
+import {
+  GetAllProduits,
+  SearchProduct,
+} from "../../services/product.service";
 import { useNavigate } from "react-router-dom";
-// import { useActivity, type FavoriteItem } from "../../context/activityContext";
-import { GetAllCommandeByClient } from "../../services/order.service";
-// import { useApp } from "../../context/AppContext";
+
+import { useApp } from "../../context/appContext";
 
 interface Produit {
   id: number;
@@ -16,77 +17,92 @@ interface Produit {
   prix_vente: number;
   stock_disponible: number;
   images: string | string[];
-  fournisseur_id: string;
 }
-
-// interface Commande {
-//   id: number;
-//   commande_id: string;
-//   client_id: string;
-//   client: string;
-//   produit_id: string;
-//   produit: string;
-//   teller_id: string;
-//   teller: string;
-//   fournisseur_id: string;
-//   fournisseur: string;
-//   quantite: number;
-//   prix_total: number;
-//   statut: string;
-//   details: string;
-//   view: string;
-// }
 
 const HomePage: React.FC = () => {
   const nav = useNavigate();
-  const [Allproduits, setProduits] = useState<Produit[]>([]);
-  // const [Allcommandes, setCommandes] = useState<Commande[]>([]);
-  const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState<Produit[]>([]);
-  // const { addFavorite, removeFavorite, isFavorite } = useActivity();
-  // const { setCommandeCount } = useApp();
 
-  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
-  const client_id = user.uid;
+  const [Allproduits, setProduits] =
+    useState<Produit[]>([]);
 
-  // 🔹 Récupération produits
+  const [searchText, setSearchText] =
+    useState("");
+
+  const [searchResults, setSearchResults] =
+    useState<Produit[]>([]);
+
+  const { refreshCommandeCount } = useApp();
+
+  // Produits
   useEffect(() => {
     GetAllProduits()
-      .then((res) => setProduits(res.data.produits))
-      .catch((err) => console.error("Erreur récupération produits:", err));
+      .then((res) => {
+        setProduits(res.data.produits);
+      })
+      .catch((err) => {
+        console.error(
+          "Erreur récupération produits:",
+          err
+        );
+      });
   }, []);
 
-  // 🔹 Récupération commandes
+  // Notifications commandes
   useEffect(() => {
+    refreshCommandeCount();
+  }, [refreshCommandeCount]);
 
-    if (!client_id) return;
+  // 🔹 Récupération produits
+//   useEffect(() => {
+//   GetAllProduits()
+//     .then((res) =>
+//       setProduits(res.data.produits)
+//     )
+//     .catch((err) =>
+//       console.error(
+//         "Erreur récupération produits:",
+//         err
+//       )
+//     );
+// }, []);
 
-    GetAllCommandeByClient({
-      client_id: client_id
-    })
-    .then((res) => {
+  // 🔹 Récupération commandes
+  // useEffect(() => {
+  //   if (!client_id) return;
 
-        console.log("Commandes :", res.data);
+  //   GetAllCommandeByClient({
+  //     client_id: client_id,
+  //   })
+  //     .then((res) => {
+  //       console.log("Commandes :", res.data);
 
-        // const commandes = res.data.commandes || [];
+  //       if (res.data.status === "success") {
+  //         const commandes: Commande[] =
+  //           res.data.commandes || [];
 
-        // stockage local HomePage
-        // setCommandes(commandes);
+  //         // Compter uniquement les commandes non lues
+  //         const nombreNonLues = commandes.filter(
+  //           (commande) => commande.view === "1"
+  //         ).length;
 
-        // envoi au BottomBar
-        // setCommandeCount(commandes.length);
+  //         setCommandeCount(nombreNonLues);
 
-    })
-    .catch((err) => {
+  //         console.log(
+  //           "Nombre de commandes non lues :",
+  //           nombreNonLues
+  //         );
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.error(
+  //         "Erreur récupération commandes :",
+  //         err
+  //       );
 
-      console.error("Erreur récupération commandes :", err);
+  //       setCommandeCount(0);
+  //     });
+  // }, [client_id]);
 
-      // si aucune commande
-      // setCommandeCount(0);
-
-  });
-
-}, [client_id]);
 
   // 🔹 Gestion recherche
   const handleSearch = async (text: string) => {
@@ -122,7 +138,12 @@ const HomePage: React.FC = () => {
       {/* HEADER */}
       <header style={styles.header}>
         <div style={styles.searchWrapper}>
-          <img src="/logo-founa2.png" alt="FOUNA Logo" style={styles.searchLogo} />
+          <img
+            src="/logo-founa2.png"
+            alt="FOUNA Logo"
+            style={styles.searchLogo}
+          />
+
           <input
             type="text"
             placeholder="Rechercher un produit..."
@@ -131,7 +152,7 @@ const HomePage: React.FC = () => {
             style={styles.searchInput}
           />
         </div>
-        <Bell size={24} style={{ cursor: "pointer", marginRight: 35 }} />
+        {/* <Bell size={24} style={{ cursor: "pointer", marginRight: 35 }} /> */}
       </header>
 
       {/* PRODUITS */}
@@ -239,18 +260,42 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "10px 15px",
     backgroundColor: "#00A4A6",
     color: "#fff",
+
+    gap: 15,
+    boxSizing: "border-box",
   },
-  searchWrapper: {
-    display: "flex",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 25,
-    padding: "1px",
-    flex: 1,
-    maxWidth: 300,
-  },
-  searchLogo: { height: 50, width: 70, marginLeft: 0, objectFit: "cover", objectPosition: "center"},
-  searchInput: { border: "none", outline: "none", flex: 1, fontSize: 16, borderRadius: 25 },
+searchWrapper: {
+  display: "flex",
+  alignItems: "center",
+  backgroundColor: "#fff",
+  borderRadius: 25,
+  padding: "1px",
+  flex: 1,
+  width: "100%",
+  minWidth: 0,
+  boxSizing: "border-box",
+},
+
+searchLogo: {
+  height: 50,
+  width: 70,
+  marginLeft: 0,
+  objectFit: "cover",
+  objectPosition: "center",
+  flexShrink: 0,
+},
+
+searchInput: {
+  border: "none",
+  outline: "none",
+  flex: 1,
+  width: "100%",
+  minWidth: 0,
+  fontSize: 16,
+  borderRadius: 25,
+  padding: "0 0px 0px 20px",
+  boxSizing: "border-box",
+},
 
   productsSection: { marginTop: 20, padding: "0 10px" },
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15 },

@@ -23,12 +23,12 @@ class Produit(db.Model):
 
     nom = db.Column(db.String(255), nullable=False)
     status = db.Column(db.String(128), nullable=True)
+    categorie = db.Column(db.String(128), nullable=True)
     description = db.Column(db.Text)
     lien_1 = db.Column(db.Text, nullable=False)
     lien_2 = db.Column(db.Text, nullable=False)
     prix_fournisseur = db.Column(db.Float, nullable=False)
     prix_vente = db.Column(db.Float, nullable=False)
-    # images = db.Column(db.Text)  # JSON string : ["img1.jpg", "img2.jpg"]
     images = db.Column(db.JSON, nullable=False)
     stock_disponible = db.Column(db.Integer, default=0)
     moq = db.Column(db.Integer, default=0)

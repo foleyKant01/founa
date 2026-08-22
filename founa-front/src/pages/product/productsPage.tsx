@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CreateCommande } from "../../services/order.service";
-import { GetSingleProduit } from "../../services/product.service";
+import { GetSingleProduit, AllSimilarProducts } from "../../services/product.service";
 
 interface Product {
+  uid: string;
   name: string;
   price: number;
   description: string;
+  categorie: string;
   images: string[];
   stock: number;
 }
@@ -47,10 +49,16 @@ const Toast: React.FC<{
 const ProductPage: React.FC = () => {
   const { uid } = useParams<{ uid: string }>();
   const nav = useNavigate();
+
+  const [similarProducts, setSimilarProducts] = useState<SimilarProduct[]>([]);
+  const [loadingSimilar, setLoadingSimilar] = useState(false);
+
   const [product, setProduct] = useState<Product>({
+    uid: "",
     name: "",
     price: 0,
     description: "",
+    categorie: "",
     images: [],
     stock: 0,
   });
@@ -71,32 +79,120 @@ const ProductPage: React.FC = () => {
     setTimeout(() => setToast(null), 2500);
   };
 
+  const getFirstImage = (
+    images?: string | string[]
+  ): string => {
+    if (!images) {
+      return "/default-image.png";
+    }
+    let imgArray: string[] = [];
+    if (typeof images === "string") {
+      try {
+        const parsed = JSON.parse(images);
+        if (Array.isArray(parsed)) {
+          imgArray = parsed;
+        }
+      } catch {
+        if (images.startsWith("http")) {
+          return images;
+        }
+        imgArray = [];
+      }
+    } else {
+      imgArray = images;
+    }
+
+    return imgArray.length > 0
+      ? imgArray[0]
+      : "/default-image.png";
+  };
+
   useEffect(() => {
-    if (uid) {
-      GetSingleProduit({ produit_id: uid })
-        .then((res) => {
-          const data = res.data.produit;
+    if (!uid) return;
 
-          // 🔹 Ici on parse correctement la chaîne JSON des images
-          let imagesArray: string[] = [];
-          try {
+    GetSingleProduit({ produit_id: uid })
+      .then(async (res) => {
+        if (res.data.status !== "success") {
+          console.error(
+            "Erreur récupération produit :",
+            res.data.message
+          );
+          return;
+        }
+
+        const data = res.data.produit;
+
+        // 🔹 Parsing des images
+        let imagesArray: string[] = [];
+
+        try {
+          if (typeof data.images === "string") {
             imagesArray = JSON.parse(data.images);
-          } catch (err) {
-            console.error("Erreur parsing images :", err);
+          } else if (Array.isArray(data.images)) {
+            imagesArray = data.images;
           }
+        } catch (err) {
+          console.error("Erreur parsing images :", err);
+          imagesArray = [];
+        }
 
-          setProduct({
-            name: data.nom,
-            price: data.prix_vente,
-            description: data.description,
-            images: imagesArray,
-            stock: data.stock_disponible,
+        // 🔹 Produit actuel
+        const currentProduct: Product = {
+          uid: data.uid,
+          name: data.nom,
+          price: Number(data.prix_vente) || 0,
+          description: data.description || "",
+          categorie: data.categorie || "",
+          images: imagesArray,
+          stock: Number(data.stock_disponible) || 0,
+        };
+
+        setProduct(currentProduct);
+
+        if (imagesArray.length > 0) {
+          setSelectedImage(imagesArray[0]);}
+        try {
+          setLoadingSimilar(true);
+
+          const similarResponse = await AllSimilarProducts({
+            uid: data.uid,
+            nom: data.nom || "",
+            description: data.description || "",
+            categorie: data.categorie || "",
           });
 
-          if (imagesArray.length > 0) setSelectedImage(imagesArray[0]);
-        })
-        .catch((err) => console.error("Erreur récupération produit :", err));
-    }
+          if (similarResponse.data.status === "success") {
+            setSimilarProducts(
+              similarResponse.data.products || []
+            );
+
+            console.log(
+              "Produits similaires :",
+              similarResponse.data.products
+            );
+          } else {
+            console.error(
+              "Erreur produits similaires :",
+              similarResponse.data.message
+            );
+            setSimilarProducts([]);
+          }
+        } catch (error) {
+          console.error(
+            "Erreur récupération produits similaires :",
+            error
+          );
+          setSimilarProducts([]);
+        } finally {
+          setLoadingSimilar(false);
+        }
+      })
+      .catch((err) => {
+        console.error(
+          "Erreur récupération produit :",
+          err
+        );
+      });
   }, [uid]);
 
   const handleQtyChange = (newQty: number) => {
@@ -203,20 +299,47 @@ const ProductPage: React.FC = () => {
 
       {/* Produits similaires */}
       <section style={styles.similarSection}>
-        <h2 style={styles.sectionTitle}>Produits similaires</h2>
-        <div style={styles.similarProducts}>
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} style={styles.similarCard}>
-              <img
-                src={`https://via.placeholder.com/120x120.png?text=Produit+${i}`}
-                alt={`Produit similaire ${i}`}
-                style={styles.similarImage}
-              />
-              <p style={styles.similarName}>Produit similaire {i}</p>
-              <p style={styles.similarPrice}>{(100000 + i * 50000).toLocaleString()} FCFA</p>
-            </div>
-          ))}
-        </div>
+        <h2 style={styles.sectionTitle}>
+          Produits similaires
+        </h2>
+
+        {loadingSimilar ? (
+          <p style={styles.similarLoading}>
+            Recherche de produits similaires...
+          </p>
+        ) : similarProducts.length === 0 ? (
+          <p style={styles.similarEmpty}>
+            Aucun produit similaire trouvé.
+          </p>
+        ) : (
+          <div style={styles.similarProducts}>
+            {similarProducts.map((similarProduct) => (
+              <div
+                key={similarProduct.uid}
+                style={styles.similarCard}
+                onClick={() =>
+                  nav(`/singleproduct/${similarProduct.uid}`)
+                }
+              >
+                <img
+                  src={getFirstImage(similarProduct.images)}
+                  alt={similarProduct.nom}
+                  style={styles.similarImage}
+                />
+
+                <p style={styles.similarName}>
+                  {similarProduct.nom}
+                </p>
+
+                <p style={styles.similarPrice}>
+                  {Number(
+                    similarProduct.prix_vente
+                  ).toLocaleString()} FCFA
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {toast && <Toast message={toast.message} type={toast.type} />}
@@ -243,13 +366,67 @@ const styles: { [key: string]: React.CSSProperties } = {
   infoAlert: { display: "flex", gap: 10, alignItems: "flex-start", backgroundColor: "#FFF8E1", border: "1px solid #FFD54F", borderRadius: 10, padding: 12, fontSize: 13, color: "#795548" },
   infoIcon: { fontSize: 18, lineHeight: "20px" },
   infoText: { margin: 0, lineHeight: 1.4 },
-  similarSection: { marginTop: 30 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15 },
-  similarProducts: { display: "flex", gap: 15, flexWrap: "wrap" },
-  similarCard: { backgroundColor: "#fff", borderRadius: 12, padding: 10, width: "calc(50% - 7.5px)", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", cursor: "pointer" },
-  similarImage: { width: "100%", borderRadius: 8, marginBottom: 5 },
-  similarName: { fontSize: 14, fontWeight: "bold", marginBottom: 3 },
-  similarPrice: { fontSize: 13, color: "#00A4A6" },
+  similarSection: {
+  marginTop: 30,
+  padding: "0 10px",
+},
+
+similarProducts: {
+  display: "flex",
+  gap: 12,
+  overflowX: "auto",
+  paddingBottom: 10,
+  scrollbarWidth: "none" as any,
+},
+
+similarCard: {
+  minWidth: 150,
+  maxWidth: 150,
+  backgroundColor: "#fff",
+  borderRadius: 14,
+  padding: 10,
+  boxShadow: "0 4px 15px rgba(0,0,0,0.06)",
+  cursor: "pointer",
+  transition: "transform 0.2s, box-shadow 0.2s",
+  flexShrink: 0,
+},
+
+similarImage: {
+  width: "100%",
+  height: 120,
+  objectFit: "cover",
+  borderRadius: 10,
+  backgroundColor: "#F5F5F5",
+},
+
+similarName: {
+  fontSize: 14,
+  fontWeight: 600,
+  margin: "8px 0 4px",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+},
+
+similarPrice: {
+  fontSize: 13,
+  fontWeight: "bold",
+  color: "#00A4A6",
+  margin: 0,
+},
+
+similarLoading: {
+  color: "#777",
+  fontSize: 14,
+  textAlign: "center",
+},
+
+similarEmpty: {
+  color: "#999",
+  fontSize: 14,
+  textAlign: "center",
+  padding: "15px 0",
+},
 };
 
 export default ProductPage;
