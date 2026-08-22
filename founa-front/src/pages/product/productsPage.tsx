@@ -46,6 +46,20 @@ const Toast: React.FC<{
   );
 };
 
+interface SimilarProduct {
+  id: number;
+  uid: string;
+  nom: string;
+  description: string;
+  prix_fournisseur: number;
+  prix_vente: number;
+  stock_disponible: number;
+  moq: number;
+  fournisseur_id: string;
+  teller_id: string;
+  images: string | string[];
+}
+
 const ProductPage: React.FC = () => {
   const { uid } = useParams<{ uid: string }>();
   const nav = useNavigate();

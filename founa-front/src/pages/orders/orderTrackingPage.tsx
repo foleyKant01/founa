@@ -162,7 +162,7 @@ const styles: { [key: string]: React.CSSProperties } = {
 
     // ⚠️ background et non backgroundColor
     background:
-      "linear-gradient(135deg, rgba(0, 163, 166, 0.1), rgba(0, 163, 166, 0.4))",
+      "linear-gradient(135deg, rgba(0, 163, 166, 0.1), rgba(0, 163, 166, 0.27))",
 
     border: "1px solid rgba(0, 163, 166, 0.09)",
     borderRadius: 14,
