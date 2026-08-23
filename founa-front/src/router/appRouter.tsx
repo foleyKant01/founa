@@ -25,13 +25,15 @@ import ProtectedRouteTeller from "../components/routes/ProtectedRouteTeller"; //
 import ProtectedRouteClient from "../components/routes/ProtectedRouteClient";
 import ProtectedAdminRoute from "../components/routes/ProtectedRouteAdmin";
 import { AppProvider } from "../context/appContext";
+import SendOtpPage from "../pages/auth/SendOtpPage";
+import VerifyOtpPage from "../pages/auth/VerifyOtpPage";
 
 
 const AppRoutes = () => {
   const location = useLocation();
 
   // Pages où le BottomBar ne doit pas apparaître
-  const authPages = ["/auth/login", "/auth/register", "/auth/forgotpassword"];
+  const authPages = ["/auth/login", "/auth/register", "/auth/forgotpassword", "/auth/sendotp", "/auth/verifyotp"];
   // toutes les routes teller
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isTellerRoute = location.pathname.startsWith("/teller");
@@ -49,6 +51,8 @@ const AppRoutes = () => {
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
           <Route path="/auth/forgotpassword" element={<ForgotPasswordPage />} />
+          <Route path="/auth/sendotp" element={<SendOtpPage />} />
+          <Route path="/auth/verifyotp" element={<VerifyOtpPage />} />
 
           {/* 🏠 PAGES PRINCIPALES */}
           <Route path="/home" element={<ProtectedRouteClient><HomePage /></ProtectedRouteClient>} />

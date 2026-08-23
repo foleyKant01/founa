@@ -49,8 +49,17 @@ class Client(db.Model):
     fullname = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
     phone = db.Column(db.String(128), nullable=False)
+    status = db.Column(db.String(128), nullable=False, default="non-verifier") # verifier, non-verifier
     adresse_livraison = db.Column(db.Text)
     password = db.Column(db.String(128), nullable=False)
+    created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    
+    
+class Otp(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    otp = db.Column(db.String(6), nullable=False)
+    phone = db.Column(db.String(128), nullable=False)
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     

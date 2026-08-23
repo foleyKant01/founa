@@ -18,6 +18,19 @@ export const LoginClient = (data: {
   return api.post('/auth/login_client', data); 
 };
 
+export const send_OTP = (data: {
+  phone: string;
+}) => {
+  return api.post('/clients/send_otp', data); 
+};
+
+export const verfiy_OTP = (data: {
+  otp_code: string;
+  phone: string;
+}) => {
+  return api.post('/clients/verfiy_otp', data); 
+};
+
 export const UpdateClient = (data: {
   uid: string;
   password: string;

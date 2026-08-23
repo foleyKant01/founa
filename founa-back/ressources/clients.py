@@ -5,10 +5,17 @@ from helpers.clients import *
 class ClientsApi(Resource):
     def post(self, route):
         if route == "create_client":
-            return CreateClient()
+            return CreateClient() 
+        
+        if route == "send_otp":
+            print("🔥🔥🔥 JE VAIS APPELER SEND_OTP 🔥🔥🔥")
+            return send_OTP()
+        
+        if route == "verfiy_otp":
+            return verfiy_OTP()
         
         if route == "read_single_client":
-            return ReadSingleClient()
+            return ReadSingleClient() 
         
         if route == "update_client":
             return UpdateClient()

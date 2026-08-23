@@ -1,48 +1,202 @@
 from config.db import db
 from model.founa import *
 from flask import request
+from config.constant import *
+from helpers.mailer_sms import *
+# from dotenv import load_dotenv
 
+import secrets
+
+def generate_otp():
+    return str(secrets.randbelow(900000) + 100000)
 
 
 def CreateClient():
     
-    reponse = {}
     try:
-        fullname = (request.json.get('fullname'))
-        email = (request.json.get('email'))
-        phone = (request.json.get('phone'))
-        adresse_livraison = (request.json.get('adresse_livraison'))
-        password = (request.json.get('password'))
-        confirmpassword = (request.json.get('confirmpassword'))
-        if not str(confirmpassword) == str(password):
-            return "Mot de passe non conforme"
-        
+        data = request.json or {}
+        fullname = data.get("fullname")
+        email = data.get("email")
+        phone = data.get("phone")
+        adresse_livraison = data.get("adresse_livraison")
+        password = data.get("password")
+        confirmpassword = data.get("confirmpassword")
+        if not fullname or not email or not phone or not password:
+            return {
+                "status": "error",
+                "message": "Tous les champs obligatoires doivent être renseignés."
+            }, 400
+        if str(password) != str(confirmpassword):
+            return {
+                "status": "error",
+                "message": "Les mots de passe ne correspondent pas."
+            }, 400
+        existing_email = Client.query.filter_by(
+            email=email
+        ).first()
+        if existing_email:
+            return {"status": "error", "message": "Cette adresse email est déjà utilisée."}, 409
+        existing_phone = Client.query.filter_by(
+            phone=phone
+        ).first()
+        if existing_phone:
+            return {
+                "status": "error",
+                "message": "Ce numéro de téléphone est déjà utilisé."
+            }, 409
+            
         new_client = Client()
         new_client.fullname = fullname
         new_client.email = email
         new_client.phone = phone
         new_client.adresse_livraison = adresse_livraison
         new_client.password = password
-        
         db.session.add(new_client)
         db.session.commit()
-
-        rs = {}
-        rs['uid'] = new_client.uid
-        rs['fullname'] = fullname
-        rs['email'] = email
-        rs['phone'] = phone
-        rs['adresse_livraison'] = adresse_livraison
-        rs['creation_date'] = str(new_client.created_date)
-
-        reponse['status'] = 'success'
-        reponse['user_infos'] = rs
-
+        
+        user_infos = {
+            "uid": new_client.uid,
+            "fullname": new_client.fullname,
+            "email": new_client.email,
+            "phone": new_client.phone,
+            "adresse_livraison": new_client.adresse_livraison,
+            "creation_date": str(new_client.created_date)
+        }
+        return {
+            "status": "success",
+            "message": "Compte créé. Un code de vérification a été envoyé par SMS.",
+            "verification_required": True,
+            "user_infos": user_infos
+        }, 200
     except Exception as e:
-        reponse['error_description'] = str(e)
-        reponse['status'] = 'error'
+        db.session.rollback()
+        return {
+            "status": "error",
+            "message": "Erreur lors de la création du compte.",
+            "error_description": str(e)
+        }, 500
+        
+        
+def send_OTP():
+    print("🔥🔥🔥 SEND_OTP APPELÉE 🔥🔥🔥")
 
-    return reponse
+    phone = request.json.get('phone')
+    if not phone:
+        return {"status": "error","message": "Numéro de téléphone requis"}, 400
+    print("phone: ", phone)
+    expiration_time = (
+        datetime.datetime.utcnow()
+        - datetime.timedelta(hours=24))
+    
+    Client.query.filter(Client.created_date < expiration_time,Client.status == "non-verifier").delete(synchronize_session=False)
+    db.session.commit()
+    
+    single_client = Client.query.filter_by(phone=phone).first()
+    if not single_client:
+        return {
+            "status": "error",
+            "message": "Aucun compte associé à ce numéro."
+        }, 404
+        
+    if single_client.status != "non-verifier":
+        return {
+            "status": "error",
+            "message": "Ce compte est déjà vérifié."
+        }, 400
+
+    Otp.query.filter_by(phone=phone).delete(synchronize_session=False)
+
+    otp_code = generate_otp()
+    new_otp = Otp()
+    new_otp.otp = otp_code
+    new_otp.phone = phone
+
+    db.session.add(new_otp)
+    db.session.commit()
+    
+    sms_response = send_sms_by_sendexa(
+        phone,
+        f"Votre code de verification Founa CI est : {otp_code}. "
+        "Ce code est valable pendant 5 minutes."
+    )
+
+    if not sms_response.get("success", True):
+        return {
+            "status": "error",
+            "message": "Impossible d'envoyer le code de vérification."
+        }, 500
+
+    return {
+        "status": "success",
+        "message": "Code de vérification envoyé avec succès."
+    }
+
+
+
+def verfiy_OTP():
+    
+    response = {}
+    
+    otp_code = request.json.get('otp_code')
+    phone = request.json.get('phone')
+    if not otp_code:
+        return {
+            "status": "error",
+            "message": "Code OTP requis"
+        }, 400
+    if not phone:
+        return {
+            "status": "error",
+            "message": "Numéro de téléphone requis"
+        }, 400
+
+    expiration_time = (
+        datetime.datetime.utcnow()
+        - datetime.timedelta(minutes=5)
+    )
+
+    Otp.query.filter(Otp.created_date < expiration_time).delete(synchronize_session=False)
+    db.session.commit()
+
+    single_otp = Otp.query.filter_by(
+        otp=str(otp_code),
+        phone=str(phone)
+    ).first()
+
+    if not single_otp:
+        return {
+            "status": "error",
+            "message": "Code OTP invalide ou expiré"
+        }, 400
+
+    single_client = Client.query.filter_by(
+        phone=str(phone)
+    ).first()
+
+    if not single_client:
+        db.session.delete(single_otp)
+        db.session.commit()
+
+        return {
+            "status": "error",
+            "message": "Client introuvable"
+        }, 404
+
+    if single_client.status == "verifier":
+        db.session.delete(single_otp)
+        db.session.commit()
+        
+        response['status'] = 'error'
+        response['message'] = "Ce compte est déjà vérifié"
+
+    single_client.status = "verifier"
+    db.session.delete(single_otp)
+    db.session.commit()
+    
+    response['status'] = 'success'
+    response['message'] = "Numéro de téléphone vérifié avec succès"
+
+    return response
 
 
 
@@ -166,19 +320,74 @@ def UpdatePassword():
     return response
 
 
-# def DeleteUser():
-
-#     reponse = {}
+# def send(phone, message):
+    
+#     import http.client
+#     import json
+    
+#     phone = str(phone).strip()
+#     if phone.startswith("+225"):
+#         phone_number = phone[1:]
+#     elif phone.startswith("225"):
+#         phone_number = phone
+#     else:
+#         phone_number = "225" + phone.lstrip("0")
+#     conn = http.client.HTTPSConnection(INFOBIP_API_URL)
+#     payload = json.dumps({
+#         "messages": [
+#             {
+#                 "destinations": [
+#                     {
+#                         "to": phone_number
+#                     }
+#                 ],
+#                 "sender": INFOBIP_SENDER_ID,
+#                 "content": {
+#                     "text": message
+#                 }
+#             }
+#         ]
+#     })
+#     headers = {
+#         "Authorization": f"App {INFOBIP_API_KEY}",
+#         "Content-Type": "application/json",
+#         "Accept": "application/json"
+#     }
 #     try:
-#         uid = request.json.get('uid')
-#         deleteuser = User.query.filter_by(uid=uid).first_or_404()
-
-#         db.session.delete(deleteuser)
-#         db.session.commit()
-#         reponse['status'] = 'success'
-
+#         conn.request("POST","/sms/3/messages",payload,headers)
+#         res = conn.getresponse()
+#         raw_response = res.read()
+#         response_text = raw_response.decode("utf-8")
+#         try:
+#             response_data = json.loads(response_text)
+#         except json.JSONDecodeError:
+#             response_data = {
+#                 "raw_response": response_text
+#             }
+#         if res.status >= 200 and res.status < 300:
+#             return {
+#                 "status": "success",
+#                 "code": res.status,
+#                 "message": "SMS envoyé avec succès",
+#                 "data": response_data
+#             }
+#         return {
+#             "status": "error",
+#             "code": res.status,
+#             "message": "Erreur lors de l'envoi du SMS",
+#             "data": response_data
+#         }
 #     except Exception as e:
-#         reponse['error_description'] = str(e)
-#         reponse['status'] = 'error'
+#         return {
+#             "status": "error",
+#             "message": "Erreur lors de la communication avec Infobip",
+#             "error": str(e)
+#         }
+#     finally:
+#         conn.close()
 
-#     return reponse
+
+
+
+
+

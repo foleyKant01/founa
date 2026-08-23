@@ -2,62 +2,10 @@ from config.db import db
 from model.founa import *
 from flask import request
 from flask import request, jsonify
-
+from helpers.clients import *
 from helpers.send_mailer import *
 
 
-
-# def LoginClient():
-#     try:
-#         data = request.get_json()
-#         email = data.get('email')
-#         password = data.get('password')
-#         if not email or not password:
-#             return {
-#                 'status': 'error',
-#                 'message': 'Les champs email et password sont requis.'
-#             }, 400
-#         login_user = Client.query.filter_by(email=email).first()
-#         login_teller = Teller.query.filter_by(email=email).first()
-#         login_admin = Admin.query.filter_by(email=email).first()
-#         if not login_user and not login_teller and not login_admin:
-#             return {
-#                 'status': 'error',
-#                 'message': 'Email incorrect.'
-#             }, 401
-#         if login_user:
-#             user_info = login_user
-#         if login_teller:
-#             user_info = login_teller
-#         if login_admin:
-#             user_info = login_admin
-            
-#         if user_info.password != password:
-#             return {
-#                 'status': 'error',
-#                 'message': 'Mot de passe incorrect.'
-#             }, 401
-#         user_info = {
-#             'uid': login_user.uid,
-#             'fullname': login_user.fullname,
-#             'email': login_user.email,
-#             'phone': login_user.phone,
-#             'adresse_livraison': login_user.adresse_livraison,
-#             'created_date': str(login_user.created_date),
-#         }
-#         return {
-#             'status': 'success',
-#             'message': 'Connexion réussie.',
-#             'user_infos': user_info
-#         }, 200
-#     except Exception as e:
-#         return {
-#             'status': 'error',
-#             'message': f"Erreur serveur: {str(e)}"
-#         }, 500
-        
-        
-# Tables à vérifier et leur rôle
 USER_TABLES = [
     {"model": Admin, "role": "Admin"},
     {"model": Teller, "role": "Teller"},
@@ -107,17 +55,19 @@ def LoginClient():
         if user_role == "Client":
             response_data["adresse_livraison"] = getattr(found_user, 'adresse_livraison', '')
             response_data["created_date"] = str(getattr(found_user, 'created_date', ''))
-
+        # response_sms = verfiy_OTP(response_data['phone'])
         return {
             "status": "success",
             "message": f"Connexion réussie en tant que {user_role}.",
-            "user_infos": response_data
+            "user_infos": response_data,
+            # "response_sms": response_sms,
         }, 200
     except Exception as e:
         return {
             "status": "error",
             "message": f"Erreur serveur: {str(e)}"
         }, 500
+
 
 
 
