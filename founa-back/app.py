@@ -1,5 +1,5 @@
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import os
 from flask_restful import Api
 from config.db import db
@@ -15,6 +15,9 @@ from ressources.produits import ProduitsApi
 from ressources.favoris import FavorisApi
 from flask_migrate import Migrate
 from flask_cors import CORS
+
+
+from urllib.parse import urlencode
 
 
 
@@ -35,6 +38,7 @@ api = Api(app)
 
 CORS(app, resources={r"/*": {"origins": "*"}}) 
 
+
 @app.route('/api/alibaba/callback', methods=['GET'])
 def alibaba_callback():
     code = request.args.get('code')
@@ -51,6 +55,24 @@ def alibaba_callback():
         "success": True,
         "message": "Alibaba authorization code reçu"
     }, 200
+    
+    
+@app.route('/api/alibaba/authorize', methods=['GET'])
+def alibaba_authorize():
+
+    params = {
+        "response_type": "code",
+        "redirect_uri": "https://founa.ci/api/alibaba/callback",
+        "client_id": "503830"
+    }
+
+    authorization_url = (
+        "https://openapi-auth.alibaba.com/oauth/authorize?"
+        + urlencode(params)
+    )
+
+    return redirect(authorization_url)
+    
 
 @app.after_request
 def after_request(response):
