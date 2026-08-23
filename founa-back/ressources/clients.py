@@ -8,7 +8,6 @@ class ClientsApi(Resource):
             return CreateClient() 
         
         if route == "send_otp":
-            print("🔥🔥🔥 JE VAIS APPELER SEND_OTP 🔥🔥🔥")
             return send_OTP()
         
         if route == "verfiy_otp":

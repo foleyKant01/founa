@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { verfiy_OTP } from "../../services/auth.service";
 
 const Toast: React.FC<{
@@ -36,10 +36,7 @@ const Toast: React.FC<{
 
 const VerifyOtpPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Récupération du numéro envoyé depuis SendOtpPage
-  const phone = location.state?.phone || "";
+  const phone = sessionStorage.getItem("phone") || "";
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);

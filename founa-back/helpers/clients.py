@@ -78,12 +78,10 @@ def CreateClient():
         
         
 def send_OTP():
-    print("🔥🔥🔥 SEND_OTP APPELÉE 🔥🔥🔥")
 
     phone = request.json.get('phone')
     if not phone:
         return {"status": "error","message": "Numéro de téléphone requis"}, 400
-    print("phone: ", phone)
     expiration_time = (
         datetime.datetime.utcnow()
         - datetime.timedelta(hours=24))

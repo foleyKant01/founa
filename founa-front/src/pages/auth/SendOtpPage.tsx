@@ -75,19 +75,14 @@ const SendOtpPage: React.FC = () => {
       return;
     }
 
+    sessionStorage.setItem("phone", phone);
+    
     try {
       const response = await send_OTP({
         phone: phone,
       });
 
-      console.log("SEND OTP RESPONSE :", response);
-      console.log("SEND OTP DATA :", response.data);
-
-      /*
-       * Même logique que LoginPage
-       */
       if (response.data.status === "success") {
-
         showToast(
           response.data.message ||
             "Le code de vérification a été envoyé.",
