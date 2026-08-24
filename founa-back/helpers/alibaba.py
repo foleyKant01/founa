@@ -47,16 +47,47 @@ def AlibabaCallback():
         req.add_api_param("code", code)
 
         response = client.execute(req)
-
         print("Alibaba token response:")
         print(response.body)
-        result = CreateAlibabaSeller(response.body)
 
-        return {
-            "success": True,
-            # "data": response.body,
-            "result": result
-        }, 200
+        data = response.body
+
+        # Vérifier que Alibaba a bien retourné un token
+        if data.get("code") != "0":
+            return {
+                "success": False,
+                "message": "Alibaba n'a pas retourné un token valide",
+                "data": data
+            }, 400
+
+        # Récupérer les informations du vendeur
+        user_info = data.get("user_info", {})
+
+        seller_id = user_info.get("seller_id")
+        user_id = user_info.get("user_id")
+
+        print("Seller ID :", seller_id)
+        print("User ID :", user_id)
+
+        # Vérification
+        if not seller_id or not user_id:
+            return {
+                "success": False,
+                "message": "Informations du vendeur Alibaba manquantes"
+            }, 400
+
+        # Chercher le vendeur
+        single_seller = AlibabSellers.query.filter_by(
+            user_id=user_id,
+            seller_id=seller_id
+        ).first()
+
+        if single_seller:
+            result = UpdateAlibabaSeller(data)
+        else:
+            result = CreateAlibabaSeller(data)
+
+        return result
 
     except Exception as e:
         print("Alibaba OAuth error:", str(e))
@@ -67,7 +98,6 @@ def AlibabaCallback():
             "error": str(e)
         }, 500
     
-
 
 
 def CreateAlibabaSeller(data):
@@ -168,73 +198,61 @@ def GetAllAlibabaSellers():
         }
 
 
-
-def UpdateAlibabaSeller(uid, data):
+def UpdateAlibabaSeller(data):
     try:
-        seller = AlibabSellers.query.filter_by(uid=uid).first()
-
+        user_info = data.get("user_info", {})
+        seller_id = user_info.get("seller_id")
+        user_id = user_info.get("user_id")
+        seller = AlibabSellers.query.filter_by(
+            user_id=user_id,
+            seller_id=seller_id
+        ).first()
         if not seller:
             return {
                 "success": False,
                 "message": "Vendeur Alibaba introuvable"
-            }
-        if data.get("trace_id_") is not None:
-            seller.trace_id_ = data.get("trace_id_")
-
-        if data.get("access_token") is not None:
-            seller.access_token = data.get("access_token")
-
-        if data.get("account") is not None:
-            seller.account = data.get("account")
-
-        if data.get("account_platform") is not None:
-            seller.account_platform = data.get("account_platform")
-
-        if data.get("code") is not None:
-            seller.code = data.get("code")
-
-        if data.get("country") is not None:
-            seller.country = data.get("country")
-
-        if data.get("expires_at") is not None:
-            seller.expires_at = data.get("expires_at")
-
-        if data.get("refresh_expires_at") is not None:
-            seller.refresh_expires_at = data.get("refresh_expires_at")
-
-        if data.get("refresh_token") is not None:
-            seller.refresh_token = data.get("refresh_token")
-
-        if data.get("request_id") is not None:
-            seller.request_id = data.get("request_id")
-
-        if data.get("loginId") is not None:
-            seller.loginId = data.get("loginId")
-
-        if data.get("seller_id") is not None:
-            seller.seller_id = data.get("seller_id")
-
-        if data.get("user_id") is not None:
-            seller.user_id = data.get("user_id")
-
+            }, 404
+        expires_at = datetime.datetime.utcnow() + datetime.timedelta(
+            seconds=int(data.get("expires_in", 0))
+        )
+        refresh_expires_at = datetime.datetime.utcnow() + datetime.timedelta(
+            seconds=int(data.get("refresh_expires_in", 0))
+        )
+        seller.trace_id_ = data.get("_trace_id_")
+        seller.access_token = data.get("access_token")
+        seller.account = data.get("account")
+        seller.account_platform = data.get("account_platform")
+        seller.code = data.get("code")
+        seller.country = data.get("country")
+        seller.expires_at = expires_at
+        seller.refresh_expires_at = refresh_expires_at
+        seller.refresh_token = data.get("refresh_token")
+        seller.request_id = data.get("request_id")
+        seller.loginId = user_info.get("loginId")
+        seller.seller_id = seller_id
+        seller.user_id = user_id
         seller.updated_date = datetime.datetime.utcnow()
-
         db.session.commit()
 
         return {
             "success": True,
             "message": "Vendeur Alibaba mis à jour avec succès",
-            "data": seller
+            "data": {
+                "uid": seller.uid,
+                "seller_id": seller.seller_id,
+                "user_id": seller.user_id,
+                "account": seller.account,
+                "expires_at": seller.expires_at.isoformat(),
+                "refresh_expires_at": seller.refresh_expires_at.isoformat()
+            }
         }
-
     except Exception as e:
         db.session.rollback()
-
         return {
             "success": False,
             "message": "Erreur lors de la mise à jour du vendeur Alibaba",
             "error": str(e)
-        }
+        }, 500
 
 
 
@@ -266,7 +284,6 @@ def DeleteAlibabaSeller(uid):
         }
 
 # {
-#   "data": {
 #     "_trace_id_": "21038c2217875405416913607e0df7",
 #     "access_token": "50000201016pnEqbc3ouGmtawTGc1ac67b8ebCq6ps1ciItgWmx1CF3CNBZkPB",
 #     "account": "krayediego@gmail.com",
@@ -282,7 +299,5 @@ def DeleteAlibabaSeller(uid):
 #       "loginId": "ci1393554581hatw",
 #       "seller_id": "133698444782",
 #       "user_id": "133698444782"
-#     }
-#   },
-#   "success": true
+#     },
 # }
