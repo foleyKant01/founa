@@ -23,16 +23,17 @@ def AlibabaAuthorize():
     return redirect(authorization_url)
 
 
+
 def AlibabaCallback():
     import iop
-    code = request.args.get("code")
+    # code = request.args.get("code")
+    code = "3_503830_gI1MH5CNKxCWB3F3o5YoFZk899"
     if not code:
         return {
             "success": False,
             "message": "Authorization code manquant"
         }, 400
     print("Code Alibaba reçu :", code)
-
     try:
         url = "https://openapi-api.alibaba.com/rest"
         client = iop.IopClient(
@@ -42,10 +43,20 @@ def AlibabaCallback():
         )
         req = iop.IopRequest("/auth/token/create")
         req.add_api_param("code", code)
+
         response = client.execute(req)
-        return response
+
+        print("Alibaba response :", response.body)
+        if response.body.get("code") != "0":
+            return {
+                "success": False,
+                "message": "Alibaba a refusé la récupération du token",
+                "data": response.body
+            }, 400
+        result = CreateAlibabaSeller(response.body)
+        return result, 200
     except Exception as e:
-        print("Alibaba OAuth error:", str(e))
+        print("Alibaba OAuth error :", str(e))
         return {
             "success": False,
             "message": "Erreur lors de la récupération du token Alibaba",
@@ -55,52 +66,45 @@ def AlibabaCallback():
 
 
 
-def CreateAlibabaSeller():
+def CreateAlibabaSeller(data):
+    
     try:
-        data = request.json
         user_info = data.get("user_info", {})
-
         expires_at = datetime.datetime.utcnow() + datetime.timedelta(
             seconds=int(data.get("expires_in", 0))
         )
         refresh_expires_at = datetime.datetime.utcnow() + datetime.timedelta(
             seconds=int(data.get("refresh_expires_in", 0))
         )
-        trace_id_ = data.get("trace_id_") 
-        access_token = data.get("access_token") 
-        account = data.get("account") 
-        account_platform = data.get("account_platform") 
-        code = data.get("code") 
-        country = data.get("country") 
-        expires_at = expires_at 
-        refresh_expires_at = refresh_expires_at 
-        refresh_token = user_info.get("refresh_token") 
-        request_id = user_info.get("request_id") 
-        loginId = user_info.get("loginId") 
-        seller_id = user_info.get("seller_id") 
-        user_id = user_info.get("user_id") 
-        
         seller = AlibabSellers(
-            trace_id_=trace_id_,
-            access_token=access_token,
-            account=account,
-            account_platform=account_platform,
-            code=code,
-            country=country,
+            trace_id_=data.get("_trace_id_"),
+            access_token=data.get("access_token"),
+            account=data.get("account"),
+            account_platform=data.get("account_platform"),
+            code=data.get("code"),
+            country=data.get("country"),
             expires_at=expires_at,
             refresh_expires_at=refresh_expires_at,
-            refresh_token=refresh_token,
-            request_id=request_id,
-            loginId=loginId,
-            seller_id=seller_id,
-            user_id=user_id
+            refresh_token=data.get("refresh_token"),
+            request_id=data.get("request_id"),
+            loginId=user_info.get("loginId"),
+            seller_id=user_info.get("seller_id"),
+            user_id=user_info.get("user_id")
         )
         db.session.add(seller)
         db.session.commit()
         return {
             "success": True,
             "message": "Vendeur Alibaba créé avec succès",
-            "data": seller
+            "data": {
+                "uid": seller.uid,
+                "seller_id": seller.seller_id,
+                "user_id": seller.user_id,
+                "account": seller.account,
+                "country": seller.country,
+                "expires_at": seller.expires_at,
+                "refresh_expires_at": seller.refresh_expires_at
+            }
         }
     except Exception as e:
         db.session.rollback()
@@ -108,7 +112,7 @@ def CreateAlibabaSeller():
             "success": False,
             "message": "Erreur lors de la création du vendeur Alibaba",
             "error": str(e)
-        }
+        }, 500
 
 
 
