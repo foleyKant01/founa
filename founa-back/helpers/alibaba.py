@@ -265,24 +265,24 @@ def DeleteAlibabaSeller(uid):
             "error": str(e)
         }
 
-{
-  "data": {
-    "_trace_id_": "21038c2217875405416913607e0df7",
-    "access_token": "50000201016pnEqbc3ouGmtawTGc1ac67b8ebCq6ps1ciItgWmx1CF3CNBZkPB",
-    "account": "krayediego@gmail.com",
-    "account_platform": "buyerApp",
-    "code": "0",
-    "country": "GLOBAL",
-    "expires_in": 86400,
-    "refresh_expires_in": 604800,
-    "refresh_token": "50001201716hl4irdwxdAgeq8PVz199493efcHeMlwlqvoCwjxvjMR2tK9uMf4",
-    "request_id": "21032c8717875405418356203",
-    "user_info": {
-      "country": "GLOBAL",
-      "loginId": "ci1393554581hatw",
-      "seller_id": "133698444782",
-      "user_id": "133698444782"
-    }
-  },
-  "success": true
-}
+# {
+#   "data": {
+#     "_trace_id_": "21038c2217875405416913607e0df7",
+#     "access_token": "50000201016pnEqbc3ouGmtawTGc1ac67b8ebCq6ps1ciItgWmx1CF3CNBZkPB",
+#     "account": "krayediego@gmail.com",
+#     "account_platform": "buyerApp",
+#     "code": "0",
+#     "country": "GLOBAL",
+#     "expires_in": 86400,
+#     "refresh_expires_in": 604800,
+#     "refresh_token": "50001201716hl4irdwxdAgeq8PVz199493efcHeMlwlqvoCwjxvjMR2tK9uMf4",
+#     "request_id": "21032c8717875405418356203",
+#     "user_info": {
+#       "country": "GLOBAL",
+#       "loginId": "ci1393554581hatw",
+#       "seller_id": "133698444782",
+#       "user_id": "133698444782"
+#     }
+#   },
+#   "success": true
+# }
