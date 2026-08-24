@@ -18,6 +18,7 @@ Flask-SQLAlchemy==3.1.1
 git-filter-repo==2.47.0
 greenlet==3.2.4
 idna==3.19
+iop-sdk-python @ file:///home/foley-kant/Foley%20Kant/Founa/founa-back/1.0.2-1762768229029algC%20%281%29/iop-sdk-python-1.0.2
 itsdangerous==2.2.0
 Jinja2==3.1.6
 jmespath==1.0.1

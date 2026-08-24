@@ -15,8 +15,7 @@ from ressources.produits import ProduitsApi
 from ressources.favoris import FavorisApi
 from flask_migrate import Migrate
 from flask_cors import CORS
-
-
+import requests
 from urllib.parse import urlencode
 
 
@@ -37,24 +36,6 @@ migrate = Migrate(app, db)
 api = Api(app)
 
 CORS(app, resources={r"/*": {"origins": "*"}}) 
-
-
-@app.route('/api/alibaba/callback', methods=['GET'])
-def alibaba_callback():
-    code = request.args.get('code')
-
-    if not code:
-        return {
-            "success": False,
-            "message": "Authorization code manquant"
-        }, 400
-
-    print("Alibaba authorization code reçu :", code)
-
-    return {
-        "success": True,
-        "message": "Alibaba authorization code reçu"
-    }, 200
     
     
 @app.route('/api/alibaba/authorize', methods=['GET'])
@@ -72,6 +53,55 @@ def alibaba_authorize():
     )
 
     return redirect(authorization_url)
+
+
+@app.route('/api/alibaba/callback', methods=['GET'])
+def alibaba_callback():
+    import iop
+
+    # Code envoyé par Alibaba dans l'URL
+    code = request.args.get("code")
+
+    if not code:
+        return {
+            "success": False,
+            "message": "Authorization code manquant"
+        }, 400
+
+    print("Code Alibaba reçu :", code)
+
+    try:
+        url = "https://openapi-api.alibaba.com/rest"
+
+        client = iop.IopClient(
+            url,
+            ALIBABA_APP_KEY,
+            ALIBABA_APP_SECRET
+        )
+
+        req = iop.IopRequest("/auth/token/create")
+
+        req.add_api_param("code", code)
+        req.add_api_param("uuid", "1")
+
+        response = client.execute(req)
+
+        print("Alibaba token response:")
+        print(response.body)
+
+        return {
+            "success": True,
+            "data": response.body
+        }, 200
+
+    except Exception as e:
+        print("Alibaba OAuth error:", str(e))
+
+        return {
+            "success": False,
+            "message": "Erreur lors de la récupération du token Alibaba",
+            "error": str(e)
+        }, 500
     
 
 @app.after_request
