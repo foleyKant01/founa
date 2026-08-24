@@ -102,6 +102,7 @@ class AlibabSellers(db.Model):
     loginId = db.Column(db.String(128), nullable=False)
     seller_id = db.Column(db.String(128), nullable=False)
     user_id = db.Column(db.String(128), nullable=False)
+    status = db.Column(db.String(128), nullable=False, default='active') # active, expired
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     
