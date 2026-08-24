@@ -40,65 +40,65 @@ api = Api(app)
 CORS(app, resources={r"/*": {"origins": "*"}}) 
     
     
-@app.route('/api/alibaba/authorize', methods=['GET'])
-def alibaba_authorize():
+# @app.route('/api/alibaba/authorize', methods=['GET'])
+# def alibaba_authorize():
 
-    params = {
-        "response_type": "code",
-        "redirect_uri": "https://founa.ci/api/alibaba/callback",
-        "client_id": "503830"
-    }
+#     params = {
+#         "response_type": "code",
+#         "redirect_uri": "https://founa.ci/api/alibaba/callback",
+#         "client_id": "503830"
+#     }
 
-    authorization_url = (
-        "https://openapi-auth.alibaba.com/oauth/authorize?"
-        + urlencode(params)
-    )
+#     authorization_url = (
+#         "https://openapi-auth.alibaba.com/oauth/authorize?"
+#         + urlencode(params)
+#     )
 
-    return redirect(authorization_url)
+#     return redirect(authorization_url)
 
 
-@app.route('/api/alibaba/callback', methods=['GET'])
-def alibaba_callback():
-    import iop
+# @app.route('/api/alibaba/callback', methods=['GET'])
+# def alibaba_callback():
+#     import iop
 
-    code = request.args.get("code")
+#     code = request.args.get("code")
 
-    if not code:
-        return {
-            "success": False,
-            "message": "Authorization code manquant"
-        }, 400
+#     if not code:
+#         return {
+#             "success": False,
+#             "message": "Authorization code manquant"
+#         }, 400
 
-    print("Code Alibaba reçu :", code)
+#     print("Code Alibaba reçu :", code)
 
-    try:
-        client = iop.IopClient(
-            "https://openapi-api.alibaba.com/rest",
-            ALIBABA_APP_KEY,
-            ALIBABA_APP_SECRET
-        )
+#     try:
+#         client = iop.IopClient(
+#             "https://openapi-api.alibaba.com/rest",
+#             ALIBABA_APP_KEY,
+#             ALIBABA_APP_SECRET
+#         )
 
-        req = iop.IopRequest("/auth/token/create")
-        req.add_api_param("code", code)
+#         req = iop.IopRequest("/auth/token/create")
+#         req.add_api_param("code", code)
 
-        response = client.execute(req)
+#         response = client.execute(req)
 
-        print("Alibaba token response:")
-        print(response.body)
+#         print("Alibaba token response:")
+#         print(response.body)
 
-        return {
-            "success": True,
-            "data": response.body
-        }, 200
+#         return {
+#             "success": True,
+#             "data": response.body
+#         }, 200
 
-    except Exception as e:
-        print("Alibaba OAuth error:", str(e))
+#     except Exception as e:
+#         print("Alibaba OAuth error:", str(e))
 
-        return {
-            "success": False,
-            "message": "Erreur lors de la récupération du token Alibaba",
-            "error": str(e)
-        }, 500
+#         return {
+#             "success": False,
+#             "message": "Erreur lors de la récupération du token Alibaba",
+#             "error": str(e)
+#         }, 500
     
 
 @app.after_request
@@ -122,7 +122,7 @@ api.add_resource(FournisseursApi, '/api/fournisseurs/<string:route>', endpoint='
 api.add_resource(ProduitsApi, '/api/produits/<string:route>', endpoint='all_produits', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 api.add_resource(FavorisApi, '/api/favoris/<string:route>', endpoint='all_favoris', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 api.add_resource(AuthApi, '/api/auth/<string:route>', endpoint='all_auth', methods=['GET', 'POST', 'DELETE', 'PATCH'])
-# api.add_resource(AlibabaApi, '/api/alibaba/<string:route>', endpoint='all_alibaba', methods=['GET', 'POST', 'DELETE', 'PATCH'])
+api.add_resource(AlibabaApi, '/api/alibaba/<string:route>', endpoint='all_alibaba', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 
 @app.route("/api/test", methods=["GET"])
 def test():
