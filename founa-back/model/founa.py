@@ -84,8 +84,29 @@ class Teller(db.Model):
     password = db.Column(db.String(128), nullable=False)
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-
-
+    
+    
+class AlibabSellers(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
+    trace_id_ = db.Column(db.String(128), nullable=False)
+    access_token = db.Column(db.String(128), nullable=False)
+    account = db.Column(db.String(128), nullable=False)
+    account_platform = db.Column(db.String(128), nullable=False)
+    code = db.Column(db.String(128), nullable=False)
+    country = db.Column(db.String(128), nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    refresh_expires_at = db.Column(db.DateTime, nullable=False)
+    refresh_token = db.Column(db.String(128), nullable=False)
+    request_id = db.Column(db.String(128), nullable=False)
+    loginId = db.Column(db.String(128), nullable=False)
+    seller_id = db.Column(db.String(128), nullable=False)
+    user_id = db.Column(db.String(128), nullable=False)
+    created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    
+    
+    
 class Commande(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     commande_id = db.Column(db.String(128), unique=True)
