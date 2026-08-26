@@ -5,6 +5,7 @@ from datetime import datetime
 import random
 
 
+
 def generate_order_id():
     date_part = datetime.now().strftime("%Y%m%d")  # ex: 20260104
     random_part = random.randint(100, 999)       # 3chiffres
@@ -139,6 +140,7 @@ def GetAllCommandeByClient():
 
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
+    
     
     
 def GetAllCommandeByTeller():
@@ -310,3 +312,37 @@ def CommandeEnExpedition():
 
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
+    
+    
+    
+def DeleteExpiredCommandes():
+    import datetime
+    try:
+        limite_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+
+        commandes = Commande.query.filter(
+            Commande.statut == "Valider",
+            Commande.created_date <= limite_date
+        ).all()
+
+        nombre_supprime = len(commandes)
+
+        for commande in commandes:
+            db.session.delete(commande)
+
+        db.session.commit()
+
+        return {
+            "success": True,
+            "message": f"{nombre_supprime} commande(s) expirée(s) supprimée(s)",
+            "deleted_count": nombre_supprime
+        }
+
+    except Exception as e:
+        db.session.rollback()
+
+        return {
+            "success": False,
+            "message": "Erreur lors de la suppression des commandes expirées",
+            "error": str(e)
+        }

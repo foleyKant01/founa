@@ -1,7 +1,7 @@
 // src/pages/OrderTellerPage.tsx
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
-import { GetAllCommandeByTeller, UpdateCommande } from "../../services/order.service";
+import { GetAllCommandeByTeller, UpdateCommande, DeleteExpiredCommandes } from "../../services/order.service";
 import { useNavigate } from "react-router-dom";
 
 
@@ -105,12 +105,81 @@ const OrderTellerPage: React.FC = () => {
     );
   });
 
+  const handleDeleteExpiredCommandes = async () => {
+    const confirmation = await Swal.fire({
+      title: "Supprimer les commandes expirées ?",
+      text: "Cette action supprimera définitivement les commandes non payées ayant dépassé le délai de 7 jours.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Oui, supprimer",
+      cancelButtonText: "Annuler",
+      confirmButtonColor: "#DC2626",
+      cancelButtonColor: "#6B7280",
+    });
+
+    if (!confirmation.isConfirmed) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await DeleteExpiredCommandes();
+
+      if (res.data.success || res.data.status === "success") {
+        await Swal.fire({
+          icon: "success",
+          title: "Suppression terminée",
+          text:
+            res.data.message ||
+            "Les commandes expirées ont été supprimées.",
+          timer: 1800,
+          showConfirmButton: false,
+        });
+
+        await loadCommandes();
+      } else {
+        Swal.fire(
+          "Erreur",
+          res.data.message || "Impossible de supprimer les commandes.",
+          "error"
+        );
+      }
+    } catch (err: any) {
+      console.error(err);
+
+      Swal.fire(
+        "Erreur",
+        err?.response?.data?.message ||
+          "Une erreur est survenue lors de la suppression.",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="order-page">
-      <span className="back" onClick={() => navigate(-1)}>
+      <div className="page-header">
+        <div className="page-header-left">
+          <span className="back" onClick={() => navigate(-1)}>
             ←
-        </span>
-      <h2 className="page-title">Gestion des commandes</h2>
+          </span>
+
+          <h2 className="page-title">
+            Gestion des commandes
+          </h2>
+        </div>
+
+        <button
+          className="delete-expired-btn"
+          onClick={handleDeleteExpiredCommandes}
+          disabled={loading}
+        >
+          🗑️ Delete Expired Commande
+        </button>
+      </div>
       <div className="search-container">
       <input
         type="text"
@@ -398,6 +467,61 @@ const OrderTellerPage: React.FC = () => {
   text-align: center;
   padding: 40px 20px;
   color: #777;
+}
+  .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.page-header-left .page-title {
+  margin: 0;
+}
+
+.delete-expired-btn {
+  background: #DC2626;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.delete-expired-btn:hover {
+  background: #B91C1C;
+  transform: translateY(-1px);
+}
+
+.delete-expired-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 700px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header-left {
+    justify-content: flex-start;
+  }
+
+  .delete-expired-btn {
+    width: 100%;
+  }
 }
       `}</style>
     </div>

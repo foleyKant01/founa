@@ -11,10 +11,13 @@ class CommandesApi(Resource):
             return GetSingleCommande() 
         
         if route == "update_commande":
-            return UpdateCommande()
+            return UpdateCommande() 
         
         if route == "option_envoie":
             return OptionEnvoie()
+        
+        if route == "delete_expired_commandes":
+            return DeleteExpiredCommandes()
         
         if route == "get_all_commande_by_client":
             return GetAllCommandeByClient()

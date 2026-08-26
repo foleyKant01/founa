@@ -30,6 +30,11 @@ export const GetAllCommandeByTeller = (data: {
 };
 
 
+export const DeleteExpiredCommandes = () => {
+  return api.post('/commandes/delete_expired_commandes');
+};
+
+
 export const UpdateCommande = (data: {
   commande_id: string;
   details: string;

@@ -399,8 +399,11 @@ const OrderDetailsPage: React.FC = () => {
           <div
             style={{
               display: "flex",
-              justifyContent: "center",
+              flexDirection: "column",
+              alignItems: "center",
               marginTop: 15,
+              overflow: "hidden",
+              width: "100%",
             }}
           >
             <a
@@ -414,13 +417,19 @@ const OrderDetailsPage: React.FC = () => {
               style={{
                 ...styles.payButton,
                 opacity: modeExpedition ? 1 : 0.5,
-                pointerEvents: modeExpedition
-                  ? "auto"
-                  : "none",
+                pointerEvents: modeExpedition ? "auto" : "none",
               }}
             >
               Payer maintenant
             </a>
+
+            {/* Alerte défilante */}
+            <div style={styles.paymentWarningContainer}>
+              <div style={styles.paymentWarning}>
+                ⚠️ Urgent : la commande sera automatiquement supprimée si elle
+                n'est pas payée dans les 7 prochains jours à compter de la date à laquelle elle a été initier.
+              </div>
+            </div>
           </div>
         )}
 
@@ -599,7 +608,7 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   payButton: {
     padding: "12px 25px",
-    backgroundColor: "#007bff",
+    backgroundColor: "#00A4A6",
     color: "#fff",
     borderRadius: 8,
     fontWeight: "bold",
@@ -621,10 +630,46 @@ const styles: { [key: string]: React.CSSProperties } = {
   lineHeight: 1.4,
 },
 
+paymentWarningContainer: {
+  width: "100%",
+  overflow: "hidden",
+  marginTop: 12,
+  backgroundColor: "#FFF0F0",
+  borderRadius: 6,
+  border: "1px solid #FFCCCC",
+  padding: "6px 0",
+},
+
+paymentWarning: {
+  color: "#D60000",
+  fontWeight: "bold",
+  fontSize: 12,
+  whiteSpace: "nowrap",
+  display: "inline-block",
+  paddingLeft: "100%",
+  animation: "paymentWarningScroll 12s linear infinite",
+},
+
 alertIcon: {
   fontSize: 13,
   lineHeight: 1.4,
 },
 };
+
+const styleSheet = document.createElement("style");
+
+styleSheet.innerHTML = `
+  @keyframes paymentWarningScroll {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+`;
+
+document.head.appendChild(styleSheet);
 
 export default OrderDetailsPage;
