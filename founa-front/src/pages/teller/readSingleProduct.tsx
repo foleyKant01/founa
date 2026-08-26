@@ -88,7 +88,7 @@ const ReadSingleProduct = () => {
   
     if (!result.isConfirmed) return;
       try {
-        const teller = JSON.parse(sessionStorage.getItem("teller") || "{}");
+        const teller = JSON.parse(localStorage.getItem("teller") || "{}");
   
         const res = await DeleteProduitByTeller({
           produit_id: uid,

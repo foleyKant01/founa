@@ -9,7 +9,7 @@ const TellerDashboard: React.FC = () => {
     if (!admin) return null;
 
     const handleLogout = () => {
-        sessionStorage.removeItem("teller"); // supprime le teller
+        localStorage.removeItem("teller"); // supprime le teller
         navigate("/auth/login"); // redirige vers la page login
     };
 

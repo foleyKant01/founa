@@ -38,6 +38,9 @@ const Toast: React.FC<{
 
 const SendOtpPage: React.FC = () => {
   const nav = useNavigate();
+  const client = JSON.parse(localStorage.getItem("user") || "null");
+
+  const phone_session = client?.phone;
 
   const [phone, setPhone] = useState("");
   const [toast, setToast] = useState<{
@@ -75,11 +78,12 @@ const SendOtpPage: React.FC = () => {
       return;
     }
 
-    sessionStorage.setItem("phone", phone);
+    localStorage.setItem("phone", phone);
     
     try {
       const response = await send_OTP({
         phone: phone,
+        phone_session: phone_session,
       });
 
       if (response.data.status === "success") {

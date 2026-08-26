@@ -12,40 +12,20 @@ import cloudinary.uploader
 from werkzeug.utils import secure_filename
 
 
-# def upload_to_s3(files):
-#     urls = []
-
-#     for file in files:
-#         print('file', file)    
-#         original_name = file.filename
-#         print('original_name', original_name)    
-#         clean_name = secure_filename(original_name)
-#         print('clean_name', clean_name)    
-#         clean_name = re.sub(r"\s+", "+", clean_name)
-#         print('clean_name', clean_name)    
-#         filename = f"{uuid.uuid4().hex}_{clean_name}"
-#         S3_CLIENT.upload_fileobj(
-#             file,
-#             BUCKET_NAME,
-#             filename,
-#             ExtraArgs={"ACL": "public-read"}
-#         )
-#         url = URL + filename
-#         urls.append(url)
-
-#     return urls
-
 
 def upload_to_cloudinary(files):
-    urls = []
+    images = []
 
     for file in files:
 
         original_name = file.filename
+
         clean_name = secure_filename(original_name)
         clean_name = re.sub(r"\s+", "_", clean_name)
 
-        public_id = f"products/{uuid.uuid4().hex}_{clean_name}"
+        filename_without_ext = os.path.splitext(clean_name)[0]
+
+        public_id = f"products/{uuid.uuid4().hex}_{filename_without_ext}"
 
         result = cloudinary.uploader.upload(
             file,
@@ -54,54 +34,87 @@ def upload_to_cloudinary(files):
             resource_type="image"
         )
 
-        urls.append(result["secure_url"])
+        images.append({
+            "url": result["secure_url"],
+            "public_id": result["public_id"]
+        })
 
-    return urls
+    return images
+
+
+def delete_cloudinary_images(images):
+    for image in images:
+
+        try:
+
+            public_id = image.get("public_id")
+
+            if public_id:
+                cloudinary.uploader.destroy(
+                    public_id,
+                    resource_type="image"
+                )
+
+        except Exception as e:
+
+            print(
+                f"Erreur suppression Cloudinary "
+                f"{image.get('public_id')}: {str(e)}"
+            )
 
 
 
 def CreateProduit():
-    nom = request.form.get('nom')
-    description = request.form.get('description')
-    prix_fournisseur_str = request.form.get('prix_fournisseur') or "0"
     try:
-        prix_fournisseur = float(prix_fournisseur_str)
-    except ValueError:
-        prix_fournisseur = 0.0
+        nom = request.form.get('nom')
+        description = request.form.get('description')
+        prix_fournisseur_str = request.form.get('prix_fournisseur') or "0"
+        try:
+            prix_fournisseur = float(prix_fournisseur_str)
+        except ValueError:
+            prix_fournisseur = 0.0
 
-    prix_vente = math.ceil(prix_fournisseur * 1.25 / 10) * 10    
-    stock_disponible_str = request.form.get('stock_disponible') or "0"
-    moq_str = request.form.get('moq') or "0"
-    stock_disponible = int(stock_disponible_str)
-    moq = int(moq_str)
-    fournisseur_id = request.form.get('fournisseur_id')
-    lien_1 = request.form.get('lien_1')
-    lien_2 = request.form.get('lien_2')
-    teller_id = request.form.get('teller_id')
-    files = request.files.getlist('images')
-    images_urls = upload_to_cloudinary(files)
-    produit = Produit(
-        nom=nom,
-        description=description,
-        prix_fournisseur=prix_fournisseur,
-        prix_vente=prix_vente,
-        stock_disponible=stock_disponible,
-        moq=moq,
-        fournisseur_id=fournisseur_id,
-        lien_1=lien_1,
-        lien_2=lien_2,
-        teller_id=teller_id,
-        images=json.dumps(images_urls),
-    )
-    db.session.add(produit)
-    db.session.commit()
+        prix_vente = math.ceil(prix_fournisseur * 1.25 / 10) * 10    
+        stock_disponible_str = request.form.get('stock_disponible') or "0"
+        moq_str = request.form.get('moq') or "0"
+        stock_disponible = int(stock_disponible_str)
+        moq = int(moq_str)
+        fournisseur_id = request.form.get('fournisseur_id')
+        lien_1 = request.form.get('lien_1')
+        lien_2 = request.form.get('lien_2')
+        files = request.files.getlist('images')
+        files = [
+                file for file in files
+                if file and file.filename
+            ]
+        images = upload_to_cloudinary(files)
+        produit = Produit(
+            nom=nom,
+            description=description,
+            prix_fournisseur=prix_fournisseur,
+            prix_vente=prix_vente,
+            stock_disponible=stock_disponible,
+            moq=moq,
+            fournisseur_id=fournisseur_id,
+            lien_1=lien_1,
+            lien_2=lien_2,
+            images=json.dumps(images),
+        )
+        db.session.add(produit)
+        db.session.commit()
 
-    return jsonify({
-        "status": "success",
-        "message": "Produit créé avec succès",
-        "produit_uid": produit.uid,
-        "images_urls": produit.images
-    })
+        return jsonify({
+            "status": "success",
+            "message": "Produit créé avec succès",
+            "produit_uid": produit.uid,
+            "images": produit.images
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 
 
@@ -120,7 +133,6 @@ def GetAllProduits():
             "stock_disponible": p.stock_disponible, 
             "moq": p.moq, 
             "status": p.status, 
-            "teller_id": p.teller_id, 
             "fournisseur_id": p.fournisseur_id,
             "creation_date": str(p.creation_date),
         })
@@ -154,7 +166,6 @@ def GetSingleProduit():
             "stock_disponible": produit.stock_disponible,
             "moq": produit.moq,
             "status": produit.status,
-            "teller_id": produit.teller_id,
             "fournisseur_id": produit.fournisseur_id,
             "creation_date": str(produit.creation_date),
             "update_date": str(produit.update_date),
@@ -190,44 +201,86 @@ def GetAllProduitByTeller():
     
     
 def UpdateProduit():
-    produit_id = request.form.get('produit_id')
-    produit = Produit.query.filter_by(uid=produit_id).first()
-    if not produit:
-        return {
-            "status": "error",
-            "message": "Produit non trouvé"
-        }, 404
-    nom = request.form.get('nom')
-    description = request.form.get('description')
-    prix_fournisseur_str = request.form.get('prix_fournisseur')
-    lien_1 = request.form.get('lien_1')
-    lien_2 = request.form.get('lien_2')
-    moq = request.form.get('moq')
     try:
-        prix_fournisseur = float(prix_fournisseur_str)
-    except (TypeError, ValueError):
-        prix_fournisseur = 0.0  # valeur par défaut si l'entrée est inValider
-    prix_vente = round(prix_fournisseur * 1.25, 2)  # arrondi à 2 décimales
-    stock_disponible = request.form.get('stock_disponible')
-    if produit:
+        produit_id = request.form.get('produit_id')
+        # teller_id = request.form.get('teller_id')
+        produit = Produit.query.filter_by(uid=produit_id).first()
+        if not produit:
+            return {
+                "status": "error",
+                "message": "Produit non trouvé"
+            }, 404
+            
+        nom = request.form.get('nom')
+        description = request.form.get('description')
+        prix_fournisseur_str = request.form.get('prix_fournisseur') or "0"
+        try:
+            prix_fournisseur = float(prix_fournisseur_str)
+        except (TypeError, ValueError):
+            prix_fournisseur = 0.0
+        prix_vente = math.ceil(
+            prix_fournisseur * 1.25 / 10
+        ) * 10
+        stock_disponible_str = request.form.get(
+            'stock_disponible'
+        ) or "0"
+        moq_str = request.form.get('moq') or "0"
+        try:
+            stock_disponible = int(stock_disponible_str)
+        except (TypeError, ValueError):
+            stock_disponible = 0
+        try:
+            moq = int(moq_str)
+        except (TypeError, ValueError):
+            moq = 0
+        lien_1 = request.form.get('lien_1')
+        lien_2 = request.form.get('lien_2')
+        
         produit.nom = nom
         produit.description = description
         produit.prix_fournisseur = prix_fournisseur
         produit.prix_vente = prix_vente
-        produit.stock_disponible = int(stock_disponible)
-        produit.moq = int(moq)
+        produit.stock_disponible = stock_disponible
+        produit.moq = moq
         produit.lien_1 = lien_1
         produit.lien_2 = lien_2
-    files = request.files.getlist('images')
-    if files:
-        images_urls = upload_to_s3(files)
-    db.session.commit()
+        
+        files = request.files.getlist('images')
+        files = [
+            file
+            for file in files
+            if file and file.filename
+        ]
 
-    return {
-        "status": "success",
-        "message": "Produit mis à jour avec succès",
-        "produit_uid": produit.uid,
-    }
+        if files:
+            old_images = []
+            if produit.images:
+                try:
+                    old_images = json.loads(
+                        produit.images
+                    )
+                except Exception:
+                    old_images = []
+            new_images = upload_to_cloudinary(files)
+            delete_cloudinary_images(
+                old_images
+            )
+        produit.updated_date = datetime.datetime.utcnow()
+        db.session.commit()
+        return {
+            "status": "success",
+            "message": "Produit mis à jour avec succès",
+            "produit_uid": produit.uid,
+            "images_urls": json.loads(produit.images)
+                if produit.images else []
+        }, 200
+    except Exception as e:
+        db.session.rollback()
+        return {
+            "status": "error",
+            "message": "Erreur lors de la mise à jour du produit",
+            "error": str(e)
+        }, 500
 
 
 
@@ -301,7 +354,6 @@ def AllSimilarProducts():
                     "stock_disponible": product.stock_disponible,
                     "moq": product.moq,
                     "fournisseur_id": product.fournisseur_id,
-                    "teller_id": product.teller_id,
                     "images": product.images,
                     "similarity_score": score
                 })
@@ -322,26 +374,49 @@ def DeleteProduitByTeller():
     try:
         data = request.json
         produit_id = data.get('produit_id')
-        teller_id = data.get('teller_id')
+        # teller_id = data.get('teller_id')
         if not produit_id:
-            return {"status": "error", "message": "Aucun produit sélectionné"}, 400
-        produit = Produit.query.filter_by(uid=produit_id).first()
+            return {
+                "status": "error",
+                "message": "Aucun produit sélectionné"
+            }, 400
+            
+        produit = Produit.query.filter_by(
+            uid=produit_id
+        ).first()
         if not produit:
-            return {"status": "error", "message": "Produit introuvable"}, 404
-        if teller_id and produit.teller_id != teller_id:
-            return {"status": "error", "message": "Non autorisé"}, 403
-        commande_exist = Commande.query.filter_by(produit_id=produit_id).first()
+            return {
+                "status": "error",
+                "message": "Produit introuvable"
+            }, 404
+
+        commande_exist = Commande.query.filter_by(
+            produit_id=produit_id
+        ).first()
         if commande_exist:
             return {
                 "status": "error",
                 "message": "Impossible de supprimer ce produit (déjà utilisé dans des commandes)"
             }, 400
+
+        images = []
+        if produit.images:
+            try:
+                images = json.loads(produit.images)
+            except Exception as e:
+                print(
+                    "Impossible de lire les images du produit :",
+                    str(e)
+                )
+        if images:
+            delete_cloudinary_images(images)
+
         db.session.delete(produit)
         db.session.commit()
         return {
             "status": "success",
-            "message": "Produit supprimé avec succès"
-        }
+            "message": "Produit et images supprimés avec succès"
+        }, 200
     except Exception as e:
         db.session.rollback()
         return {
@@ -463,7 +538,6 @@ def SearchProduct():
                 "stock_disponible": product.stock_disponible or 0,
                 "moq": product.moq or 0,
                 "status": product.status or "",
-                "teller_id": product.teller_id or "",
                 "fournisseur_id": product.fournisseur_id or "",
                 "creation_date": str(
                     product.creation_date
@@ -488,49 +562,56 @@ def SearchProduct():
     return response
 
 
-# import iop
-
-# def testAlibab():
-#     url = "TON_URL_API"
-#     appkey = "503830"
-#     appSecret = "TON_APP_SECRET"
-#     access_token = "TON_ACCESS_TOKEN"
-
-#     client = iop.IopClient(url, appkey, appSecret)
-
-#     request = iop.IopRequest(
-#         "/icbu/product/category/get"
-#     )
-
-#     request.add_api_param(
-#         "cat_id",
-#         "127686030"
-#     )
-
-#     response = client.execute(
-#         request,
-#         access_token
-#     )
-
-#     print(response.type)
-#     print(response.body)
-
-#     return response
-
-
-# def GenerateAccessToken():
-    
-#     url = "https://openapi-api.alibaba.com/rest"
-#     appkey = "503830"
-#     appSecret = "ujrarI5lyCQlVoytNnQM5se36vxyY6NW"
-
-#     client = iop.IopClient(url, appkey ,appSecret)
-#     request = iop.IopRequest('/auth/token/create')
-#     request.add_api_param('code', '0_100132_2DL4DV3jcU1UOT7WGI1A4rY91')
-#     request.add_api_param('uuid', '1')
-#     response = client.execute(request)
-#     print(response.type)
-#     print(response.body)
-
-#     return response
- 
+def TopProducts():
+    try:
+        result = (
+            db.session.query(
+                Produit,
+                db.func.count(Commande.id).label("nombre_commandes_payees")
+            )
+            .join(
+                Commande,
+                Commande.produit_id == Produit.uid
+            )
+            .filter(
+                Commande.statut == "Payer"
+            )
+            .group_by(
+                Produit.uid
+            )
+            .order_by(
+                db.func.count(Commande.id).desc()
+            )
+            .limit(50)
+            .all()
+        )
+        produits = []
+        for produit, nombre_commandes_payees in result:
+            produits.append({
+                "uid": produit.uid,
+                "nom": produit.nom,
+                "status": produit.status,
+                "categorie": produit.categorie,
+                "description": produit.description,
+                "lien_1": produit.lien_1,
+                "lien_2": produit.lien_2,
+                "prix_fournisseur": produit.prix_fournisseur,
+                "prix_vente": produit.prix_vente,
+                "images": produit.images,
+                "stock_disponible": produit.stock_disponible,
+                "moq": produit.moq,
+                "fournisseur_id": produit.fournisseur_id,
+                "nombre_commandes_payees": nombre_commandes_payees,
+                "creation_date": str(produit.creation_date),
+                "update_date": str(produit.update_date)
+            })
+        return {
+            "status": "success",
+            "nombre": len(produits),
+            "produits": produits
+        }, 200
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500

@@ -29,31 +29,36 @@ interface Order {
 
 const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([]);
-  const client = JSON.parse(sessionStorage.getItem("user") || "{}");
-  const uid = client.uid;
+  const navigate = useNavigate();
+
+  const client = JSON.parse(localStorage.getItem("user") || "null");
+  const uid = client?.uid;
 
   useEffect(() => {
-    if (uid) {
-      // Récupérer les infos du client
-      ReadSingleClient({ uid })
-        .then((res) => {
-          if (res.data.status === "success") {
-            setUser(res.data.client);
-          }
-        })
-        .catch((err) => console.error("Erreur récupération client :", err));
+    if (!uid) return;
 
-      // Récupérer les commandes du client
-      GetAllCommandeByClient({ client_id: uid })
-        .then((res) => {
-          if (res.data.status === "success") {
-            setOrders(res.data.commandes);
-          }
-        })
-        .catch((err) => console.error("Erreur récupération commandes :", err));
-    }
+    // Récupérer les infos du client
+    ReadSingleClient({ uid })
+      .then((res) => {
+        if (res.data.status === "success") {
+          setUser(res.data.client);
+        }
+      })
+      .catch((err) =>
+        console.error("Erreur récupération client :", err)
+      );
+
+    // Récupérer les commandes du client
+    GetAllCommandeByClient({ client_id: uid })
+      .then((res) => {
+        if (res.data.status === "success") {
+          setOrders(res.data.commandes);
+        }
+      })
+      .catch((err) =>
+        console.error("Erreur récupération commandes :", err)
+      );
   }, [uid]);
 
   const getStatusColor = (status: Order["statut"]) => {
@@ -81,8 +86,42 @@ const ProfilePage: React.FC = () => {
   const totalCartItems = paidOrders.reduce((acc, item) => acc + item.quantite, 0);
   const totalCartPrice = paidOrders.reduce((acc, item) => acc + item.prix_total, 0);
 
-  if (!user) return <p>Chargement du profil...</p>;
+  if (!uid) {
+    return (
+      <div style={styles.loginContainer}>
+        <div style={styles.loginCard}>
+          <div style={styles.loginIcon}>👤</div>
 
+          <h2 style={styles.loginTitle}>
+            Vous n'êtes pas connecté
+          </h2>
+
+          <p style={styles.loginText}>
+            Connectez-vous pour accéder à votre profil,
+            consulter vos commandes et gérer vos informations.
+          </p>
+
+          <button
+            style={styles.loginButton}
+            onClick={() => navigate("/auth/login")}
+          >
+            Connectez-vous
+          </button>
+
+          <button
+            style={styles.registerButton}
+            onClick={() => navigate("/auth/register")}
+          >
+            Créer un compte
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <p>Chargement du profil...</p>;
+  }
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>Mon Profil</h2>
@@ -145,8 +184,8 @@ const ProfilePage: React.FC = () => {
       <button
         style={styles.logoutButton}
         onClick={() => {
-          sessionStorage.removeItem("user"); // supprime les infos du client
-          window.location.href = "/auth/login";   // redirige vers la page de connexion
+          localStorage.removeItem("user"); // supprime les infos du client
+          window.location.href = "/home";   // redirige vers la page de connexion
         }}
       >
         Se déconnecter
@@ -172,6 +211,68 @@ const styles: { [key: string]: React.CSSProperties } = {
   orderTotal: { fontSize: 16, fontWeight: "bold", color: "#00A4A6" },
   orderStatus: { padding: "5px 12px", borderRadius: 20, color: "#fff", fontWeight: "bold", fontSize: 12, minWidth: 80, textAlign: "center" },
   section: { marginBottom: 20 },
+  loginContainer: {
+  minHeight: "80vh",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  padding: 20,
+  backgroundColor: "#F5F5F5",
+},
+
+loginCard: {
+  width: "100%",
+  maxWidth: 420,
+  backgroundColor: "#fff",
+  borderRadius: 16,
+  padding: 30,
+  textAlign: "center",
+  boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+},
+
+loginIcon: {
+  fontSize: 50,
+  marginBottom: 15,
+},
+
+loginTitle: {
+  fontSize: 22,
+  fontWeight: "bold",
+  color: "#333",
+  marginBottom: 10,
+},
+
+loginText: {
+  fontSize: 14,
+  lineHeight: 1.6,
+  color: "#777",
+  marginBottom: 25,
+},
+
+loginButton: {
+  width: "100%",
+  padding: 13,
+  backgroundColor: "#00A4A6",
+  color: "#fff",
+  border: "none",
+  borderRadius: 10,
+  fontSize: 16,
+  fontWeight: "bold",
+  cursor: "pointer",
+  marginBottom: 10,
+},
+
+registerButton: {
+  width: "100%",
+  padding: 13,
+  backgroundColor: "#fff",
+  color: "#00A4A6",
+  border: "1px solid #00A4A6",
+  borderRadius: 10,
+  fontSize: 16,
+  fontWeight: "bold",
+  cursor: "pointer",
+},
 };
 
 export default ProfilePage;

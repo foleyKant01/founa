@@ -31,7 +31,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({
   const refreshCommandeCount = useCallback(async () => {
     try {
       const user = JSON.parse(
-        sessionStorage.getItem("user") || "{}"
+        localStorage.getItem("user") || "{}"
       );
 
       const client_id = user.uid;

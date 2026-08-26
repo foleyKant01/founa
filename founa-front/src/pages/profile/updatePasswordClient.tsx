@@ -55,7 +55,7 @@ const UpdatePassword: React.FC = () => {
     setTimeout(() => setToast(null), 2500);
   };
 
-  const client = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const client = JSON.parse(localStorage.getItem("user") || "{}");
   const uid = client.uid;
 
   const handleSubmit = async () => {

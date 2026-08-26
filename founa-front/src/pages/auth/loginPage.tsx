@@ -65,13 +65,13 @@ const LoginPage: React.FC = () => {
         showToast("Connexion réussie !", "success");
         setTimeout(() => {
               if (user.role === "Client") {
-                sessionStorage.setItem("user", JSON.stringify(user));
+                localStorage.setItem("user", JSON.stringify(user));
                 nav("/home");
               } else if (user.role === "Teller") {
-                sessionStorage.setItem("teller", JSON.stringify(user));
+                localStorage.setItem("teller", JSON.stringify(user));
                 nav("/teller/home");
               } else if (user.role === "Admin") {
-                sessionStorage.setItem("admin", JSON.stringify(user));
+                localStorage.setItem("admin", JSON.stringify(user));
                 nav("/admin/home"); // par exemple pour Admin
               } else {
                 nav("/"); // fallback

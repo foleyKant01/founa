@@ -2,12 +2,13 @@ from config.db import db
 from model.founa import *
 from flask import request
 from datetime import datetime
+from helpers.commandestatuslog import *
 import random
 
 
 
 def generate_order_id():
-    date_part = datetime.now().strftime("%Y%m%d")  # ex: 20260104
+    date_part = datetime.datetime.now().strftime("%Y%m%d")  # ex: 20260104
     random_part = random.randint(100, 999)       # 3chiffres
     return f"COM{date_part}{random_part}"
 
@@ -249,7 +250,12 @@ def UpdateCommande():
         update_commande.updated_date = datetime.utcnow()
         
         db.session.commit()
-
+        
+        CreateCommandeStatusLog({
+            "commande_id": update_commande.commande_id,
+            "statut": update_commande.statut,
+            "teller_id": update_commande.teller_id
+        })
         return {
             "status": "success",
             "message": "Commande mise à jour"
@@ -276,7 +282,7 @@ def OptionEnvoie():
                 "message": "Commande introuvable"
             }, 404
         update_commande.option_envoie = option_envoie
-        update_commande.updated_date = datetime.utcnow()
+        update_commande.updated_date = datetime.datetime.now()
         db.session.commit()
         return {
             "status": "success",

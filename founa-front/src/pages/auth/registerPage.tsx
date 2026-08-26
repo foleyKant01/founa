@@ -77,8 +77,8 @@ const RegisterPage: React.FC = () => {
             const response = await CreateClient(payload);
 
             if (response.data.status === "success") {
-                showToast("Votre compte a été créé avec succès ! En attente de verification", "success");
-                setTimeout(() => nav("/auth/sendotp"), 3000);
+                showToast("Votre compte a été créé avec succès !", "success");
+                setTimeout(() => nav("/auth/login"), 2000);
             } else {
                 showToast(response.data.error_description, "error");
             }

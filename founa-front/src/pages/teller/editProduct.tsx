@@ -21,7 +21,7 @@ const EditProduct: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const teller = JSON.parse(sessionStorage.getItem("teller") || "{}");
+  const teller = JSON.parse(localStorage.getItem("teller") || "{}");
   const teller_id = teller.uid || "";
 
   // 🔥 NORMALIZE IMAGES

@@ -121,7 +121,7 @@ class Commande(db.Model):
     fournisseur = db.relationship('Fournisseur', backref=db.backref('commande', lazy=True))
     quantite = db.Column(db.Integer, nullable=False)
     prix_total = db.Column(db.Float, nullable=False)
-    statut = db.Column(db.String(128), default='commande Initier') # commande en charge, Validerr, Payerr, en expedition, en livraison, Livrerr
+    statut = db.Column(db.String(128), default='commande Initier') # commande en charge, Validerr, Payer, en expedition, en livraison, Livrerr
     details = db.Column(db.Text, nullable=True)
     cout_envoie_maritime = db.Column(db.Float, nullable=True)
     cout_envoie_aérienne = db.Column(db.Float, nullable=True)
@@ -149,3 +149,28 @@ class Favoris(db.Model):
     client = db.relationship('Client', backref=db.backref('favoris', lazy=True))
     creation_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
+
+class CommandeStatusLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
+    commande_id = db.Column(db.String(128), db.ForeignKey('commande.commande_id'), nullable=False)
+    commande = db.relationship('Commande', backref=db.backref('commandestatuslog', lazy=True))
+    status_commande = db.Column(db.String(20), nullable=False)
+    teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=False)
+    teller = db.relationship('Teller', backref=db.backref('commandestatuslog', lazy=True))
+    created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    
+    
+# class ProduitActionsLog(db.Model):
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
+#     produit_id = db.Column(db.String(128), db.ForeignKey('produit.uid'), nullable=False)
+#     produit = db.relationship('Produit', backref=db.backref('produitactionslog', lazy=True))
+#     commande_id = db.Column(db.String(128), db.ForeignKey('commande.commande_id'), nullable=False)
+#     commande = db.relationship('Commande', backref=db.backref('commandestatuslog', lazy=True))
+#     status_commande = db.Column(db.String(20), nullable=False)
+#     teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=False)
+#     teller = db.relationship('Teller', backref=db.backref('commandestatuslog', lazy=True))
+#     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+#     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)

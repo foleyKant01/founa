@@ -20,7 +20,7 @@ const FavoritesPage: React.FC = () => {
   // const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userStr = sessionStorage.getItem("user");
+    const userStr = localStorage.getItem("user");
 
     if (!userStr) {
       console.warn("Aucun utilisateur en session");

@@ -36,7 +36,7 @@ const Toast: React.FC<{
 
 const VerifyOtpPage: React.FC = () => {
   const navigate = useNavigate();
-  const phone = sessionStorage.getItem("phone") || "";
+  const phone = localStorage.getItem("phone") || "";
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);

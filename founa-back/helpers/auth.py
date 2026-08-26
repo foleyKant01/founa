@@ -20,6 +20,7 @@ def LoginClient():
     try:
         data = request.get_json()
         email = data.get('email')
+        phone = data.get('phone')
         password = data.get('password')
 
         if not email or not password:
@@ -32,8 +33,7 @@ def LoginClient():
         for table in USER_TABLES:
             model = table["model"]
             role = table["role"]
-            user = model.query.filter_by(email=email).first()
-    
+            user = model.query.filter((model.email == email) |(model.phone == phone)).first()    
             if user:
                 if user.password != password:
                     break
@@ -53,6 +53,7 @@ def LoginClient():
             "role": user_role
         }
         if user_role == "Client":
+            response_data["status"] = getattr(found_user, 'status', '')
             response_data["adresse_livraison"] = getattr(found_user, 'adresse_livraison', '')
             response_data["created_date"] = str(getattr(found_user, 'created_date', ''))
         # response_sms = verfiy_OTP(response_data['phone'])

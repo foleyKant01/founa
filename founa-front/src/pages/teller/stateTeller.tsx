@@ -24,8 +24,8 @@ const StatistiquesTellerPage: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // Récupérer le teller depuis sessionStorage
-  const tellerStr = sessionStorage.getItem("teller");
+  // Récupérer le teller depuis localStorage
+  const tellerStr = localStorage.getItem("teller");
   if (!tellerStr) return <div className="error-msg">Erreur : teller introuvable.</div>;
   const teller = JSON.parse(tellerStr);
 

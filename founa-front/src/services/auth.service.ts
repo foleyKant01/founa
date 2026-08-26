@@ -20,6 +20,7 @@ export const LoginClient = (data: {
 
 export const send_OTP = (data: {
   phone: string;
+  phone_session: string;
 }) => {
   return api.post('/clients/send_otp', data); 
 };

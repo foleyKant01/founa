@@ -6,7 +6,7 @@ interface ProtectedRouteClientProps {
 }
 
 const ProtectedRouteClient: React.FC<ProtectedRouteClientProps> = ({ children }) => {
-  const user = sessionStorage.getItem("user");
+  const user = localStorage.getItem("user");
 
   if (!user) {
     // Redirige vers la page login si client absent

@@ -45,7 +45,9 @@ const AppRoutes = () => {
       <div style={{ paddingBottom: showBottomBar ? 60 : 0, minHeight: "100vh" }}>
         <Routes>
           {/* 🚀 Redirection automatique vers Login */}
-          <Route path="/" element={<Navigate to="/auth/login" replace />} />
+          {/* <Route path="/" element={<Navigate to="/auth/login" replace />} /> */}
+          <Route path="/" element={<HomePage />} />
+
 
           {/* 🔐 AUTH */}
           <Route path="/auth/login" element={<LoginPage />} />
@@ -55,7 +57,7 @@ const AppRoutes = () => {
           <Route path="/auth/verifyotp" element={<VerifyOtpPage />} />
 
           {/* 🏠 PAGES PRINCIPALES */}
-          <Route path="/home" element={<ProtectedRouteClient><HomePage /></ProtectedRouteClient>} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/activity" element={<ActivityPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/profile" element={<ProfilePage />} />

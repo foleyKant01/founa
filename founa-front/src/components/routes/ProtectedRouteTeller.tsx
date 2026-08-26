@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const teller = sessionStorage.getItem("teller");
+  const teller = localStorage.getItem("teller");
 
   if (!teller) {
     // Redirige vers la page login si teller absent

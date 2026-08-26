@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { GetSingleCommande, OptionEnvoie } from "../../services/order.service";
 import { useApp } from "../../context//appContext";
+import { useNavigate } from "react-router-dom";
+
 
 interface Order {
   commande_id: string;
@@ -24,16 +26,38 @@ type ModeExpedition = "maritime" | "aérienne";
 
 const OrderDetailsPage: React.FC = () => {
   const { commande_id } = useParams();
+  const navigate = useNavigate();
+
 
   const { refreshCommandeCount } = useApp();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const client = JSON.parse(localStorage.getItem("user") || "null");
+
+  const clientStatus = client?.status;
+
+  const handlePayment = () => {
+  // Compte non vérifié
+    if (clientStatus !== "verifier") {
+      setShowVerificationModal(true);
+      return;
+    }
+
+    // Compte vérifié
+    window.open(
+      `https://pay.wave.com/m/M_ci_0GTnAxYCJ8tW/c/ci/?amount=${totalAPayer}&return_url=https://google.com`,
+      "_blank"
+    );
+  };
+
   // Mode d'expédition choisi par le client
   const [modeExpedition, setModeExpedition] =
     useState<ModeExpedition | null>(null);
 
+  
     useEffect(() => {
     if (!commande_id) return;
 
@@ -406,22 +430,18 @@ const OrderDetailsPage: React.FC = () => {
               width: "100%",
             }}
           >
-            <a
-              href={
-                modeExpedition
-                  ? `https://pay.wave.com/m/M_ci_0GTnAxYCJ8tW/c/ci/?amount=${totalAPayer}&return_url=https://google.com`
-                  : "#"
-              }
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={handlePayment}
+              disabled={!modeExpedition}
               style={{
                 ...styles.payButton,
                 opacity: modeExpedition ? 1 : 0.5,
-                pointerEvents: modeExpedition ? "auto" : "none",
+                cursor: modeExpedition ? "pointer" : "not-allowed",
+                border: "none",
               }}
             >
               Payer maintenant
-            </a>
+            </button>
 
             {/* Alerte défilante */}
             <div style={styles.paymentWarningContainer}>
@@ -434,6 +454,47 @@ const OrderDetailsPage: React.FC = () => {
         )}
 
       </div>
+      {showVerificationModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.verificationModal}>
+
+            <div style={styles.verificationIcon}>
+              ⚠️
+            </div>
+
+            <h2 style={styles.verificationTitle}>
+              Compte non vérifié
+            </h2>
+
+            <p style={styles.verificationText}>
+              Vous devez vérifier votre compte avant de pouvoir
+              effectuer le paiement de cette commande.
+            </p>
+
+            <div style={styles.modalActions}>
+
+              <button
+                style={styles.verifyButton}
+                onClick={() => {
+                  setShowVerificationModal(false);
+                  navigate("/auth/sendotp");
+                }}
+              >
+                Vérifier mon compte
+              </button>
+
+              <button
+                style={styles.closeModalButton}
+                onClick={() => setShowVerificationModal(false)}
+              >
+                Plus tard
+              </button>
+
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -653,6 +714,74 @@ paymentWarning: {
 alertIcon: {
   fontSize: 13,
   lineHeight: 1.4,
+},
+modalOverlay: {
+  position: "fixed",
+  inset: 0,
+  backgroundColor: "rgba(0, 0, 0, 0.55)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 9999,
+  padding: 20,
+},
+
+verificationModal: {
+  width: "100%",
+  maxWidth: 420,
+  backgroundColor: "#fff",
+  borderRadius: 18,
+  padding: 30,
+  textAlign: "center",
+  boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
+},
+
+verificationIcon: {
+  fontSize: 50,
+  marginBottom: 10,
+},
+
+verificationTitle: {
+  fontSize: 22,
+  fontWeight: "bold",
+  color: "#333",
+  marginBottom: 12,
+},
+
+verificationText: {
+  fontSize: 15,
+  lineHeight: 1.6,
+  color: "#666",
+  marginBottom: 25,
+},
+
+modalActions: {
+  display: "flex",
+  flexDirection: "column",
+  gap: 10,
+},
+
+verifyButton: {
+  width: "100%",
+  padding: 13,
+  backgroundColor: "#00A4A6",
+  color: "#fff",
+  border: "none",
+  borderRadius: 10,
+  fontSize: 15,
+  fontWeight: "bold",
+  cursor: "pointer",
+},
+
+closeModalButton: {
+  width: "100%",
+  padding: 13,
+  backgroundColor: "#F3F4F6",
+  color: "#555",
+  border: "none",
+  borderRadius: 10,
+  fontSize: 15,
+  cursor: "pointer",
 },
 };
 

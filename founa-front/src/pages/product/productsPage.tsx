@@ -76,7 +76,7 @@ const ProductPage: React.FC = () => {
     images: [],
     stock: 0,
   });
-  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const client_id = user.uid;
 
   const [selectedImage, setSelectedImage] = useState<string>("");

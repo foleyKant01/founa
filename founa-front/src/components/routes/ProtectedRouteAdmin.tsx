@@ -8,7 +8,7 @@ interface ProtectedAdminRouteProps {
 const ProtectedAdminRoute: React.FC<ProtectedAdminRouteProps> = ({
   children,
 }) => {
-  const admin = sessionStorage.getItem("admin");
+  const admin = localStorage.getItem("admin");
 
   if (!admin) {
     // Redirige vers la page de connexion si admin absent

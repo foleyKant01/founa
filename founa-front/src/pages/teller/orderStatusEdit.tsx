@@ -26,7 +26,7 @@ const OrderTellerPage: React.FC = () => {
   const [editing, setEditing] = useState<Commande | null>(null);
   const [searchText, setSearchText] = useState("");
 
-  const teller = JSON.parse(sessionStorage.getItem("teller") || "{}");
+  const teller = JSON.parse(localStorage.getItem("teller") || "{}");
   const navigate = useNavigate();
   
 
@@ -308,43 +308,54 @@ const OrderTellerPage: React.FC = () => {
               </option>
             </select>
 
-            {/* EXPÉDITION MARITIME */}
-            <label>
-              Coût d'expédition maritime
-            </label>
+            {/* COÛTS D'EXPÉDITION */}
+            {editing.statut === "Valider" && (
+              <>
+                {/* EXPÉDITION MARITIME */}
+                <label>
+                  Coût d'expédition maritime
+                </label>
 
-            <input
-              type="number"
-              min="0"
-              step="1"
-              placeholder="Ex : 5000"
-              value={editing.cout_envoie_maritime ?? ""}
-              onChange={(e) =>
-                setEditing({
-                  ...editing,
-                  cout_envoie_maritime: Number(e.target.value),
-                })
-              }
-            />
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Ex : 5000"
+                  value={editing.cout_envoie_maritime ?? ""}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      cout_envoie_maritime:
+                        e.target.value === ""
+                          ? null
+                          : Number(e.target.value),
+                    })
+                  }
+                />
 
-            {/* EXPÉDITION AÉRIENNE */}
-            <label>
-              Coût d'expédition aérienne
-            </label>
+                {/* EXPÉDITION AÉRIENNE */}
+                <label>
+                  Coût d'expédition aérienne
+                </label>
 
-            <input
-              type="number"
-              min="0"
-              step="1"
-              placeholder="Ex : 10000"
-              value={editing.cout_envoie_aérienne ?? ""}
-              onChange={(e) =>
-                setEditing({
-                  ...editing,
-                  cout_envoie_aérienne: Number(e.target.value),
-                })
-              }
-            />
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Ex : 10000"
+                  value={editing.cout_envoie_aérienne ?? ""}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      cout_envoie_aérienne:
+                        e.target.value === ""
+                          ? null
+                          : Number(e.target.value),
+                    })
+                  }
+                />
+              </>
+            )}
 
             {/* DÉTAILS */}
             <label>Détails</label>

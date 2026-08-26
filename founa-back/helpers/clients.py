@@ -80,13 +80,30 @@ def CreateClient():
 def send_OTP():
 
     phone = request.json.get('phone')
-    if not phone:
+    phone_session = request.json.get('phone_session')
+
+    if not phone_session or not phone:
         return {"status": "error","message": "Numéro de téléphone requis"}, 400
+
+    if phone_session != phone:
+        return {
+            "status": "error",
+            "message": "Les numéros de téléphone ne correspondent pas"
+        }, 400
+        
     expiration_time = (
         datetime.datetime.utcnow()
         - datetime.timedelta(hours=24))
     
-    Client.query.filter(Client.created_date < expiration_time,Client.status == "non-verifier").delete(synchronize_session=False)
+    clients_expires = Client.query.filter(Client.created_date < expiration_time,Client.status == "non-verifier").all()
+    for client in clients_expires:
+        commande_exist = Commande.query.filter_by(
+            client_id=client.uid
+        ).first()
+        if commande_exist:
+            continue
+        db.session.delete(client)
+            
     db.session.commit()
     
     single_client = Client.query.filter_by(phone=phone).first()
