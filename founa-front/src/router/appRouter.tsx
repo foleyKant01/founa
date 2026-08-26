@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import LoginPage from "../pages/auth/loginPage";
 import RegisterPage from "../pages/auth/registerPage";
 import ForgotPasswordPage from "../pages/auth/forgotPasswordPage";
@@ -22,7 +22,6 @@ import UpdatePassword from "../pages/profile/updatePasswordClient";
 import OrderTellerPage from "../pages/teller/orderStatusEdit";
 import StatistiquesTellerPage from "../pages/teller/stateTeller"; 
 import ProtectedRouteTeller from "../components/routes/ProtectedRouteTeller"; // chemin correct
-import ProtectedRouteClient from "../components/routes/ProtectedRouteClient";
 import ProtectedAdminRoute from "../components/routes/ProtectedRouteAdmin";
 import { AppProvider } from "../context/appContext";
 import SendOtpPage from "../pages/auth/SendOtpPage";

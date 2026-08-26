@@ -327,7 +327,7 @@ const OrderTellerPage: React.FC = () => {
                       ...editing,
                       cout_envoie_maritime:
                         e.target.value === ""
-                          ? null
+                          ? undefined
                           : Number(e.target.value),
                     })
                   }
@@ -349,7 +349,7 @@ const OrderTellerPage: React.FC = () => {
                       ...editing,
                       cout_envoie_aérienne:
                         e.target.value === ""
-                          ? null
+                          ? undefined
                           : Number(e.target.value),
                     })
                   }
