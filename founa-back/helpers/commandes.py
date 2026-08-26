@@ -247,7 +247,7 @@ def UpdateCommande():
         update_commande.cout_envoie_maritime = float(cout_envoie_maritime or 0)
         update_commande.cout_envoie_aérienne = float(cout_envoie_aerienne or 0)
         update_commande.view = "1"
-        update_commande.updated_date = datetime.utcnow()
+        update_commande.updated_date = datetime.datetime.now()
         
         db.session.commit()
         
