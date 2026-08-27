@@ -1,0 +1,43 @@
+{
+  "source": "Alibaba.com",
+  "plateforme": "Founa",
+  "nombre_produits": 13,
+  "produits": [
+    
+    {
+      "nom": "Non disponible — produit restreint (page inaccessible)",
+      "variantes": "Non disponible",
+      "materiaux": "Non disponible",
+      "dimensions": "Non disponible",
+      "categorie": "Non disponible",
+      "poids": "Non disponible",
+      "informations_fournisseur": "Non disponible",
+      "description": "Non disponible. La page Alibaba affiche : « Sorry, this product can't be shipped to your region » (produit non expédiable vers la région de consultation : qualification produit manquante, produit restreint ou exigence réglementaire). La version mobile renvoie une erreur 404. Aucune donnée produit ni fournisseur n'a pu être collectée depuis cet environnement. À réessayer depuis la Côte d'Ivoire avec une session connectée.",
+      "lien_1": "https://www.alibaba.com/product-detail/6A-USB-to-Type-C-Fast_1601529758685.html",
+      "prix_fournisseur": null,
+      "images": [],
+      "stock_disponible": false,
+      "moq": null,
+      "fournisseur": "Non disponible",
+      "supplierId": null
+    },
+    {
+      "nom": "Non disponible — produit restreint (page inaccessible)",
+      "variantes": "Non disponible",
+      "materiaux": "Non disponible",
+      "dimensions": "Non disponible",
+      "categorie": "Non disponible",
+      "poids": "Non disponible",
+      "informations_fournisseur": "Non disponible",
+      "description": "Non disponible. La page Alibaba affiche : « Sorry, this product can't be shipped to your region » (produit non expédiable vers la région de consultation : qualification produit manquante, produit restreint ou exigence réglementaire), y compris sur la version espagnole. La version mobile renvoie une erreur 404 et la recherche web ne référence pas cette annonce. Aucune donnée produit ni fournisseur n'a pu être collectée depuis cet environnement. À réessayer depuis la Côte d'Ivoire avec une session connectée, ou contacter le vendeur via un lien alternatif du même fournisseur.",
+      "lien_1": "https://www.alibaba.com/product-detail/Factory-Wholesale-Cabo-USB-Cables-Leads_1601535291785.html",
+      "prix_fournisseur": null,
+      "images": [],
+      "stock_disponible": false,
+      "moq": null,
+      "fournisseur": "Non disponible",
+      "supplierId": null
+    }
+    
+  ]
+}
