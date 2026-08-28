@@ -452,6 +452,7 @@ def ImporterProduit():
                 "status": "error",
                 "message": "Le fichier produits.json doit contenir une liste de produits."
             }
+        noms_deja_vus = set()
         for index, data in enumerate(produits, start=1):
             try:
                 nom = (data.get("nom") or ""
@@ -471,6 +472,16 @@ def ImporterProduit():
                 informations_fournisseur = (data.get("informations_fournisseur") or "").strip()
                 fournisseur_nom = (data.get("fournisseur") or "").strip()
                 supplier_id = (data.get("supplierId") or "").strip()
+                nom_normalise = nom.lower()
+                if nom_normalise in noms_deja_vus:
+                    produits_ignores.append({
+                        "index": index,
+                        "nom": nom,
+                        "sku": data.get("sku"),
+                        "message": "Doublon détecté dans le fichier JSON"
+                    })
+                    continue
+                noms_deja_vus.add(nom_normalise)
                 produit_existant = Produit.query.filter_by(
                     nom=nom
                 ).first()
@@ -480,7 +491,6 @@ def ImporterProduit():
                     produits_ignores.append({
                         "index": index,
                         "nom": nom,
-                        "sku": sku,
                         "produit_uid": produit_existant.uid,
                         "message": "Produit déjà présent dans la base de données"
                     })
