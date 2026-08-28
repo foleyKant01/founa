@@ -28,10 +28,7 @@ class Produit(db.Model):
 
     nom = db.Column(db.String(255), nullable=False)
 
-    fournisseur = db.Column(
-        db.String(255),
-        nullable=False
-    )
+    fournisseur = db.Column(db.Text, nullable=False)
 
     status = db.Column(
         db.String(128),
