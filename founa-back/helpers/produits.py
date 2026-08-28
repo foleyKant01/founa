@@ -1408,9 +1408,8 @@ def CreateProduit1():
         moq_str = request.form.get('moq') or "0"
         stock_disponible = int(stock_disponible_str)
         moq = int(moq_str)
-        fournisseur_id = request.form.get('fournisseur_id')
+        fournisseur = request.form.get('fournisseur')
         lien_1 = request.form.get('lien_1')
-        lien_2 = request.form.get('lien_2')
         files = request.files.getlist('images')
         files = [
                 file for file in files
@@ -1424,9 +1423,8 @@ def CreateProduit1():
             prix_vente=prix_vente,
             stock_disponible=stock_disponible,
             moq=moq,
-            fournisseur_id=fournisseur_id,
+            fournisseur=fournisseur,
             lien_1=lien_1,
-            lien_2=lien_2,
             images=json.dumps(images),
         )
         db.session.add(produit)
@@ -1456,13 +1454,12 @@ def GetAllProduits():
             "nom": p.nom,
             "description": p.description,
             "lien_1": p.lien_1,
-            "lien_2": p.lien_2,
             "prix_vente": p.prix_vente, 
             "images": p.images, 
             "stock_disponible": p.stock_disponible, 
             "moq": p.moq, 
             "status": p.status, 
-            "fournisseur_id": p.fournisseur_id,
+            "fournisseur": p.fournisseur,
             "creation_date": str(p.creation_date),
         })
     return jsonify({
@@ -1488,14 +1485,13 @@ def GetSingleProduit():
             "nom": produit.nom,
             "description": produit.description,
             "lien_1": produit.lien_1,
-            "lien_2": produit.lien_2,
             "prix_fournisseur": produit.prix_fournisseur,
             "prix_vente": produit.prix_vente,
             "images": images,
             "stock_disponible": produit.stock_disponible,
             "moq": produit.moq,
             "status": produit.status,
-            "fournisseur_id": produit.fournisseur_id,
+            "fournisseur": produit.fournisseur,
             "creation_date": str(produit.creation_date),
             "update_date": str(produit.update_date),
         }
@@ -1515,14 +1511,13 @@ def GetAllProduitByTeller():
             "nom": p.nom,
             "description": p.description,
             "lien_1": p.lien_1,
-            "lien_2": p.lien_2,
             "prix_vente": p.prix_vente, 
             "images": p.images, 
             "stock_disponible": p.stock_disponible, 
             "moq": p.moq, 
             "status": p.status, 
             "teller_id": p.teller_id, 
-            "fournisseur_id": p.fournisseur_id,
+            "fournisseur": p.fournisseur,
             "creation_date": str(p.creation_date),
         })
     return {"status": "success", "produits": result}, 200
@@ -1563,7 +1558,6 @@ def UpdateProduit():
         except (TypeError, ValueError):
             moq = 0
         lien_1 = request.form.get('lien_1')
-        lien_2 = request.form.get('lien_2')
         
         produit.nom = nom
         produit.description = description
@@ -1572,7 +1566,6 @@ def UpdateProduit():
         produit.stock_disponible = stock_disponible
         produit.moq = moq
         produit.lien_1 = lien_1
-        produit.lien_2 = lien_2
         
         files = request.files.getlist('images')
         files = [
@@ -1682,7 +1675,7 @@ def AllSimilarProducts():
                     "prix_vente": product.prix_vente,
                     "stock_disponible": product.stock_disponible,
                     "moq": product.moq,
-                    "fournisseur_id": product.fournisseur_id,
+                    "fournisseur": product.fournisseur,
                     "images": product.images,
                     "similarity_score": score
                 })
@@ -1861,13 +1854,12 @@ def SearchProduct():
                     else product.description or ""
                 ),
                 "lien_1": product.lien_1 or "",
-                "lien_2": product.lien_2 or "",
                 "prix_vente": product.prix_vente or 0,
                 "images": product.images or [],
                 "stock_disponible": product.stock_disponible or 0,
                 "moq": product.moq or 0,
                 "status": product.status or "",
-                "fournisseur_id": product.fournisseur_id or "",
+                "fournisseur": product.fournisseur or "",
                 "creation_date": str(
                     product.creation_date
                 ),
@@ -1923,13 +1915,12 @@ def TopProducts():
                 "categorie": produit.categorie,
                 "description": produit.description,
                 "lien_1": produit.lien_1,
-                "lien_2": produit.lien_2,
                 "prix_fournisseur": produit.prix_fournisseur,
                 "prix_vente": produit.prix_vente,
                 "images": produit.images,
                 "stock_disponible": produit.stock_disponible,
                 "moq": produit.moq,
-                "fournisseur_id": produit.fournisseur_id,
+                "fournisseur": produit.fournisseur,
                 "nombre_commandes_payees": nombre_commandes_payees,
                 "creation_date": str(produit.creation_date),
                 "update_date": str(produit.update_date)
