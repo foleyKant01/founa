@@ -173,10 +173,10 @@ const HomePage: React.FC = () => {
                       <img
                         src={getFirstImage(produit.images)}
                         alt={produit.nom}
-                        style={{ width: 130, height: 100, objectFit: "cover" }}
+                        style={{width: "100%",height: 150,objectFit: "cover",display: "block",}}
                       />
                     </div>
-                    <h3 style={styles.productName}>{produit.nom}</h3>
+                  <h3 style={{...styles.productName,width: "100%",whiteSpace: "nowrap",overflow: "hidden",textOverflow: "ellipsis",boxSizing: "border-box",}}>{produit.nom}</h3>
                     <p style={styles.productPrice}>{produit.prix_vente}</p>
                   </div>
                 ))}
@@ -197,10 +197,10 @@ const HomePage: React.FC = () => {
                     <img
                       src={getFirstImage(produit.images)}
                       alt={produit.nom}
-                      style={{ width: 130, height: 100, objectFit: "cover" }}
+                      style={{width: "100%",height: 150,objectFit: "cover",display: "block",}}
                     />
                   </div>
-                  <h3 style={styles.productName}>{produit.nom}</h3>
+                  <h3 style={{...styles.productName,width: "100%",whiteSpace: "nowrap",overflow: "hidden",textOverflow: "ellipsis",boxSizing: "border-box",}}>{produit.nom}</h3>
                   <p style={styles.productPrice}>{produit.prix_vente}</p>
                 </div>
               ))}
@@ -218,10 +218,10 @@ const HomePage: React.FC = () => {
                     <img
                       src={getFirstImage(produit.images)}
                       alt={produit.nom}
-                      style={{ width: 130, height: 100, objectFit: "cover" }}
+                      style={{width: "100%",height: 150,objectFit: "cover",display: "block",}}
                     />
                   </div>
-                  <h3 style={styles.productName}>{produit.nom}</h3>
+                  <h3 style={{...styles.productName,width: "100%",whiteSpace: "nowrap",overflow: "hidden",textOverflow: "ellipsis",boxSizing: "border-box",}}>{produit.nom}</h3>
                   <p style={styles.productPrice}>{produit.prix_vente} FCFA</p>
                 </div>
               ))}
@@ -296,7 +296,7 @@ searchInput: {
   boxSizing: "border-box",
 },
 
-  productsSection: { marginTop: 20, padding: "0 10px" },
+  productsSection: { marginTop: 20, padding: "0px" },
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15 },
   noResults: { color: "#999", fontStyle: "italic" },
 
@@ -320,25 +320,43 @@ searchInput: {
   },
 
   productList: {
-    display: "flex",
-    flexWrap: "wrap",
-    margin: "-7.5px",
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 8,
+    width: "100%",
+    boxSizing: "border-box",
   },
   productCard: {
     backgroundColor: "#fff",
     borderRadius: 12,
-    minWidth: 150,
-    padding: "15px 0px",
-    width: "calc(50% - 15px)",
-    margin: "7.5px",
+    width: "100%",
+    minWidth: 0,
+    padding: 0,
+    boxSizing: "border-box",
     boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
     textAlign: "center",
     cursor: "pointer",
+    overflow: "hidden",
     transition: "transform 0.2s, box-shadow 0.2s",
   },
-  productImage: { fontSize: 40, marginBottom: 10 },
-  productName: { fontSize: 16, maxWidth: "100%", fontWeight: "bold", marginBottom: 5 },
-  productPrice: { fontSize: 13, color: "#00A4A6" },
+  productImage: { fontSize: 120, marginBottom: 10 },
+  productName: {
+    fontSize: 15,
+    fontWeight: "normal",
+    maxWidth: "100%",
+    margin: "15px 0 5px",
+    padding: "0 8px",
+    boxSizing: "border-box",
+    textAlign: "left",
+  },
+  productPrice: {
+    fontSize: 16,
+    color: "#00A4A6",
+    fontWeight: "bold",
+    textAlign: "left",
+    padding: "0 8px",
+    margin: "8px 0 5px",
+  },
 };
 
 export default HomePage;

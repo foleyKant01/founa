@@ -182,13 +182,15 @@ Je veux obtenir un json pareil pour chacun des produits avec pour valeur les don
 
   "moq": ,
 
+  "sku": ,
+
   "fournisseur": "",
 
   "supplierId":"",
 
 }
 
-Donne-moi maintenant le résultat sous forme de JSON valide, directement exploitable par une API.
+Donne-moi maintenant le résultat sous forme de JSON valide, directement exploitable par une API et le prix_fournisseur toujour en dollar.
 
 
 
@@ -236,19 +238,20 @@ ordonne moi ces json dans un tableau pres a etre utiliser dans mon code python
 
 
 Lien 1:
-https://www.alibaba.com/product-detail/10-in-1-Package-2-5D_1601567425089.html?spm=a2700.prosearch.normal_offer.d_image.769067aflvGCd5&priceId=d00bfcaeda67410eb23456e05621b4ed
+https://www.alibaba.com/product-detail/Full-Edge-Luxury-Offical-Liquid-Silicone_1600066533595.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=020ff380a87e41819631857f9fab5b21
 
 Lien 2:
-https://www.alibaba.com/product-detail/21D-Full-Glue-Cover-Wholesale-Tempered_1601260160045.html?spm=a2700.prosearch.normal_offer.d_image.769067aflvGCd5&priceId=d00bfcaeda67410eb23456e05621b4ed
+https://www.alibaba.com/product-detail/Hot-Sale-PD-20W-Chargers-PD3_1601635315135.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=93d523973fd849fa97b0791f8f3d00a3
 
 Lien 3:
-https://www.alibaba.com/product-detail/Portable-60W-Fast-Charging-Mobile-Phone_1601602057454.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=9762ab8e63bf4a3d8b0233928fd138af
+https://www.alibaba.com/product-detail/Factory-Price-9H-Hardness-Ultra-Clear_1601834502240.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=020ff380a87e41819631857f9fab5b21
 
 Lien 4:
-https://www.alibaba.com/product-detail/Anti-Juice-Jacking-USB-Data-Blocker_1601672670813.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=93d523973fd849fa97b0791f8f3d00a3
+https://www.alibaba.com/product-detail/Double-Insurance-Inflatable-Waterproof-Phone-Bag_1601457531960.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=020ff380a87e41819631857f9fab5b21
 
 Lien 5:
-https://www.alibaba.com/product-detail/Premium-3D-Radian-Anti-Fingerprint-Scratch_1601856215061.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=93d523973fd849fa97b0791f8f3d00a3
+https://www.alibaba.com/product-detail/Original-Color-Matte-PC-AG-Frosted_1601861253100.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=020ff380a87e41819631857f9fab5b21
+
 
 
 adaptateurs

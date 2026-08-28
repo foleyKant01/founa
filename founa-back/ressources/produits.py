@@ -7,8 +7,11 @@ class ProduitsApi(Resource):
         if route == "create_produit": 
             return CreateProduit()
         
+        if route == "importer_produit": 
+            return ImporterProduit()
+        
         if route == "get_single_produit":
-            return GetSingleProduit() 
+            return GetSingleProduit()  
         
         if route == "get_all_produit_by_teller":
             return GetAllProduitByTeller() 

@@ -66,6 +66,7 @@ const ProductPage: React.FC = () => {
 
   const [similarProducts, setSimilarProducts] = useState<SimilarProduct[]>([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const [product, setProduct] = useState<Product>({
     uid: "",
@@ -219,12 +220,10 @@ const ProductPage: React.FC = () => {
       showToast("Veuillez vous connecter pour passer une commande", "error");
       return;
     }
-
     if (!uid) {
       showToast("Produit inValider", "error");
       return;
     }
-
     try {
       const payload = {
         client_id: client_id,
@@ -275,9 +274,50 @@ const ProductPage: React.FC = () => {
 
         {/* Détails */}
         <div style={styles.detailsSection}>
-          <h1 style={styles.productName}>{product.name}</h1>
+          <div style={styles.descriptionWrapper}>
+            <div
+              style={{
+                ...styles.productName,
+                ...(isDescriptionExpanded
+                  ? {}
+                  : styles.productNameCollapsed),
+              }}
+            >
+              {product.description}
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setIsDescriptionExpanded(!isDescriptionExpanded)
+              }
+              style={styles.descriptionToggle}
+              aria-label={
+                isDescriptionExpanded
+                  ? "Réduire la description"
+                  : "Afficher la description complète"
+              }
+            >
+              <span>
+                {isDescriptionExpanded
+                  ? "Réduire"
+                  : "Voir plus"}
+              </span>
+
+              <span
+                style={{
+                  ...styles.arrow,
+                  transform: isDescriptionExpanded
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)",
+                }}
+              >
+                ▼
+              </span>
+            </button>
+          </div>
           <p style={styles.productPrice}>{product.price.toLocaleString()} FCFA</p>
-          <p style={styles.productDescription}>{product.description}</p>
+          {/* <p style={styles.productDescription}>{product.description}</p> */}
 
           <div style={styles.qtyWrapper}>
             <span>Quantité :</span>
@@ -327,32 +367,32 @@ const ProductPage: React.FC = () => {
           </p>
         ) : (
           <div style={styles.similarProducts}>
-            {similarProducts.map((similarProduct) => (
-              <div
-                key={similarProduct.uid}
-                style={styles.similarCard}
-                onClick={() =>
-                  nav(`/singleproduct/${similarProduct.uid}`)
-                }
-              >
-                <img
-                  src={getFirstImage(similarProduct.images)}
-                  alt={similarProduct.nom}
-                  style={styles.similarImage}
-                />
+  {similarProducts.map((similarProduct) => (
+    <div
+      key={similarProduct.uid}
+      style={styles.similarCard}
+      onClick={() =>
+        nav(`/singleproduct/${similarProduct.uid}`)
+      }
+    >
+      <img
+        src={getFirstImage(similarProduct.images)}
+        alt={similarProduct.nom}
+        style={styles.similarImage}
+      />
 
-                <p style={styles.similarName}>
-                  {similarProduct.nom}
-                </p>
+      <p style={styles.similarName}>
+        {similarProduct.nom}
+      </p>
 
-                <p style={styles.similarPrice}>
-                  {Number(
-                    similarProduct.prix_vente
-                  ).toLocaleString()} FCFA
-                </p>
-              </div>
-            ))}
-          </div>
+      <p style={styles.similarPrice}>
+        {Number(
+          similarProduct.prix_vente
+        ).toLocaleString()} FCFA
+      </p>
+    </div>
+  ))}
+</div>
         )}
       </section>
 
@@ -362,85 +402,287 @@ const ProductPage: React.FC = () => {
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: { padding: 15, paddingBottom: 100, minHeight: "100vh", backgroundColor: "#F5F5F5", fontFamily: "Arial, sans-serif" },
-  mainSection: { display: "flex", flexWrap: "wrap", gap: 20 },
-  imageSection: { flex: "1 1 300px" },
-  mainImage: { width: "100%", borderRadius: 12, marginBottom: 10 },
-  thumbnailWrapper: { display: "flex", gap: 10 },
-  thumbnail: { width: 60, height: 60, borderRadius: 8, objectFit: "cover", cursor: "pointer" },
-  detailsSection: { flex: "1 1 300px", display: "flex", flexDirection: "column", gap: 15 },
-  productName: { fontSize: 22, fontWeight: "bold" },
-  productPrice: { fontSize: 20, color: "#00A4A6", fontWeight: "bold", margin: 0 },
-  productDescription: { fontSize: 14, color: "#555", lineHeight: 1.5 },
-  qtyWrapper: { display: "flex", alignItems: "center", gap: 10 },
-  qtyControls: { display: "flex", alignItems: "center", gap: 5 },
-  qtyButton: { padding: "4px 10px", border: "1px solid #ccc", borderRadius: 6, cursor: "pointer" },
-  qtyText: { minWidth: 25, textAlign: "center" },
-  addToCartButton: { marginTop: 10, padding: 12, backgroundColor: "#00A4A6", color: "#fff", border: "none", borderRadius: 10, fontSize: 16, cursor: "pointer" },
-  infoAlert: { display: "flex", gap: 10, alignItems: "flex-start", backgroundColor: "#FFF8E1", border: "1px solid #FFD54F", borderRadius: 10, padding: 12, fontSize: 13, color: "#795548" },
-  infoIcon: { fontSize: 18, lineHeight: "20px" },
-  infoText: { margin: 0, lineHeight: 1.4 },
-  similarSection: {
-  marginTop: 30,
-  padding: "0 10px",
-},
+  container: {
+    padding: 0,
+    paddingBottom: 100,
+    minHeight: "100vh",
+    backgroundColor: "#f5f5f5",
+    fontFamily: "Arial, sans-serif",
+  },
 
-similarProducts: {
-  display: "flex",
-  gap: 12,
-  overflowX: "auto",
-  paddingBottom: 10,
-  scrollbarWidth: "none" as any,
-},
+  /* ==============================
+     PRODUIT PRINCIPAL
+  ============================== */
 
-similarCard: {
-  minWidth: 150,
-  maxWidth: 150,
-  backgroundColor: "#fff",
-  borderRadius: 14,
-  padding: 10,
-  boxShadow: "0 4px 15px rgba(0,0,0,0.06)",
-  cursor: "pointer",
-  transition: "transform 0.2s, box-shadow 0.2s",
-  flexShrink: 0,
-},
+  mainSection: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 25,
+    backgroundColor: "#fff",
+    padding: 0,
+    margin: 0,
+  },
 
-similarImage: {
-  width: "100%",
-  height: 120,
-  objectFit: "cover",
-  borderRadius: 10,
-  backgroundColor: "#F5F5F5",
-},
+  imageSection: {
+    flex: "1 1 420px",
+    minWidth: 0,
+    padding: 0,
+    margin: 0,
+  },
 
-similarName: {
-  fontSize: 14,
-  fontWeight: 600,
-  margin: "8px 0 4px",
+  mainImage: {
+    display: "block",
+    width: "100%",
+    height: 420,
+    margin: 0,
+    padding: 0,
+    border: "none",
+    borderRadius: 0,
+    objectFit: "contain",
+    backgroundColor: "#fff",
+  },
+
+  thumbnailWrapper: {
+    display: "flex",
+    gap: 8,
+    // padding: "10px",
+    overflowX: "auto",
+    backgroundColor: "#fff",
+  },
+
+  thumbnail: {
+    width: 65,
+    height: 65,
+    borderRadius: 5,
+    objectFit: "cover",
+    cursor: "pointer",
+    flexShrink: 0,
+  },
+
+  /* ==============================
+     INFORMATIONS PRODUIT
+  ============================== */
+
+  detailsSection: {
+    flex: "1 1 420px",
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 15,
+    padding: "0px 0px 0px 0px",
+  },
+
+  productName: {
+    fontSize: 16,
+    fontWeight: 400,
+    color: "#222",
+    margin: 0,
+    lineHeight: 1.4,
+  },
+
+  productNameCollapsed: {
+  display: "-webkit-box",
+  WebkitLineClamp: 3,
+  WebkitBoxOrient: "vertical",
   overflow: "hidden",
   textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
 },
 
-similarPrice: {
-  fontSize: 13,
-  fontWeight: "bold",
+descriptionWrapper: {
+  width: "100%",
+},
+
+descriptionToggle: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  gap: 5,
+  width: "100%",
+  marginTop: 5,
+  padding: 0,
+  border: "none",
+  background: "transparent",
   color: "#00A4A6",
-  margin: 0,
+  fontSize: 13,
+  fontWeight: 500,
+  cursor: "pointer",
 },
 
-similarLoading: {
-  color: "#777",
-  fontSize: 14,
-  textAlign: "center",
+arrow: {
+  fontSize: 10,
+  display: "inline-block",
+  transition: "transform 0.2s ease",
 },
 
-similarEmpty: {
-  color: "#999",
-  fontSize: 14,
-  textAlign: "center",
-  padding: "15px 0",
-},
+  productPrice: {
+    fontSize: 22,
+    color: "#00A4A6",
+    fontWeight: 700,
+    margin: "0px 0",
+  },
+
+  productDescription: {
+    fontSize: 14,
+    color: "#555",
+    lineHeight: 1.6,
+    margin: 0,
+  },
+
+  /* ==============================
+     QUANTITÉ
+  ============================== */
+
+  qtyWrapper: {
+    display: "flex",
+    alignItems: "center",
+    gap: 15,
+    // paddingTop: 10,
+  },
+
+  qtyControls: {
+    display: "flex",
+    alignItems: "center",
+    border: "1px solid #dcdcdc",
+    borderRadius: 5,
+    overflow: "hidden",
+  },
+
+  qtyButton: {
+    width: 38,
+    height: 36,
+    border: "none",
+    backgroundColor: "#f7f7f7",
+    cursor: "pointer",
+    fontSize: 18,
+    color: "#333",
+  },
+
+  qtyText: {
+    width: 45,
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: 500,
+  },
+
+  /* ==============================
+     INFORMATION
+  ============================== */
+
+  infoAlert: {
+    display: "flex",
+    gap: 10,
+    alignItems: "flex-start",
+    backgroundColor: "#fff8e6",
+    border: "1px solid #f0d98a",
+    borderRadius: 5,
+    padding: 12,
+    fontSize: 13,
+    color: "#765f20",
+  },
+
+  infoIcon: {
+    fontSize: 18,
+    lineHeight: "20px",
+  },
+
+  infoText: {
+    margin: 0,
+    lineHeight: 1.5,
+  },
+
+  /* ==============================
+     BOUTON COMMANDE
+  ============================== */
+
+  addToCartButton: {
+    width: "100%",
+    marginTop: 0,
+    padding: "14px 20px",
+    backgroundColor: "#00A4A6",
+    color: "#fff",
+    border: "none",
+    borderRadius: 5,
+    fontSize: 16,
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+
+  /* ==============================
+     PRODUITS SIMILAIRES
+  ============================== */
+
+  similarSection: {
+    marginTop: 10,
+    padding: "20px 10px",
+    backgroundColor: "#f5f5f5",
+  },
+
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 500,
+    color: "#222",
+    margin: "0 0 15px",
+  },
+
+  similarProducts: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 10,
+    width: "100%",
+    boxSizing: "border-box",
+  },
+
+  similarCard: {
+    backgroundColor: "#fff",
+    borderRadius: 6,
+    padding: 0,
+    overflow: "hidden",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+    cursor: "pointer",
+    minWidth: 0,
+    width: "100%",
+    boxSizing: "border-box",
+  },
+
+  similarImage: {
+    width: "100%",
+    height: 170,
+    objectFit: "cover",
+    display: "block",
+    backgroundColor: "#fff",
+  },
+
+  similarName: {
+    fontSize: 14,
+    fontWeight: 400,
+    color: "#333",
+    margin: "9px 7px 4px",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    lineHeight: 1.4,
+  },
+
+  similarPrice: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: "#00A4A6",
+    margin: "0 7px 10px",
+    textAlign: "left",
+  },
+
+  similarLoading: {
+    color: "#777",
+    fontSize: 14,
+    textAlign: "center",
+  },
+
+  similarEmpty: {
+    color: "#999",
+    fontSize: 14,
+    textAlign: "center",
+    padding: "15px 0",
+  },
 };
 
 export default ProductPage;
