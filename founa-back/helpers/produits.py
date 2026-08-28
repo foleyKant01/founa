@@ -796,7 +796,15 @@ def CreateProduit():
                 moq = int(
                     data.get("moq") or 0
                 )
-                fournisseur_id = data.get("fournisseur") or None
+                informations_fournisseur = data.get("informations_fournisseur") or ""
+                fournisseur_nom = data.get("fournisseur") or ""
+                supplier_id = data.get("supplierId") or ""
+
+                fournisseur = ", ".join([
+                    informations_fournisseur,
+                    fournisseur_nom,
+                    supplier_id
+                ])
                 lien_1 = data.get("lien_1", "")
                 lien_2 = data.get("lien_2", "")
                 
@@ -822,7 +830,7 @@ def CreateProduit():
                     prix_vente=prix_vente,
                     stock_disponible=stock_disponible,
                     moq=moq,
-                    fournisseur_id=fournisseur_id,
+                    fournisseur=fournisseur,
                     lien_1=lien_1,
                     lien_2=lien_2,
                     images=json.dumps(images),

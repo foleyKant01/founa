@@ -22,22 +22,19 @@ class Produit(db.Model):
     uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
 
     nom = db.Column(db.String(255), nullable=False)
+    fournisseur = db.Column(db.String(255), nullable=False)
     status = db.Column(db.String(128), nullable=True)
     categorie = db.Column(db.String(128), nullable=True)
     description = db.Column(db.Text)
     lien_1 = db.Column(db.Text, nullable=False)
-    lien_2 = db.Column(db.Text, nullable=False)
     prix_fournisseur = db.Column(db.Float, nullable=False)
     prix_vente = db.Column(db.Float, nullable=False)
     images = db.Column(db.JSON, nullable=False)
     stock_disponible = db.Column(db.Integer, default=0)
     moq = db.Column(db.Integer, default=0)
     
-    teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=False)
+    teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=True)
     teller = db.relationship('Teller', backref=db.backref('produit', lazy=True))
-
-    fournisseur_id = db.Column(db.String(128), db.ForeignKey('fournisseur.uid'), nullable=True)
-    fournisseur = db.relationship('Fournisseur', backref=db.backref('produit', lazy=True))
 
     creation_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     update_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
