@@ -806,7 +806,6 @@ def CreateProduit():
                     supplier_id
                 ])
                 lien_1 = data.get("lien_1", "")
-                lien_2 = data.get("lien_2", "")
                 
                 if not nom:
                     raise ValueError(
@@ -832,7 +831,6 @@ def CreateProduit():
                     moq=moq,
                     fournisseur=fournisseur,
                     lien_1=lien_1,
-                    lien_2=lien_2,
                     images=json.dumps(images),
                 )
                 db.session.add(produit)
