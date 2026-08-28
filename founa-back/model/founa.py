@@ -19,82 +19,24 @@ class Fournisseur(db.Model):
 
 class Produit(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-
-    uid = db.Column(
-        db.String(128),
-        unique=True,
-        default=lambda: str(uuid.uuid4())
-    )
-
+    uid = db.Column(db.String(128),unique=True,default=lambda: str(uuid.uuid4()))
     nom = db.Column(db.String(255), nullable=False)
-
     fournisseur = db.Column(db.Text, nullable=False)
-
-    status = db.Column(
-        db.String(128),
-        nullable=True
-    )
-
-    categorie = db.Column(
-        db.String(128),
-        nullable=True
-    )
-
+    status = db.Column(db.String(128),nullable=True)
+    categorie = db.Column(db.String(128),nullable=True)
     description = db.Column(db.Text)
-
-    lien_1 = db.Column(
-        db.Text,
-        nullable=False
-    )
-
-    prix_fournisseur = db.Column(
-        db.Float,
-        nullable=False
-    )
-
-    prix_vente = db.Column(
-        db.Float,
-        nullable=False
-    )
-
-    images = db.Column(
-        db.JSON,
-        nullable=False
-    )
-
-    stock_disponible = db.Column(
-        db.Integer,
-        default=0
-    )
-
-    moq = db.Column(
-        db.Integer,
-        default=0
-    )
-
-    teller_id = db.Column(
-        db.String(128),
-        db.ForeignKey('teller.uid'),
-        nullable=True
-    )
-
-    teller = db.relationship(
-        'Teller',
-        backref=db.backref('produit', lazy=True)
-    )
-
-    creation_date = db.Column(
-        db.DateTime,
-        nullable=False,
-        default=datetime.datetime.utcnow
-    )
-
-    update_date = db.Column(
-        db.DateTime,
-        nullable=False,
-        default=datetime.datetime.utcnow
-    )
-
+    lien_1 = db.Column(db.Text,nullable=False)
+    prix_fournisseur_usd = db.Column(db.Float,nullable=False)
+    prix_fournisseur = db.Column(db.Float,nullable=False)
+    prix_vente = db.Column(db.Float,nullable=False)
+    images = db.Column(db.JSON,nullable=False)
+    stock_disponible = db.Column(db.Integer,default=0)
+    moq = db.Column(db.Integer,default=0)
+    teller_id = db.Column(db.String(128),db.ForeignKey('teller.uid'),nullable=True)
+    teller = db.relationship('Teller',backref=db.backref('produit', lazy=True))
+    creation_date = db.Column(db.DateTime,nullable=False,default=datetime.datetime.utcnow)
+    update_date = db.Column(db.DateTime,nullable=False,default=datetime.datetime.utcnow)
+    
 
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
