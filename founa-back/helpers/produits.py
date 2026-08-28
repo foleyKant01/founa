@@ -845,18 +845,18 @@ def CreateProduit():
                     "erreur": str(product_error)
                 })
         db.session.commit()
-        return jsonify({
+        return {
             "status": "success",
             "message": f"{len(produits_crees)} produit(s) créé(s)",
             "produits_crees": produits_crees,
             "erreurs": erreurs
-        }), 201
+        }, 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({
+        return {
             "status": "error",
             "message": str(e)
-        }), 500
+        }, 500
 
 
 
