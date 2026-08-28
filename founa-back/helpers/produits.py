@@ -426,6 +426,7 @@ def delete_cloudinary_images(images):
 def ImporterProduit():
     produits_crees = []
     erreurs = []
+    produits_ignores = []
     try:
         base_dir = os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))
@@ -470,6 +471,26 @@ def ImporterProduit():
                 informations_fournisseur = (data.get("informations_fournisseur") or "").strip()
                 fournisseur_nom = (data.get("fournisseur") or "").strip()
                 supplier_id = (data.get("supplierId") or "").strip()
+                sku = (data.get("sku") or "").strip()
+                if not sku:
+                    raise ValueError(
+                        "Le SKU est obligatoire"
+                    )
+                produit_existant = Produit.query.filter_by(
+                    sku=sku
+                ).first()
+
+                if produit_existant:
+
+                    produits_ignores.append({
+                        "index": index,
+                        "nom": nom,
+                        "sku": sku,
+                        "produit_uid": produit_existant.uid,
+                        "message": "Produit déjà présent dans la base de données"
+                    })
+
+                    continue
                 fournisseur = ", ".join(
                     valeur
                     for valeur in [
@@ -498,6 +519,7 @@ def ImporterProduit():
                     categorie=categorie,
                     description=description,
                     lien_1=lien_1,
+                    sku=sku,
                     prix_fournisseur=prix_fournisseur,
                     prix_fournisseur_usd=prix_fournisseur_usd,
                     prix_vente=prix_vente,
