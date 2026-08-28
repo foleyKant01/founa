@@ -1,7 +1,7 @@
 {
   "source": "Alibaba.com",
   "plateforme": "Founa",
-  "nombre_produits": 18,
+  "nombre_produits": 23,
   "produits": [
     {
       "nom": "MFI Factory Certificate 1m/2m/3m 20W USB C to MFI Type C PD Fast Charging Cable for iPhone 11 12 13 14 15 16 Pro Max",
@@ -354,6 +354,106 @@
       "moq": 10,
       "fournisseur": "Shenzhen Xiuzhu Lndustry Co., Ltd.",
       "supplierId": "274723696"
+    },
+    {
+      "nom": "2025 Novo Suporte Do Telefone Móvel, support de téléphone portable pliable de bureau avec élévation, montage sur table pour tablette (titre original portugais Alibaba)",
+      "variantes": "Couleurs : rose, blanc, noir, vert ; type : étagère pliable verticale 1 niveau ; taille : 6,6 × 11 × 16,5 cm",
+      "materiaux": "Plastique (PC)",
+      "dimensions": "6,6 × 11 × 16,5 cm ; colis unitaire : 10 × 14 × 6 cm",
+      "categorie": "Support/étagère de téléphone pliable de bureau (phone holder / shelf storage) — Maison & rangement",
+      "poids": "0,11 kg (poids net) ; 0,2 kg (poids brut unitaire)",
+      "informations_fournisseur": "Yiwu Xisheng Trade Co., Ltd. (Yiwu/Shaoxing, Zhejiang, Chine) — société de négoce, Gold Supplier 4 ans ; note boutique 4,1/5 (1 038 avis) ; temps de réponse ≤ 1 h ; expédition à temps ≥ 98 % ; taux de réachat 11 % ; fondée en 2023 ; catégorie : maison & jardin ; marchés : Asie du Sud, Europe du Nord, Asie du Sud-Est, Amérique centrale/sud, Amérique du Nord, Afrique ; produits : ustensiles de cuisine, produits silicone, articles de maison, gourdes ; ID Alibaba : 278951822",
+      "description": "Support de téléphone de bureau pliable et portable avec élévation, pour téléphone et tablette. Matériau plastique PC, design moderne, étagère verticale pliable 1 niveau, multifonction : organisation et stockage à la maison comme au bureau. Taille 6,6 × 11 × 16,5 cm, poids 0,11 kg. Couleurs : rose, blanc, noir, vert. Délai : 7 jours (1-100 pièces), négociable au-delà. Remise -10 % à partir du 1er septembre (UTC-8). #7 des mieux notés dans sa catégorie ; 8 vendus (note produit 5,0/5, 2 avis). (Description synthétisée à partir des caractéristiques techniques — page consultée en portugais.)",
+      "lien_1": "https://www.alibaba.com/product-detail/2025-New-Mobile-Phone-Holder-Stand_1601535994229.html",
+      "prix_fournisseur": 1.48,
+      "images": [
+        "https://s.alicdn.com/@sc04/kf/H2586f2a00c4342f19694901838ea4722n.jpg"
+      ],
+      "stock_disponible": null,
+      "moq": 3,
+      "fournisseur": "Yiwu Xisheng Trade Co., Ltd.",
+      "supplierId": "278951822"
+    },
+    {
+      "nom": "Support Téléphone Voiture à Rotation pour Grille d'Aération, Prix Usine Bas, Support Smartphone pour Téléphones 4,7 à 6,7 Pouces (titre original français Alibaba)",
+      "variantes": "Couleur : non précisée ; mode de fixation : clip manuel (grille d'aération) ; emballage personnalisé (à partir de 3 000 pièces)",
+      "materiaux": "ABS",
+      "dimensions": "Colis unitaire : 13 × 12 × 9 cm",
+      "categorie": "Support téléphone voiture sur grille d'aération (Air Vent Mount) — Accessoires mobiles",
+      "poids": "0,13 kg (poids brut unitaire)",
+      "informations_fournisseur": "Shenzhen Puxinda Technology Co., Ltd. (Shenzhen, Guangdong, Chine) — société mixte fabricant/négociant, Gold Supplier 8 ans ; note boutique 4,5/5 (635 avis) ; temps de réponse ≤ 8 h ; expédition à temps ≥ 97 % ; taux de réachat 8 % ; fondée en 2019 ; produits : supports téléphone, supports tablette/portable, supports de charge sans fil, écouteurs sans fil ; marchés : Mexique, USA, Corée du Sud, Indonésie, Madagascar ; #3 des plus populaires en supports grille d'aération ; 2 616 vendus ; ID Alibaba : 245979972",
+      "description": "Support téléphone voiture rotatif pour grille d'aération (clip fixe), hauteur ajustable, matériau ABS durable et léger, compatible smartphones 4,7-6,7 pouces. Utilisation : tableau de bord de voiture ; chargeur intégré : non. Emballage personnalisé possible (à partir de 3 000 pièces). Délai : 7 jours (1-100 pièces), négociable au-delà. Aucun avis produit publié ; 2 616 vendus. (Description synthétisée à partir des caractéristiques techniques.)",
+      "lien_1": "https://www.alibaba.com/product-detail/Factory-Low-Price-Rotation-Air-Vent_1601371583946.html",
+      "prix_fournisseur": 3186,
+      "images": [
+        "https://s.alicdn.com/@sc04/kf/H8d24eb66b80843318ad1b7554c002af0a.jpg"
+      ],
+      "stock_disponible": null,
+      "moq": 20,
+      "fournisseur": "Shenzhen Puxinda Technology Co., Ltd.",
+      "supplierId": "245979972"
+    },
+    {
+      "nom": "Multi-use Desktop Phone Holder Simple Portable Metal Stand Aluminum Alloy Lazy Tablet Stand Perfect Gift Made in China",
+      "variantes": "Types : support métal doré (gold-plated), cadre métal rose gold, support métal argent, support métal noir",
+      "materiaux": "Métal / alliage d'aluminium",
+      "dimensions": "Colis unitaire : 13,5 × 8,5 × 9,5 cm",
+      "categorie": "Support de bureau portable en métal pour téléphone/tablette (desktop stand) — Accessoires mobiles",
+      "poids": "0,121 kg (poids brut unitaire)",
+      "informations_fournisseur": "Huizhou Shangsida Tech Co., Ltd. (Huizhou, Guangdong, Chine) — fabricant et société de négoce, Gold Supplier 1 an ; temps de réponse ≤ 2 h ; expédition à temps 100 % ; taux de réachat 5 % ; fondée en 2026 (registre API) ; catégorie : outils et matériel (kits de réparation téléphone, fers à souder, tournevis) ; marchés : Irak, Réunion, Roumanie, Afrique du Sud, États-Unis ; personnalisation : non prise en charge ; ID Alibaba : 292985725",
+      "description": "Support de bureau portable en métal (alliage d'aluminium) pour téléphone et tablette, design simple, compact, idéal comme cadeau. 4 finitions : doré, rose gold, argent, noir. Expédition sous 3 jours, livraison gratuite affichée, livraison garantie 6-18 septembre (58,5 % livrées ≤ 14 jours). Option dropshipping disponible. Délai : 3 jours (1-20 pièces), négociable au-delà. Aucun avis produit publié. Points forts annoncés : design simple, construction métallique durable, taille compacte, cadeau idéal. (Description synthétisée à partir des caractéristiques techniques.)",
+      "lien_1": "https://www.alibaba.com/product-detail/Multi-use-Desktop-Phone-Holder-Simple_1601911021978.html",
+      "prix_fournisseur": 0.58,
+      "images": [
+        "https://s.alicdn.com/@sc04/kf/Hc00c310f71d24056a64f57ff4b0a2980l.jpg",
+        "https://s.alicdn.com/@sc04/kf/Hc3ef6bdc6788403c8e2a6298938ab7f9r.jpg",
+        "https://s.alicdn.com/@sc04/kf/H527af7c1053844fbbed364a24d7c4c93f.jpg",
+        "https://s.alicdn.com/@sc04/kf/H121aa71f80654a7ba0857c54f02fd2afO.jpg",
+        "https://s.alicdn.com/@sc04/kf/H290c0a6c6d25402ea13cac6dab280aefU.jpg",
+        "https://s.alicdn.com/@sc04/kf/Hf36c8965a35c41cd9efa7d010674a900u.png"
+      ],
+      "stock_disponible": null,
+      "moq": 1,
+      "fournisseur": "Huizhou Shangsida Tech Co., Ltd.",
+      "supplierId": "292985725"
+    },
+    {
+      "nom": "Perche selfie trépied pour téléphone, support multifonction à bras télescopique avec télécommande Bluetooth, portable, usage lit (titre traduit de la version chinoise Alibaba)",
+      "variantes": "Couleur : non précisée ; fixation : adhésif (tape) ; personnalisation : sur dessin, sur échantillon, sur demande ; fourchette de prix €0,37-5,63 selon variantes",
+      "materiaux": "Alliage d'aluminium, ABS, fibre de verre",
+      "dimensions": "Colis unitaire : 39 × 12 × 10 cm",
+      "categorie": "Perche selfie trépied à bras télescopique (Selfie Stick / Tripod) — Accessoires photo & mobile",
+      "poids": "0,85 kg (poids brut unitaire)",
+      "informations_fournisseur": "Shenzhen Kdbao Technology Co., Ltd. (Shenzhen, Guangdong, Chine) — Gold Supplier 2 ans (10 ans d'expérience secteur) ; société de négoce ; note boutique 4,6/5 (81 avis) ; temps de réponse ≤ 1 h ; expédition à temps ≥ 98 % ; taux de réachat 10 % ; 128 m² ; fondée en 2019 ; produits : micros sans fil, lumières de streaming, stabilisateurs, perches selfie, accessoires caméra ; #19 des produits populaires à bras télescopique ; représentant UE désigné ; ID Alibaba : 247600273",
+      "description": "Perche selfie trépied multifonction pour téléphone avec bras télescopique et télécommande Bluetooth, portable, conçue pour un usage au lit. Structure en alliage d'aluminium (légère et durable) + ABS + fibre de verre ; bras télescopique à positionnement flexible pour photos/vidéos. Modèle K11-149, origine Chine. Personnalisation : sur dessin, sur échantillon, sur demande. Délai : 7 jours (1-10 000 pièces), négociable au-delà. MOQ élevé : 1 000 pièces. Aucun avis produit publié. (Description synthétisée à partir des caractéristiques techniques — page consultée en chinois.)",
+      "lien_1": "https://www.alibaba.com/product-detail/Selfie-Stick-Tripod-Mobile-Phone-Holder_1601680675908.html",
+      "prix_fournisseur": 0.3722,
+      "images": [
+        "https://s.alicdn.com/@sc04/kf/H1c1927aa8a334b8390653d705ce931dbX.png"
+      ],
+      "stock_disponible": null,
+      "moq": 1000,
+      "fournisseur": "Shenzhen Kdbao Technology Co., Ltd.",
+      "supplierId": "247600273"
+    },
+    {
+      "nom": "Cheap Adjustable Portable & Flexible Mobile Tablet Phone Stand Hot Foldable Desktop Holder for All Smartphones",
+      "variantes": "Couleurs : noir, blanc, rose, vert ; mode de fixation : insertion (Insert) ; logo personnalisable (Accept Custom Logo) ; MOQ déclaré par attribut : 1 pc (palier de prix : 10 pcs)",
+      "materiaux": "ABS + silicone",
+      "dimensions": "Tailles d'appareils supportées : 3,5-6,5 pouces (fournisseur annonce 4-10 pouces) ; colis unitaire : 30 × 30 × 20 cm",
+      "categorie": "Support pliable flexible de bureau pour téléphone/tablette (desktop holder) — Accessoires mobiles",
+      "poids": "1,0 kg (poids brut unitaire déclaré — valeur à confirmer, semble élevée pour un support pliable)",
+      "informations_fournisseur": "Shenzhen City Gaowangfei Technology Company Limited (Shenzhen, Guangdong, Chine) — fournisseur multispecialty, Gold Supplier 6 ans (10 ans d'expérience secteur) ; société de négoce ; note boutique 4,3/5 (503 avis) ; temps de réponse ≤ 3 h ; expédition à temps ≥ 98 % ; taux de réachat 6 % ; fondée en 2020 ; certifications : CE, déclaration de conformité ; produits : ventilateurs, désodorisants voiture, accessoires téléphone ; personnalisation mineure et sur dessin ; ID Alibaba : 256476174",
+      "description": "Support pliable flexible et portable pour téléphone/tablette, matériau ABS + silicone, compatible smartphones 3,5-6,5 pouces (annonce du fournisseur : 4-10 pouces). Usage : bureau ; imperméable ; emballage en boîte couleur (Color Box). Logo personnalisable. Délai : 15 jours (1-1 000 pièces), négociable au-delà. Personnalisation : mineure, sur dessin, sur échantillon, complète. Note produit 4,8/5 (8 avis), 175 vendus. (Description synthétisée à partir des caractéristiques techniques.)",
+      "lien_1": "https://www.alibaba.com/product-detail/Cheap-Adjustable-Portable-Flexible-Mobile-Tablet_1601199071397.html",
+      "prix_fournisseur": 69.84,
+      "images": [
+        "https://s.alicdn.com/@sc04/kf/H143c83a794074b3997e04d14b016d967v.jpg"
+      ],
+      "stock_disponible": null,
+      "moq": 10,
+      "fournisseur": "Shenzhen City Gaowangfei Technology Company Limited",
+      "supplierId": "256476174"
     }
   ]
 }

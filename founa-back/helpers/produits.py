@@ -471,13 +471,8 @@ def ImporterProduit():
                 informations_fournisseur = (data.get("informations_fournisseur") or "").strip()
                 fournisseur_nom = (data.get("fournisseur") or "").strip()
                 supplier_id = (data.get("supplierId") or "").strip()
-                sku = (data.get("sku") or "").strip()
-                if not sku:
-                    raise ValueError(
-                        "Le SKU est obligatoire"
-                    )
                 produit_existant = Produit.query.filter_by(
-                    sku=sku
+                    nom=nom
                 ).first()
 
                 if produit_existant:
@@ -519,7 +514,6 @@ def ImporterProduit():
                     categorie=categorie,
                     description=description,
                     lien_1=lien_1,
-                    sku=sku,
                     prix_fournisseur=prix_fournisseur,
                     prix_fournisseur_usd=prix_fournisseur_usd,
                     prix_vente=prix_vente,
