@@ -254,8 +254,6 @@ https://www.alibaba.com/product-detail/Original-Color-Matte-PC-AG-Frosted_160186
 
 
 
-adaptateurs
-accessoires pour smartphones
 
 Maison
 
