@@ -423,6 +423,161 @@ def delete_cloudinary_images(images):
 
 
 
+# def ImporterProduit():
+#     produits_crees = []
+#     erreurs = []
+#     produits_ignores = []
+#     try:
+#         base_dir = os.path.dirname(
+#             os.path.dirname(os.path.abspath(__file__))
+#         )
+#         fichier_json = os.path.join(
+#             base_dir,
+#             "data",
+#             "produits.json"
+#         )
+#         if not os.path.exists(fichier_json):
+#             return {
+#                 "status": "error",
+#                 "message": f"Fichier introuvable : {fichier_json}"
+#             }
+#         with open(
+#             fichier_json,
+#             "r",
+#             encoding="utf-8"
+#         ) as fichier:
+#             produits = json.load(fichier)
+#         if not isinstance(produits, list):
+#             return {
+#                 "status": "error",
+#                 "message": "Le fichier produits.json doit contenir une liste de produits."
+#             }
+#         noms_deja_vus = set()
+#         for index, data in enumerate(produits, start=1):
+#             try:
+#                 nom = (data.get("nom") or ""
+#                 ).strip()
+#                 description = (data.get("description") or ""
+#                 )
+#                 categorie = (data.get("categorie") or ""
+#                 )
+#                 if not nom:
+#                     raise ValueError(
+#                         "Le nom du produit est obligatoire"
+#                     )
+#                 prix_fournisseur_usd = float(data.get("prix_fournisseur") or 0)
+#                 prix_fournisseur = (prix_fournisseur_usd * TAUX_USD_XOF)
+#                 prix_vente = math.ceil(prix_fournisseur * 1.25 / 10) * 10
+#                 moq = int(data.get("moq") or 0)
+#                 informations_fournisseur = (data.get("informations_fournisseur") or "").strip()
+#                 fournisseur_nom = (data.get("fournisseur") or "").strip()
+#                 supplier_id = (data.get("supplierId") or "").strip()
+#                 nom_normalise = nom.lower().strip()
+#                 images = data.get("images") or []
+
+#                 if not isinstance(images, list):
+#                     images = [images]
+
+#                 images = [
+#                     url.strip()
+#                     for url in images
+#                     if isinstance(url, str)
+#                     and url.strip()
+#                 ]
+
+#                 images_deja_vues = set()
+#                 doublon_nom = nom_normalise in noms_deja_vus
+#                 doublon_image = any(
+#                     image in images_deja_vues
+#                     for image in images
+#                 )
+
+#                 if doublon_nom or doublon_image:
+#                     raison = []
+#                     if doublon_nom:
+#                         raison.append("nom du produit déjà présent")
+
+#                     if doublon_image:
+#                         raison.append("image du produit déjà présente")
+
+#                     produits_ignores.append({
+#                         "index": index,
+#                         "nom": nom,
+#                         "sku": data.get("sku"),
+#                         "message": "Doublon détecté dans le fichier JSON : " + " et ".join(raison)
+#                     })
+#                     continue
+#                 noms_deja_vus.add(nom_normalise)
+#                 for image in images:
+#                     images_deja_vues.add(image)
+#                 fournisseur = ", ".join(
+#                     valeur
+#                     for valeur in [
+#                         informations_fournisseur,
+#                         fournisseur_nom,
+#                         supplier_id
+#                     ]
+#                     if valeur
+#                 )
+#                 lien_1 = (
+#                     data.get("lien_1") or ""
+#                 )
+#                 images = data.get("images") or []
+#                 if not isinstance(images, list):
+#                     images = [images]
+#                 images = [
+#                     url.strip()
+#                     for url in images
+#                     if isinstance(url, str)
+#                     and url.strip()
+#                 ]
+#                 produit = Produit(
+#                     nom=nom,
+#                     fournisseur=fournisseur,
+#                     status="disponible",
+#                     categorie=categorie,
+#                     description=description,
+#                     lien_1=lien_1,
+#                     prix_fournisseur=prix_fournisseur,
+#                     prix_fournisseur_usd=prix_fournisseur_usd,
+#                     prix_vente=prix_vente,
+#                     images=images,
+#                     stock_disponible=100,
+#                     moq=moq
+#                 )
+#                 db.session.add(produit)
+#                 produits_crees.append({
+#                     "nom": nom,
+#                     "prix_fournisseur_usd":prix_fournisseur_usd,
+#                     "prix_fournisseur_fcfa":prix_fournisseur,
+#                     "prix_vente":prix_vente,
+#                     "moq":moq,
+#                     "produit_uid":produit.uid,
+#                     "images":images
+#                 })
+#             except Exception as product_error:
+#                 erreurs.append({
+#                     "index":index,
+#                     "nom":data.get("nom", ""),
+#                     "erreur":str(product_error)
+#                 })
+#         db.session.commit()
+#         return {
+#             "status": "success",
+#             "message":f"{len(produits_crees)} produit(s) créé(s)",
+#             "produits_crees":produits_crees,
+#             "erreurs":erreurs,
+#             "produits_ignores":produits_ignores
+#         }
+#     except Exception as e:
+#         db.session.rollback()
+#         return {
+#             "status": "error",
+#             "message": str(e)
+#         }
+        
+        
+        
 def ImporterProduit():
     produits_crees = []
     erreurs = []
@@ -447,55 +602,39 @@ def ImporterProduit():
             encoding="utf-8"
         ) as fichier:
             produits = json.load(fichier)
+
         if not isinstance(produits, list):
             return {
                 "status": "error",
                 "message": "Le fichier produits.json doit contenir une liste de produits."
             }
         noms_deja_vus = set()
+        images_deja_vues = set()
         for index, data in enumerate(produits, start=1):
             try:
-                nom = (data.get("nom") or ""
+                nom = (data.get("nom") or "").strip()
+                description = (
+                    data.get("description") or ""
                 ).strip()
-                description = (data.get("description") or ""
-                )
-                categorie = (data.get("categorie") or ""
-                )
+                categorie = (
+                    data.get("categorie") or ""
+                ).strip()
                 if not nom:
                     raise ValueError(
                         "Le nom du produit est obligatoire"
                     )
-                prix_fournisseur_usd = float(data.get("prix_fournisseur") or 0)
-                prix_fournisseur = (prix_fournisseur_usd * TAUX_USD_XOF)
-                prix_vente = math.ceil(prix_fournisseur * 1.25 / 10) * 10
+                prix_fournisseur_usd = float(
+                    data.get("prix_fournisseur") or 0
+                )
+                prix_fournisseur = (
+                    prix_fournisseur_usd * TAUX_USD_XOF
+                )
+                prix_vente = (math.ceil(prix_fournisseur * 1.25 / 10) * 10)
                 moq = int(data.get("moq") or 0)
                 informations_fournisseur = (data.get("informations_fournisseur") or "").strip()
                 fournisseur_nom = (data.get("fournisseur") or "").strip()
                 supplier_id = (data.get("supplierId") or "").strip()
-                nom_normalise = nom.lower()
-                if nom_normalise in noms_deja_vus:
-                    produits_ignores.append({
-                        "index": index,
-                        "nom": nom,
-                        "sku": data.get("sku"),
-                        "message": "Doublon détecté dans le fichier JSON"
-                    })
-                    continue
-                noms_deja_vus.add(nom_normalise)
-                produit_existant = Produit.query.filter_by(
-                    nom=nom
-                ).first()
 
-                if produit_existant:
-
-                    produits_ignores.append({
-                        "index": index,
-                        "nom": nom,
-                        "produit_uid": produit_existant.uid,
-                        "message": "Produit déjà présent dans la base de données"
-                    })
-
-                    continue
                 fournisseur = ", ".join(
                     valeur
                     for valeur in [
@@ -507,8 +646,9 @@ def ImporterProduit():
                 )
                 lien_1 = (
                     data.get("lien_1") or ""
-                )
+                ).strip()
                 images = data.get("images") or []
+
                 if not isinstance(images, list):
                     images = [images]
                 images = [
@@ -517,6 +657,100 @@ def ImporterProduit():
                     if isinstance(url, str)
                     and url.strip()
                 ]
+                nom_normalise = nom.lower().strip()
+                images_normalisees = set(images)
+                doublon_nom_json = (
+                    nom_normalise in noms_deja_vus
+                )
+                doublon_image_json = any(
+                    image in images_deja_vues
+                    for image in images_normalisees
+                )
+                if doublon_nom_json or doublon_image_json:
+                    raisons = []
+                    if doublon_nom_json:
+                        raisons.append(
+                            "nom du produit déjà présent dans le fichier JSON"
+                        )
+                    if doublon_image_json:
+                        raisons.append(
+                            "une ou plusieurs images déjà présentes dans le fichier JSON"
+                        )
+                    produits_ignores.append({
+                        "index": index,
+                        "nom": nom,
+                        "sku": data.get("sku"),
+                        "message": (
+                            "Doublon détecté : "
+                            + " et ".join(raisons)
+                        )
+                    })
+                    continue
+                produit_existant_nom = (
+                    Produit.query
+                    .filter_by(nom=nom)
+                    .first()
+                )
+                if produit_existant_nom:
+                    produits_ignores.append({
+                        "index": index,
+                        "nom": nom,
+                        "produit_uid": produit_existant_nom.uid,
+                        "message": (
+                            "Produit déjà présent dans la base "
+                            "de données avec le même nom"
+                        )
+                    })
+                    continue
+                produit_existant_image = None
+                produits_existants = Produit.query.all()
+                for produit_db in produits_existants:
+                    images_db = produit_db.images
+                    if not images_db:
+                        continue
+                    if isinstance(images_db, str):
+                        try:
+                            images_db = json.loads(
+                                images_db
+                            )
+                        except (json.JSONDecodeError, TypeError):
+                            images_db = [
+                                images_db
+                            ]
+                    if not isinstance(images_db, list):
+                        images_db = [images_db]
+                    images_db = {
+                        str(image).strip()
+                        for image in images_db
+                        if image
+                    }
+                    if images_normalisees.intersection(
+                        images_db
+                    ):
+                        produit_existant_image = (
+                            produit_db
+                        )
+                        break
+                if produit_existant_image:
+                    produits_ignores.append({
+                        "index": index,
+                        "nom": nom,
+                        "produit_uid": (
+                            produit_existant_image.uid
+                        ),
+                        "message": (
+                            "Produit déjà présent dans la base "
+                            "de données avec une ou plusieurs "
+                            "images identiques"
+                        )
+                    })
+                    continue
+                noms_deja_vus.add(
+                    nom_normalise
+                )
+                images_deja_vues.update(
+                    images_normalisees
+                )
                 produit = Produit(
                     nom=nom,
                     fournisseur=fournisseur,
@@ -527,32 +761,38 @@ def ImporterProduit():
                     prix_fournisseur=prix_fournisseur,
                     prix_fournisseur_usd=prix_fournisseur_usd,
                     prix_vente=prix_vente,
-                    images=images,
+                    images=json.dumps(
+                        images,
+                        ensure_ascii=False
+                    ),
                     stock_disponible=100,
                     moq=moq
                 )
                 db.session.add(produit)
                 produits_crees.append({
                     "nom": nom,
-                    "prix_fournisseur_usd":prix_fournisseur_usd,
-                    "prix_fournisseur_fcfa":prix_fournisseur,
-                    "prix_vente":prix_vente,
-                    "moq":moq,
-                    "produit_uid":produit.uid,
-                    "images":images
+                    "prix_fournisseur_usd": prix_fournisseur_usd,
+                    "prix_fournisseur_fcfa": prix_fournisseur,
+                    "prix_vente": prix_vente,
+                    "moq": moq,
+                    "produit_uid": produit.uid,
+                    "images": images
                 })
             except Exception as product_error:
                 erreurs.append({
-                    "index":index,
-                    "nom":data.get("nom", ""),
-                    "erreur":str(product_error)
+                    "index": index,
+                    "nom": data.get("nom", ""),
+                    "erreur": str(product_error)
                 })
         db.session.commit()
         return {
             "status": "success",
-            "message":f"{len(produits_crees)} produit(s) créé(s)",
-            "produits_crees":produits_crees,
-            "erreurs":erreurs
+            "message": (
+                f"{len(produits_crees)} produit(s) créé(s)"
+            ),
+            "produits_crees": produits_crees,
+            "erreurs": erreurs,
+            "produits_ignores": produits_ignores
         }
     except Exception as e:
         db.session.rollback()
@@ -560,32 +800,141 @@ def ImporterProduit():
             "status": "error",
             "message": str(e)
         }
-        
-        
-        
+
 
 def CreateProduit():
     try:
-        nom = request.form.get('nom')
-        description = request.form.get('description')
-        prix_fournisseur_str = request.form.get('prix_fournisseur') or "0"
+        nom = (request.form.get("nom") or "").strip()
+        description = (request.form.get("description") or "").strip()
+        fournisseur = (request.form.get("fournisseur") or "").strip()
+        lien_1 = (request.form.get("lien_1") or "").strip()
+        prix_fournisseur_str = (
+            request.form.get(
+                "prix_fournisseur"
+            ) or "0"
+        )
         try:
-            prix_fournisseur = float(prix_fournisseur_str)
-        except ValueError:
+            prix_fournisseur = float(
+                prix_fournisseur_str
+            )
+        except (ValueError, TypeError):
             prix_fournisseur = 0.0
-
-        prix_vente = math.ceil(prix_fournisseur * 1.25 / 10) * 10    
-        stock_disponible_str = request.form.get('stock_disponible') or "0"
-        moq_str = request.form.get('moq') or "0"
-        moq = int(moq_str)
-        fournisseur = request.form.get('fournisseur')
-        lien_1 = request.form.get('lien_1')
-        files = request.files.getlist('images')
+        prix_vente = (
+            math.ceil(
+                prix_fournisseur * 1.25 / 10
+            ) * 10
+        )
+        stock_disponible_str = (
+            request.form.get(
+                "stock_disponible"
+            ) or "0"
+        )
+        try:
+            stock_disponible = int(
+                stock_disponible_str
+            )
+        except (ValueError, TypeError):
+            stock_disponible = 0
+        moq_str = (
+            request.form.get("moq") or "0"
+        )
+        try:
+            moq = int(moq_str)
+        except (ValueError, TypeError):
+            moq = 0
+        produit_existant_nom = (
+            Produit.query
+            .filter_by(nom=nom)
+            .first()
+        )
+        if produit_existant_nom:
+            return jsonify({
+                "status": "error",
+                "message": (
+                    "Un produit avec ce nom existe déjà."
+                ),
+                "produit_uid": (
+                    produit_existant_nom.uid
+                )
+            }), 409
+        files = request.files.getlist(
+            "images"
+        )
         files = [
-                file for file in files
-                if file and file.filename
-            ]
-        images = upload_to_cloudinary(files)
+            file
+            for file in files
+            if file and file.filename
+        ]
+        if not files:
+            return jsonify({
+                "status": "error",
+                "message": (
+                    "Au moins une image est obligatoire."
+                )
+            }), 400
+        images = upload_to_cloudinary(
+            files
+        )
+        if not images:
+            return jsonify({
+                "status": "error",
+                "message": (
+                    "Aucune image n'a pu être uploadée."
+                )
+            }), 400
+        if not isinstance(images, list):
+            images = [images]
+        images = [
+            str(url).strip()
+            for url in images
+            if url
+        ]
+        produits_existants = Produit.query.all()
+        for produit_db in produits_existants:
+            images_db = produit_db.images
+            if not images_db:
+                continue
+            if isinstance(images_db, str):
+                try:
+                    images_db = json.loads(
+                        images_db
+                    )
+                except (
+                    json.JSONDecodeError,
+                    TypeError
+                ):
+                    images_db = [
+                        images_db
+                    ]
+            if not isinstance(
+                images_db,
+                list
+            ):
+                images_db = [
+                    images_db
+                ]
+            images_db = {
+                str(image).strip()
+                for image in images_db
+                if image
+            }
+            images_nouvelles = set(
+                images
+            )
+            if images_nouvelles.intersection(
+                images_db
+            ):
+                return jsonify({
+                    "status": "error",
+                    "message": (
+                        "Une ou plusieurs images "
+                        "appartiennent déjà à un "
+                        "produit existant."
+                    ),
+                    "produit_uid": (
+                        produit_db.uid
+                    )
+                }), 409
         produit = Produit(
             nom=nom,
             description=description,
@@ -595,16 +944,24 @@ def CreateProduit():
             moq=moq,
             fournisseur=fournisseur,
             lien_1=lien_1,
-            images=json.dumps(images),
+            images=json.dumps(
+                images,
+                ensure_ascii=False
+            )
         )
-        db.session.add(produit)
+        db.session.add(
+            produit
+        )
         db.session.commit()
-
         return jsonify({
             "status": "success",
-            "message": "Produit créé avec succès",
-            "produit_uid": produit.uid,
-            "images": produit.images
+            "message": ("Produit créé avec succès"),
+            "produit_uid": (produit.uid),
+            "images": images,
+            "prix_fournisseur": (prix_fournisseur),
+            "prix_vente": (prix_vente),
+            "stock_disponible": 100,
+            "moq": moq
         })
     except Exception as e:
         db.session.rollback()
@@ -612,6 +969,57 @@ def CreateProduit():
             "status": "error",
             "message": str(e)
         }), 500
+        
+        
+
+# def CreateProduit():
+#     try:
+#         nom = request.form.get('nom')
+#         description = request.form.get('description')
+#         prix_fournisseur_str = request.form.get('prix_fournisseur') or "0"
+#         try:
+#             prix_fournisseur = float(prix_fournisseur_str)
+#         except ValueError:
+#             prix_fournisseur = 0.0
+
+#         prix_vente = math.ceil(prix_fournisseur * 1.25 / 10) * 10    
+#         stock_disponible_str = request.form.get('stock_disponible') or "0"
+#         moq_str = request.form.get('moq') or "0"
+#         moq = int(moq_str)
+#         fournisseur = request.form.get('fournisseur')
+#         lien_1 = request.form.get('lien_1')
+#         files = request.files.getlist('images')
+#         files = [
+#                 file for file in files
+#                 if file and file.filename
+#             ]
+#         images = upload_to_cloudinary(files)
+#         produit = Produit(
+#             nom=nom,
+#             description=description,
+#             prix_fournisseur=prix_fournisseur,
+#             prix_vente=prix_vente,
+#             stock_disponible=100,
+#             moq=moq,
+#             fournisseur=fournisseur,
+#             lien_1=lien_1,
+#             images=json.dumps(images),
+#         )
+#         db.session.add(produit)
+#         db.session.commit()
+
+#         return jsonify({
+#             "status": "success",
+#             "message": "Produit créé avec succès",
+#             "produit_uid": produit.uid,
+#             "images": produit.images
+#         })
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify({
+#             "status": "error",
+#             "message": str(e)
+#         }), 500
 
 
 
@@ -636,6 +1044,16 @@ def GetAllProduits():
         "status": "success",
         "produits": result
     })
+    
+    
+def MettreAJourPrixVente():
+    produits = Produit.query.all()
+    for p in produits:
+        prix_fournisseur = float(p.prix_fournisseur or 0)
+        p.prix_vente = math.ceil(
+            prix_fournisseur * 1.25 / 10
+        ) * 10
+    db.session.commit()
 
 
 

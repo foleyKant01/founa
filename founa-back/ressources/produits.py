@@ -7,9 +7,6 @@ class ProduitsApi(Resource):
         if route == "create_produit": 
             return CreateProduit()
         
-        if route == "importer_produit": 
-            return ImporterProduit()
-        
         if route == "get_single_produit":
             return GetSingleProduit()  
         
@@ -23,10 +20,13 @@ class ProduitsApi(Resource):
             return AllSimilarProducts()   
              
         if route == "delete_produit_by_teller":
-            return DeleteProduitByTeller()  
+            return DeleteProduitByTeller()   
         
         if route == "search_product":
-            return SearchProduct()   
+            return SearchProduct() 
+        
+        if route == "mettre_a_jour_prix_vente":
+            return MettreAJourPrixVente()   
         
         if route == "GenerateAccessToken":
             return GenerateAccessToken()   
@@ -35,3 +35,6 @@ class ProduitsApi(Resource):
     def get(self, route):
         if route == "get_all_produits":
             return GetAllProduits()
+        
+        if route == "importer_produit":
+            return ImporterProduit()

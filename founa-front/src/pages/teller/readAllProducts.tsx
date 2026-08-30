@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DeleteProduitByTeller, GetAllProduitByTeller } from "../../services/product.service";
+import {
+  DeleteProduitByTeller,
+  GetAllProduitByTeller,
+  ImporterProduit
+} from "../../services/product.service";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
@@ -17,6 +21,7 @@ interface Product {
 
 const ReadAllProducts = () => {
   const navigate = useNavigate();
+
   const [data, setData] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
@@ -25,45 +30,166 @@ const ReadAllProducts = () => {
     fetchProducts();
   }, []);
 
-  const filteredProducts = data.filter((product) => {
-    const search = searchText.trim().toLowerCase();
-
-    if (!search) return true;
-
-    return (
-      product.nom.toLowerCase().includes(search) ||
-      product.uid.toLowerCase().includes(search)
-    );
-  });
-
   const fetchProducts = async () => {
     setLoading(true);
 
     try {
-      const teller = JSON.parse(localStorage.getItem("teller") || "{}");
+      const teller = JSON.parse(
+        localStorage.getItem("teller") || "{}"
+      );
+
       const teller_id = teller.uid;
 
-      const response = await GetAllProduitByTeller({ teller_id });
+      const response = await GetAllProduitByTeller({
+        teller_id
+      });
 
       if (response.data.status === "success") {
         setData(response.data.produits || []);
+
         toast.success("Produits chargés ✅");
       } else {
-        toast.error(response.data.message || "Erreur chargement");
+        toast.error(
+          response.data.message || "Erreur chargement"
+        );
       }
+
     } catch (error) {
+      console.error(error);
       toast.error("Erreur serveur");
+
     } finally {
       setLoading(false);
     }
   };
 
-  // const viewSingleProduct = (uid: string) => {
-  //   navigate(`/admin/product/${uid}`);
-  // };
+  // =========================================================
+  // IMPORTER LES PRODUITS
+  // =========================================================
+
+  const importerProduits = async () => {
+
+    const result = await Swal.fire({
+      title: "Importer les produits ?",
+      text: "Les produits présents dans produits.json seront importés.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#00A4A6",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Oui, importer",
+      cancelButtonText: "Annuler",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+
+      setLoading(true);
+
+      const response = await ImporterProduit();
+
+      if (response.data.status === "success") {
+
+        const {
+          produits_crees = [],
+          produits_ignores = [],
+          erreurs = [],
+        } = response.data;
+
+        await Swal.fire({
+          icon: "success",
+          title: "Importation terminée",
+          html: `
+            <div style="text-align:left">
+              <p>
+                <strong>${produits_crees.length}</strong>
+                produit(s) créé(s)
+              </p>
+
+              <p>
+                <strong>${produits_ignores.length}</strong>
+                produit(s) ignoré(s)
+              </p>
+
+              <p>
+                <strong>${erreurs.length}</strong>
+                erreur(s)
+              </p>
+            </div>
+          `,
+          confirmButtonColor: "#00A4A6",
+        });
+
+        // Recharger les produits après importation
+        await fetchProducts();
+
+      } else {
+
+        await Swal.fire({
+          icon: "error",
+          title: "Erreur d'importation",
+          text:
+            response.data.message ||
+            "Une erreur est survenue pendant l'importation.",
+        });
+      }
+
+    } catch (error: any) {
+
+      console.error(
+        "Erreur importation :",
+        error
+      );
+
+      await Swal.fire({
+        icon: "error",
+        title: "Erreur serveur",
+        text:
+          error?.response?.data?.message ||
+          "Impossible d'importer les produits.",
+      });
+
+    } finally {
+
+      setLoading(false);
+
+    }
+  };
+
+  // =========================================================
+  // RECHERCHE
+  // =========================================================
+
+  const filteredProducts = data.filter((product) => {
+
+    const search = searchText
+      .trim()
+      .toLowerCase();
+
+    if (!search) {
+      return true;
+    }
+
+    return (
+      product.nom
+        .toLowerCase()
+        .includes(search) ||
+
+      product.uid
+        .toLowerCase()
+        .includes(search)
+    );
+  });
+
+  // =========================================================
+  // SUPPRIMER UN PRODUIT
+  // =========================================================
 
   const deleteProduct = async (uid: string) => {
-  const result = await Swal.fire({
+
+    const result = await Swal.fire({
       title: "Supprimer le produit ?",
       text: "Cette action est irréversible",
       icon: "warning",
@@ -74,9 +200,15 @@ const ReadAllProducts = () => {
       cancelButtonText: "Annuler",
     });
 
-  if (!result.isConfirmed) return;
+    if (!result.isConfirmed) {
+      return;
+    }
+
     try {
-      const teller = JSON.parse(localStorage.getItem("teller") || "{}");
+
+      const teller = JSON.parse(
+        localStorage.getItem("teller") || "{}"
+      );
 
       const res = await DeleteProduitByTeller({
         produit_id: uid,
@@ -84,25 +216,36 @@ const ReadAllProducts = () => {
       });
 
       if (res.data.status === "success") {
-        setData((prev) => prev.filter((p) => p.uid !== uid));
+
+        setData((prev) =>
+          prev.filter(
+            (p) => p.uid !== uid
+          )
+        );
 
         Swal.fire({
           icon: "success",
           title: "Supprimé !",
-          text: res.data.message || "Produit supprimé avec succès",
+          text:
+            res.data.message ||
+            "Produit supprimé avec succès",
           timer: 1500,
           showConfirmButton: false,
         });
 
       } else {
+
         Swal.fire({
           icon: "error",
           title: "Erreur",
-          text: res.data.message || "Une erreur est survenue",
+          text:
+            res.data.message ||
+            "Une erreur est survenue",
         });
       }
-    } 
-    catch (error: any) {
+
+    } catch (error: any) {
+
       console.error(error);
 
       Swal.fire({
@@ -113,20 +256,34 @@ const ReadAllProducts = () => {
           "Erreur serveur",
       });
     }
-
   };
+
+  // =========================================================
+  // RENDER
+  // =========================================================
+
 
   return (
     <>
       <div className="container">
         {/* HEADER */}
+        <div className="header">
           <span className="back" onClick={() => navigate(-1)}>
             ←
           </span>
-        <div className="header">
-          <div>
-            <h2>Produits</h2>
-            <p>Gestion des produits</p>
+
+          <div className="header-content">
+            <div>
+              <h2>Produits</h2>
+              <p>Gestion des produits</p>
+            </div>
+
+            <button
+              className="import-button"
+              onClick={importerProduits}
+            >
+              📥 Importer produit
+            </button>
           </div>
         </div>
 
@@ -249,6 +406,63 @@ const ReadAllProducts = () => {
           align-items: center;
           gap: 12px;
           margin-bottom: 20px;
+        }
+        .header-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+        }
+
+        .header-content h2 {
+          margin: 0;
+        }
+
+        .header-content p {
+          margin: 4px 0 0;
+          color: #777;
+        }
+        .import-button {
+          border: none;
+          background: #00A4A6;
+          color: white;
+          padding: 10px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .import-button:hover {
+          background: #008b8d;
+          transform: translateY(-1px);
+        }
+
+        .import-button:active {
+          transform: translateY(0);
+        }
+
+        @media (max-width: 600px) {
+          .header-content {
+            align-items: flex-start;
+            gap: 10px;
+          }
+
+          .import-button {
+            padding: 8px 10px;
+            font-size: 13px;
+          }
+
+          .import-button {
+            font-size: 0;
+          }
+
+          .import-button::before {
+            content: "📥";
+            font-size: 18px;
+          }
         }
 
         .back {

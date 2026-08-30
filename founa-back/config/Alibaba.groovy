@@ -190,9 +190,7 @@ Je veux obtenir un json pareil pour chacun des produits avec pour valeur les don
 
 }
 
-Donne-moi maintenant le résultat sous forme de JSON valide, directement exploitable par une API et le prix_fournisseur toujour en dollar.
-
-
+Donne-moi maintenant le résultat sous forme de JSON valide contenant les 3 produits, directement exploitable par une API et le prix_fournisseur toujour en dollar.
 
 
 
@@ -238,13 +236,13 @@ ordonne moi ces json dans un tableau pres a etre utiliser dans mon code python
 
 
 Lien 1:
-https://www.alibaba.com/product-detail/Full-Edge-Luxury-Offical-Liquid-Silicone_1600066533595.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=020ff380a87e41819631857f9fab5b21
+https://www.alibaba.com/product-detail/Best-Selling-Rowing-Machine-Bodybuilding-Sports_1601181266823.html?spm=a2700.prosearch.normal_offer.d_image.61b567afeJyB86&priceId=7def6f3c12bf445f9018f0fa20a2d0b4
 
 Lien 2:
-https://www.alibaba.com/product-detail/Hot-Sale-PD-20W-Chargers-PD3_1601635315135.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=93d523973fd849fa97b0791f8f3d00a3
+https://www.alibaba.com/product-detail/Foldable-Water-Rower-Machine-Gym-Equipment_1601731281061.html?spm=a2700.prosearch.normal_offer.d_image.61b567afeJyB86&priceId=7def6f3c12bf445f9018f0fa20a2d0b4
 
 Lien 3:
-https://www.alibaba.com/product-detail/Factory-Price-9H-Hardness-Ultra-Clear_1601834502240.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=020ff380a87e41819631857f9fab5b21
+https://www.alibaba.com/product-detail/Hot-Selling-Rowing-Machine-Bodybuilding-Sports_1601551185274.html?spm=a2700.prosearch.normal_offer.d_image.61b567afeJyB86&priceId=7def6f3c12bf445f9018f0fa20a2d0b4
 
 Lien 4:
 https://www.alibaba.com/product-detail/Double-Insurance-Inflatable-Waterproof-Phone-Bag_1601457531960.html?spm=a2700.prosearch.normal_offer.d_image.5e6867af67lybY&priceId=020ff380a87e41819631857f9fab5b21

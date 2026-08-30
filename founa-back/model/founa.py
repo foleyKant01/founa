@@ -23,7 +23,7 @@ class Produit(db.Model):
     nom = db.Column(db.String(255), nullable=False)
     fournisseur = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(128),nullable=True)
-    categorie = db.Column(db.String(128),nullable=True)
+    categorie = db.Column(db.Text)
     description = db.Column(db.Text)
     lien_1 = db.Column(db.Text,nullable=False)
     prix_fournisseur_usd = db.Column(db.Float,nullable=True)

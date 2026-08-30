@@ -6,6 +6,11 @@ export const GetAllProduits = () => {
   return api.get('/produits/get_all_produits'); // adapte le path selon ta route Flask
 };
 
+export const ImporterProduit = () => {
+  return api.get('/produits/importer_produit'); // adapte le path selon ta route Flask
+};
+
+
 export const GetSingleProduit = (data: {
   produit_id: string;
 }) => {
@@ -18,8 +23,9 @@ export const CreateProduit = (data: FormData) => {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-  });
+  }); 
 };
+
 
 export const UpdateProduit = (data: FormData) => {
   return api.post('/produits/update_produit', data, {
