@@ -1047,13 +1047,42 @@ def GetAllProduits():
     
     
 def MettreAJourPrixVente():
-    produits = Produit.query.all()
-    for p in produits:
-        prix_fournisseur = float(p.prix_fournisseur or 0)
-        p.prix_vente = math.ceil(
-            prix_fournisseur * 1.25 / 10
-        ) * 10
-    db.session.commit()
+    try:
+        produits = Produit.query.all()
+        produits_mis_a_jour = []
+        for p in produits:
+            prix_fournisseur_usd = float(
+                p.prix_fournisseur_usd or 0
+            )
+            prix_fournisseur_fcfa = (
+                prix_fournisseur_usd * TAUX_USD_XOF
+            )
+            p.prix_fournisseur = prix_fournisseur_fcfa
+            prix_vente = (
+                prix_fournisseur_fcfa * 1.25
+            )
+            p.prix_vente = (
+                math.ceil(prix_vente / 10) * 10
+            )
+            produits_mis_a_jour.append({
+                "uid": p.uid,
+                "nom": p.nom,
+                "prix_fournisseur_usd": prix_fournisseur_usd,
+                "prix_fournisseur_fcfa": prix_fournisseur_fcfa,
+                "prix_vente": p.prix_vente
+            })
+        db.session.commit()
+        return {
+            "status": "success",
+            "message": f"{len(produits_mis_a_jour)} produit(s) mis à jour",
+            "produits": produits_mis_a_jour
+        }
+    except Exception as e:
+        db.session.rollback()
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 
 
