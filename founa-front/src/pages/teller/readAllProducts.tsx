@@ -63,12 +63,7 @@ const ReadAllProducts = () => {
     }
   };
 
-  // =========================================================
-  // IMPORTER LES PRODUITS
-  // =========================================================
-
   const importerProduits = async () => {
-
     const result = await Swal.fire({
       title: "Importer les produits ?",
       text: "Les produits présents dans produits.json seront importés.",
@@ -107,12 +102,10 @@ const ReadAllProducts = () => {
                 <strong>${produits_crees.length}</strong>
                 produit(s) créé(s)
               </p>
-
               <p>
                 <strong>${produits_ignores.length}</strong>
                 produit(s) ignoré(s)
               </p>
-
               <p>
                 <strong>${erreurs.length}</strong>
                 erreur(s)
@@ -121,12 +114,9 @@ const ReadAllProducts = () => {
           `,
           confirmButtonColor: "#00A4A6",
         });
-
-        // Recharger les produits après importation
         await fetchProducts();
 
       } else {
-
         await Swal.fire({
           icon: "error",
           title: "Erreur d'importation",
@@ -135,14 +125,11 @@ const ReadAllProducts = () => {
             "Une erreur est survenue pendant l'importation.",
         });
       }
-
     } catch (error: any) {
-
       console.error(
         "Erreur importation :",
         error
       );
-
       await Swal.fire({
         icon: "error",
         title: "Erreur serveur",
@@ -150,45 +137,27 @@ const ReadAllProducts = () => {
           error?.response?.data?.message ||
           "Impossible d'importer les produits.",
       });
-
     } finally {
-
       setLoading(false);
-
     }
   };
-
-  // =========================================================
-  // RECHERCHE
-  // =========================================================
-
   const filteredProducts = data.filter((product) => {
-
     const search = searchText
       .trim()
       .toLowerCase();
-
     if (!search) {
       return true;
     }
-
     return (
       product.nom
         .toLowerCase()
         .includes(search) ||
-
       product.uid
         .toLowerCase()
         .includes(search)
     );
   });
-
-  // =========================================================
-  // SUPPRIMER UN PRODUIT
-  // =========================================================
-
   const deleteProduct = async (uid: string) => {
-
     const result = await Swal.fire({
       title: "Supprimer le produit ?",
       text: "Cette action est irréversible",
@@ -199,17 +168,13 @@ const ReadAllProducts = () => {
       confirmButtonText: "Oui, supprimer",
       cancelButtonText: "Annuler",
     });
-
     if (!result.isConfirmed) {
       return;
     }
-
     try {
-
       const teller = JSON.parse(
         localStorage.getItem("teller") || "{}"
       );
-
       const res = await DeleteProduitByTeller({
         produit_id: uid,
         teller_id: teller.uid,

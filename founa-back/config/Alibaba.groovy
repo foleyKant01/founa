@@ -155,42 +155,25 @@ Je veux obtenir un json pareil pour chacun des produits avec pour valeur les don
 
 
 {
-
   "nom": "",
-
   "variantes": "",
-
   "materiaux": "",
-
   "dimensions": "",
-
   "categorie": "",
-
   "poids": "",
-
   "informations_fournisseur": "",
-
   "description": "",
-
   "lien_1": "",
-
   "prix_fournisseur": ,
-
   "images": ,
-
   "stock_disponible": ,
-
   "moq": ,
-
   "sku": ,
-
   "fournisseur": "",
-
   "supplierId":"",
-
 }
 
-Donne-moi maintenant le résultat sous forme de JSON valide contenant les 3 produits, directement exploitable par une API et le prix_fournisseur toujour en dollar.
+Donne-moi maintenant le résultat sous forme de JSON valide contenant les produits, directement exploitable par une API et le prix_fournisseur toujour en dollar.
 
 
 
@@ -255,10 +238,6 @@ https://www.alibaba.com/product-detail/Original-Color-Matte-PC-AG-Frosted_160186
 
 Maison
 
-organisateurs de tiroirs
-boîtes de rangement
-accessoires de cuisine
-accessoires de salle de bain
 articles de nettoyage
 accessoires de rangement
 
