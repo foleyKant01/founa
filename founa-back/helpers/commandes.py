@@ -44,7 +44,6 @@ def CreateCommande():
             produit_id=produit_id,
             quantite=quantite,
             details=details,
-            teller_id=produit.teller_id,
             prix_total=prix_total,
             statut="Initier",
             view="1"
@@ -62,7 +61,6 @@ def CreateCommande():
                 "client_id": commande.client_id,
                 "produit_id": commande.produit_id,
                 "details": commande.details,
-                "teller_id": commande.teller_id,
                 "quantite": commande.quantite,
                 "prix_total": commande.prix_total,
                 "statut": commande.statut
@@ -85,7 +83,6 @@ def GetAllCommandes():
                 "client": c.client,
                 "produit_id": c.produit_id,
                 "produit": c.produit,
-                "teller_id": c.teller_id,
                 "teller": c.teller,
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
@@ -126,7 +123,6 @@ def GetAllCommandeByClient():
                 "client_id": c.client_id,
                 "produit_id": c.produit_id,
                 "nom": single_product.nom,
-                "teller_id": c.teller_id,
                 "fournisseur_id": c.fournisseur_id,
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
@@ -204,7 +200,6 @@ def GetSingleCommande():
                 "produit_id": single_commande.produit_id,
                 "nom": single_product.nom,
                 "images": single_product.images,
-                "teller_id": single_commande.teller_id,
                 "quantite": single_commande.quantite,
                 "prix_total": single_commande.prix_total,
                 "statut": single_commande.statut,
@@ -243,7 +238,6 @@ def UpdateCommande():
 
         update_commande.statut = statut
         update_commande.details = details
-        update_commande.teller_id = teller_id
         update_commande.cout_envoie_maritime = float(cout_envoie_maritime or 0)
         update_commande.cout_envoie_aérienne = float(cout_envoie_aerienne or 0)
         update_commande.view = "1"

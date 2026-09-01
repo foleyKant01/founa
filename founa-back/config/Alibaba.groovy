@@ -177,43 +177,43 @@ Donne-moi maintenant le résultat sous forme de JSON valide contenant les produi
 
 
 
-# Je souhaite référencer vos produits sur Founa, ma plateforme e-commerce en Côte d'Ivoire.
-# Je voudrais savoir si vous m'autorisez à utiliser les informations et visuels de vos produits pour les présenter sur ma plateforme.
-# Je dispose également d'un transitaire en Chine et je m'occupe de toute la partie logistique de mon côté.
-# Si vous êtes d'accord, je peux vous transmettre notre procédure d'autorisation.
+ Je souhaite référencer vos produits sur Founa, ma plateforme e-commerce en Côte d'Ivoire.
+ Je voudrais savoir si vous m'autorisez à utiliser les informations et visuels de vos produits pour les présenter sur ma plateforme.
+ Je dispose également d'un transitaire en Chine et je m'occupe de toute la partie logistique de mon côté.
+ Si vous êtes d'accord, je peux vous transmettre notre procédure d'autorisation.
 
-# Nous voulons juste afficher et faire la promotion de vos produits sur Founa notre plateforme et lorsqu'il y a des commandes nous achetons avec vous 
-
-
-# D'accord dans le but d'une collaboration durable moi je veux pouvoir proposer vos produit sur Founa ma plateforme pour cela je dois gerer l'integration des 100 produits que vous avez  c'est à dire ainsi que ses information neccessaire pour la vente, et afficher tout ces produit sur Founa 
-
-# Sa sera tres tres fatiguant et mal de le faire manuellement c'est a dire produit par produit et encore plus diffificle si je dois le faire pour d'autre type de produit sa fera des milliers de produit 
-
-# Alors dans le but de faire ce travaille intelligeament et rapidemenent Alibaba a mis en place leur API permettant a nous les informaticiens et developpeur de le faire en un seul clique 
+ Nous voulons juste afficher et faire la promotion de vos produits sur Founa notre plateforme et lorsqu'il y a des commandes nous achetons avec vous 
 
 
-# C'est pour cette raison que nous voulons utiliser les informations sur Alibaba de vos produits sur Founa notre plateforme et pour cela Alibaba nous demande d'avoir vous votre autorisation
+ D'accord dans le but d'une collaboration durable moi je veux pouvoir proposer vos produit sur Founa ma plateforme pour cela je dois gerer l'integration des 100 produits que vous avez  c'est à dire ainsi que ses information neccessaire pour la vente, et afficher tout ces produit sur Founa 
+
+ Sa sera tres tres fatiguant et mal de le faire manuellement c'est a dire produit par produit et encore plus diffificle si je dois le faire pour d'autre type de produit sa fera des milliers de produit 
+
+ Alors dans le but de faire ce travaille intelligeament et rapidemenent Alibaba a mis en place leur API permettant a nous les informaticiens et developpeur de le faire en un seul clique 
 
 
-
-# Nous avons terminer la création de la plateforme le mois dernier et le lancement a été fait nous somme a la phase de remplissage avec les produit de la plateforme Alibaba 
-
-# Cette plateforme Founa est la seul de son genre ici en Côte d'Ivoire et elle sera une très plateforme alors nous aimerions commencer cette aventure avec vous 
-
-# quand vous ouvrez le lien vous aurez cette page Alibaba, vous vous connecter ensuite avec votre compte Alibaba puis cliquer sur Authorize
+ C'est pour cette raison que nous voulons utiliser les informations sur Alibaba de vos produits sur Founa notre plateforme et pour cela Alibaba nous demande d'avoir vous votre autorisation
 
 
 
-# Mais c'est exactement ca que je veux faire des que j'ai des commande ici moi je passe directement commande avec vous sur Alibaba
+ Nous avons terminer la création de la plateforme le mois dernier et le lancement a été fait nous somme a la phase de remplissage avec les produit de la plateforme Alibaba 
 
-# l'autorisation que Alibaba me demande d'avoir au près de vous c'est pour avoir les infos en rapport avec vos produits dont:
+ Cette plateforme Founa est la seul de son genre ici en Côte d'Ivoire et elle sera une très plateforme alors nous aimerions commencer cette aventure avec vous 
 
-# le nom, la description, le prix, l'image et bien d'autres et vu que vous avez beaucoup de produits et aussi nous avons pour but d'ajouter différent type de produit a notre plateforme nous ne pouvons faire cette integration manuellement, avec l'autorisation que vous nous donner cela peut se faire facilement rapidement et automatiquement
+ quand vous ouvrez le lien vous aurez cette page Alibaba, vous vous connecter ensuite avec votre compte Alibaba puis cliquer sur Authorize
 
-# 📧 ads.alibaba@service.alibaba.com (pour les programmes d'affiliation/partenariat
-# 3. Alternative : Accio Work
 
-# L'outil Accio Work propose des fonctionnalités de recherche de produits et de fournisseurs, ainsi que des plugins de dropshipping qui pourraient faciliter votre workflow.
+
+ Mais c'est exactement ca que je veux faire des que j'ai des commande ici moi je passe directement commande avec vous sur Alibaba
+
+ l'autorisation que Alibaba me demande d'avoir au près de vous c'est pour avoir les infos en rapport avec vos produits dont:
+
+ le nom, la description, le prix, l'image et bien d'autres et vu que vous avez beaucoup de produits et aussi nous avons pour but d'ajouter différent type de produit a notre plateforme nous ne pouvons faire cette integration manuellement, avec l'autorisation que vous nous donner cela peut se faire facilement rapidement et automatiquement
+
+ 📧 ads.alibaba@service.alibaba.com (pour les programmes d'affiliation/partenariat
+ 3. Alternative : Accio Work
+
+ L'outil Accio Work propose des fonctionnalités de recherche de produits et de fournisseurs, ainsi que des plugins de dropshipping qui pourraient faciliter votre workflow.
 
 ordonne moi ces json dans un tableau pres a etre utiliser dans mon code python
 
