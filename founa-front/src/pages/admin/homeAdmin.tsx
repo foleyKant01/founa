@@ -438,3 +438,955 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 export default AdminDashboard;
+
+
+
+// import React from "react";
+// import { useNavigate } from "react-router-dom";
+// import {
+//     Package,
+//     ShoppingCart,
+//     Users,
+//     Plus,
+//     ArrowRight,
+//     TrendingUp,
+//     Clock,
+//     CheckCircle,
+//     AlertCircle,
+//     LogOut,
+//     LayoutDashboard,
+// } from "lucide-react";
+
+// const AdminDashboard: React.FC = () => {
+//     const navigate = useNavigate();
+
+//     const admin = true; // À remplacer par ton système d'authentification
+
+//     if (!admin) return null;
+
+//     const handleLogout = () => {
+//         localStorage.removeItem("admin");
+//         navigate("/auth/login");
+//     };
+
+//     return (
+//         <div style={styles.container}>
+
+//             {/* HEADER */}
+//             <header style={styles.header}>
+
+//                 <div style={styles.headerLeft}>
+
+//                     <div style={styles.logo}>
+//                         <LayoutDashboard size={26} />
+//                     </div>
+
+//                     <div>
+//                         <h1 style={styles.title}>
+//                             Tableau de bord
+//                         </h1>
+
+//                         <p style={styles.subtitle}>
+//                             Administration de la plateforme Founa
+//                         </p>
+//                     </div>
+
+//                 </div>
+
+//                 <div style={styles.headerRight}>
+
+//                     <div style={styles.adminProfile}>
+
+//                         <div style={styles.avatar}>
+//                             A
+//                         </div>
+
+//                         <div>
+//                             <strong style={styles.adminName}>
+//                                 Administrateur
+//                             </strong>
+
+//                             <span style={styles.adminStatus}>
+//                                 ● En ligne
+//                             </span>
+//                         </div>
+
+//                     </div>
+
+//                     <button
+//                         style={styles.logoutButton}
+//                         onClick={handleLogout}
+//                     >
+//                         <LogOut size={17} />
+//                         Déconnexion
+//                     </button>
+
+//                 </div>
+
+//             </header>
+
+
+//             {/* STATISTIQUES */}
+//             <section style={styles.statsGrid}>
+
+//                 <div style={styles.statCard}>
+
+//                     <div style={{
+//                         ...styles.statIcon,
+//                         background: "#e0f7f7",
+//                         color: "#00a4a6"
+//                     }}>
+//                         <Package size={25} />
+//                     </div>
+
+//                     <div style={styles.statContent}>
+//                         <span style={styles.statLabel}>
+//                             Produits
+//                         </span>
+
+//                         <strong style={styles.statValue}>
+//                             248
+//                         </strong>
+
+//                         <span style={styles.statEvolution}>
+//                             <TrendingUp size={14} />
+//                             +12% ce mois
+//                         </span>
+//                     </div>
+
+//                 </div>
+
+
+//                 <div style={styles.statCard}>
+
+//                     <div style={{
+//                         ...styles.statIcon,
+//                         background: "#eef2ff",
+//                         color: "#4f46e5"
+//                     }}>
+//                         <ShoppingCart size={25} />
+//                     </div>
+
+//                     <div style={styles.statContent}>
+//                         <span style={styles.statLabel}>
+//                             Commandes
+//                         </span>
+
+//                         <strong style={styles.statValue}>
+//                             126
+//                         </strong>
+
+//                         <span style={styles.statEvolution}>
+//                             <TrendingUp size={14} />
+//                             +8% ce mois
+//                         </span>
+//                     </div>
+
+//                 </div>
+
+
+//                 <div style={styles.statCard}>
+
+//                     <div style={{
+//                         ...styles.statIcon,
+//                         background: "#ecfdf5",
+//                         color: "#10b981"
+//                     }}>
+//                         <Users size={25} />
+//                     </div>
+
+//                     <div style={styles.statContent}>
+//                         <span style={styles.statLabel}>
+//                             Tellers
+//                         </span>
+
+//                         <strong style={styles.statValue}>
+//                             14
+//                         </strong>
+
+//                         <span style={styles.statEvolution}>
+//                             11 actifs
+//                         </span>
+//                     </div>
+
+//                 </div>
+
+
+//                 <div style={styles.statCard}>
+
+//                     <div style={{
+//                         ...styles.statIcon,
+//                         background: "#fff7ed",
+//                         color: "#f97316"
+//                     }}>
+//                         <Clock size={25} />
+//                     </div>
+
+//                     <div style={styles.statContent}>
+//                         <span style={styles.statLabel}>
+//                             En attente
+//                         </span>
+
+//                         <strong style={styles.statValue}>
+//                             18
+//                         </strong>
+
+//                         <span style={styles.statWarning}>
+//                             À traiter
+//                         </span>
+//                     </div>
+
+//                 </div>
+
+//             </section>
+
+
+//             {/* ACTIONS PRINCIPALES */}
+//             <section>
+
+//                 <div style={styles.sectionHeader}>
+
+//                     <div>
+//                         <h2 style={styles.sectionTitle}>
+//                             Gestion de la plateforme
+//                         </h2>
+
+//                         <p style={styles.sectionSubtitle}>
+//                             Accédez rapidement aux principales fonctionnalités
+//                         </p>
+//                     </div>
+
+//                 </div>
+
+
+//                 <div style={styles.actionsGrid}>
+
+//                     {/* AJOUTER PRODUIT */}
+//                     <div
+//                         style={{
+//                             ...styles.actionCard,
+//                             borderTop: "4px solid #00a4a6"
+//                         }}
+//                         onClick={() => navigate("/admin/create")}
+//                     >
+
+//                         <div style={{
+//                             ...styles.actionIcon,
+//                             background: "#e0f7f7",
+//                             color: "#00a4a6"
+//                         }}>
+//                             <Plus size={30} />
+//                         </div>
+
+//                         <div style={styles.actionBody}>
+
+//                             <h3 style={styles.actionTitle}>
+//                                 Ajouter un produit
+//                             </h3>
+
+//                             <p style={styles.actionText}>
+//                                 Ajoutez de nouveaux produits au catalogue Founa.
+//                             </p>
+
+//                         </div>
+
+//                         <ArrowRight
+//                             size={21}
+//                             style={styles.arrow}
+//                         />
+
+//                     </div>
+
+
+//                     {/* PRODUITS */}
+//                     <div
+//                         style={{
+//                             ...styles.actionCard,
+//                             borderTop: "4px solid #4f46e5"
+//                         }}
+//                         onClick={() => navigate("/admin/readall")}
+//                     >
+
+//                         <div style={{
+//                             ...styles.actionIcon,
+//                             background: "#eef2ff",
+//                             color: "#4f46e5"
+//                         }}>
+//                             <Package size={30} />
+//                         </div>
+
+//                         <div style={styles.actionBody}>
+
+//                             <h3 style={styles.actionTitle}>
+//                                 Voir les produits
+//                             </h3>
+
+//                             <p style={styles.actionText}>
+//                                 Consultez, modifiez et gérez tous les produits.
+//                             </p>
+
+//                         </div>
+
+//                         <ArrowRight
+//                             size={21}
+//                             style={styles.arrow}
+//                         />
+
+//                     </div>
+
+
+//                     {/* COMMANDES */}
+//                     <div
+//                         style={{
+//                             ...styles.actionCard,
+//                             borderTop: "4px solid #f97316"
+//                         }}
+//                         onClick={() => navigate("/admin/orders")}
+//                     >
+
+//                         <div style={{
+//                             ...styles.actionIcon,
+//                             background: "#fff7ed",
+//                             color: "#f97316"
+//                         }}>
+//                             <ShoppingCart size={30} />
+//                         </div>
+
+//                         <div style={styles.actionBody}>
+
+//                             <h3 style={styles.actionTitle}>
+//                                 Voir les commandes
+//                             </h3>
+
+//                             <p style={styles.actionText}>
+//                                 Suivez et gérez toutes les commandes clients.
+//                             </p>
+
+//                         </div>
+
+//                         <ArrowRight
+//                             size={21}
+//                             style={styles.arrow}
+//                         />
+
+//                     </div>
+
+
+//                     {/* TELLERS */}
+//                     <div
+//                         style={{
+//                             ...styles.actionCard,
+//                             borderTop: "4px solid #10b981"
+//                         }}
+//                         onClick={() => navigate("/admin/tellers")}
+//                     >
+
+//                         <div style={{
+//                             ...styles.actionIcon,
+//                             background: "#ecfdf5",
+//                             color: "#10b981"
+//                         }}>
+//                             <Users size={30} />
+//                         </div>
+
+//                         <div style={styles.actionBody}>
+
+//                             <h3 style={styles.actionTitle}>
+//                                 Voir les Tellers
+//                             </h3>
+
+//                             <p style={styles.actionText}>
+//                                 Gérez les comptes et l'activité des Tellers.
+//                             </p>
+
+//                         </div>
+
+//                         <ArrowRight
+//                             size={21}
+//                             style={styles.arrow}
+//                         />
+
+//                     </div>
+
+//                 </div>
+
+//             </section>
+
+
+//             {/* BAS DU DASHBOARD */}
+//             <section style={styles.bottomGrid}>
+
+//                 {/* ACTIVITÉ */}
+//                 <div style={styles.panel}>
+
+//                     <div style={styles.panelHeader}>
+
+//                         <div>
+//                             <h2 style={styles.panelTitle}>
+//                                 Activité récente
+//                             </h2>
+
+//                             <p style={styles.panelSubtitle}>
+//                                 Dernières actions sur la plateforme
+//                             </p>
+//                         </div>
+
+//                         <button
+//                             style={styles.viewButton}
+//                             onClick={() => navigate("/admin/activity")}
+//                         >
+//                             Voir tout
+//                         </button>
+
+//                     </div>
+
+
+//                     <div style={styles.activityList}>
+
+//                         <div style={styles.activityItem}>
+
+//                             <div style={{
+//                                 ...styles.activityIcon,
+//                                 background: "#e0f7f7",
+//                                 color: "#00a4a6"
+//                             }}>
+//                                 <Plus size={17} />
+//                             </div>
+
+//                             <div style={styles.activityInfo}>
+
+//                                 <strong>
+//                                     Nouveau produit ajouté
+//                                 </strong>
+
+//                                 <span>
+//                                     Il y a 5 minutes
+//                                 </span>
+
+//                             </div>
+
+//                         </div>
+
+
+//                         <div style={styles.activityItem}>
+
+//                             <div style={{
+//                                 ...styles.activityIcon,
+//                                 background: "#eef2ff",
+//                                 color: "#4f46e5"
+//                             }}>
+//                                 <ShoppingCart size={17} />
+//                             </div>
+
+//                             <div style={styles.activityInfo}>
+
+//                                 <strong>
+//                                     Nouvelle commande
+//                                 </strong>
+
+//                                 <span>
+//                                     Il y a 12 minutes
+//                                 </span>
+
+//                             </div>
+
+//                         </div>
+
+
+//                         <div style={styles.activityItem}>
+
+//                             <div style={{
+//                                 ...styles.activityIcon,
+//                                 background: "#ecfdf5",
+//                                 color: "#10b981"
+//                             }}>
+//                                 <Users size={17} />
+//                             </div>
+
+//                             <div style={styles.activityInfo}>
+
+//                                 <strong>
+//                                     Nouveau Teller connecté
+//                                 </strong>
+
+//                                 <span>
+//                                     Il y a 24 minutes
+//                                 </span>
+
+//                             </div>
+
+//                         </div>
+
+//                     </div>
+
+//                 </div>
+
+
+//                 {/* COMMANDES */}
+//                 <div style={styles.panel}>
+
+//                     <div style={styles.panelHeader}>
+
+//                         <div>
+//                             <h2 style={styles.panelTitle}>
+//                                 État des commandes
+//                             </h2>
+
+//                             <p style={styles.panelSubtitle}>
+//                                 Vue rapide
+//                             </p>
+//                         </div>
+
+//                         <button
+//                             style={styles.viewButton}
+//                             onClick={() => navigate("/admin/orders")}
+//                         >
+//                             Commandes
+//                         </button>
+
+//                     </div>
+
+
+//                     <div style={styles.orderStats}>
+
+//                         <div style={styles.orderRow}>
+
+//                             <div style={styles.orderLabel}>
+//                                 <span style={{
+//                                     ...styles.dot,
+//                                     background: "#f59e0b"
+//                                 }} />
+
+//                                 En attente
+//                             </div>
+
+//                             <strong>18</strong>
+
+//                         </div>
+
+
+//                         <div style={styles.orderRow}>
+
+//                             <div style={styles.orderLabel}>
+//                                 <span style={{
+//                                     ...styles.dot,
+//                                     background: "#3b82f6"
+//                                 }} />
+
+//                                 En traitement
+//                             </div>
+
+//                             <strong>32</strong>
+
+//                         </div>
+
+
+//                         <div style={styles.orderRow}>
+
+//                             <div style={styles.orderLabel}>
+//                                 <span style={{
+//                                     ...styles.dot,
+//                                     background: "#10b981"
+//                                 }} />
+
+//                                 Livrées
+//                             </div>
+
+//                             <strong>64</strong>
+
+//                         </div>
+
+
+//                         <div style={styles.orderRow}>
+
+//                             <div style={styles.orderLabel}>
+//                                 <span style={{
+//                                     ...styles.dot,
+//                                     background: "#ef4444"
+//                                 }} />
+
+//                                 Annulées
+//                             </div>
+
+//                             <strong>12</strong>
+
+//                         </div>
+
+//                     </div>
+
+//                 </div>
+
+//             </section>
+
+
+//             {/* MESSAGE */}
+//             <div style={styles.infoBox}>
+
+//                 <div style={styles.infoIcon}>
+//                     <CheckCircle size={22} />
+//                 </div>
+
+//                 <div>
+//                     <strong>
+//                         Plateforme opérationnelle
+//                     </strong>
+
+//                     <p>
+//                         Tous les services de Founa fonctionnent normalement.
+//                     </p>
+//                 </div>
+
+//             </div>
+
+//         </div>
+//     );
+// };
+
+
+// const styles: { [key: string]: React.CSSProperties } = {
+
+//     container: {
+//         minHeight: "100vh",
+//         padding: "30px",
+//         background: "#f5f7fb",
+//         fontFamily: "Segoe UI, Arial, sans-serif",
+//         boxSizing: "border-box",
+//     },
+
+//     header: {
+//         display: "flex",
+//         justifyContent: "space-between",
+//         alignItems: "center",
+//         marginBottom: 35,
+//         gap: 20,
+//         flexWrap: "wrap",
+//     },
+
+//     headerLeft: {
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 15,
+//     },
+
+//     logo: {
+//         width: 52,
+//         height: 52,
+//         borderRadius: 14,
+//         background: "#00a4a6",
+//         color: "#fff",
+//         display: "flex",
+//         alignItems: "center",
+//         justifyContent: "center",
+//         boxShadow: "0 8px 20px rgba(0,164,166,0.25)",
+//     },
+
+//     title: {
+//         margin: 0,
+//         fontSize: 30,
+//         fontWeight: 700,
+//         color: "#111827",
+//     },
+
+//     subtitle: {
+//         margin: "5px 0 0",
+//         color: "#6b7280",
+//         fontSize: 14,
+//     },
+
+//     headerRight: {
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 20,
+//     },
+
+//     adminProfile: {
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 10,
+//     },
+
+//     avatar: {
+//         width: 42,
+//         height: 42,
+//         borderRadius: "50%",
+//         background: "#111827",
+//         color: "#fff",
+//         display: "flex",
+//         alignItems: "center",
+//         justifyContent: "center",
+//         fontWeight: 700,
+//     },
+
+//     adminName: {
+//         display: "block",
+//         color: "#1f2937",
+//         fontSize: 14,
+//     },
+
+//     adminStatus: {
+//         display: "block",
+//         color: "#10b981",
+//         fontSize: 12,
+//         marginTop: 2,
+//     },
+
+//     logoutButton: {
+//         border: "1px solid #e5e7eb",
+//         background: "#fff",
+//         color: "#374151",
+//         padding: "10px 15px",
+//         borderRadius: 10,
+//         cursor: "pointer",
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 7,
+//         fontWeight: 600,
+//     },
+
+//     statsGrid: {
+//         display: "grid",
+//         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+//         gap: 20,
+//         marginBottom: 40,
+//     },
+
+//     statCard: {
+//         background: "#fff",
+//         borderRadius: 16,
+//         padding: 22,
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 16,
+//         boxShadow: "0 5px 20px rgba(15,23,42,0.05)",
+//         border: "1px solid #eef0f4",
+//     },
+
+//     statIcon: {
+//         width: 50,
+//         height: 50,
+//         borderRadius: 13,
+//         display: "flex",
+//         alignItems: "center",
+//         justifyContent: "center",
+//         flexShrink: 0,
+//     },
+
+//     statContent: {
+//         display: "flex",
+//         flexDirection: "column",
+//         gap: 3,
+//     },
+
+//     statLabel: {
+//         color: "#6b7280",
+//         fontSize: 13,
+//     },
+
+//     statValue: {
+//         color: "#111827",
+//         fontSize: 25,
+//     },
+
+//     statEvolution: {
+//         color: "#10b981",
+//         fontSize: 12,
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 3,
+//     },
+
+//     statWarning: {
+//         color: "#f97316",
+//         fontSize: 12,
+//     },
+
+//     sectionHeader: {
+//         marginBottom: 20,
+//     },
+
+//     sectionTitle: {
+//         margin: 0,
+//         fontSize: 21,
+//         color: "#111827",
+//     },
+
+//     sectionSubtitle: {
+//         margin: "5px 0 0",
+//         color: "#6b7280",
+//         fontSize: 13,
+//     },
+
+//     actionsGrid: {
+//         display: "grid",
+//         gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+//         gap: 20,
+//         marginBottom: 35,
+//     },
+
+//     actionCard: {
+//         background: "#fff",
+//         borderRadius: 15,
+//         padding: 22,
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 17,
+//         cursor: "pointer",
+//         boxShadow: "0 5px 18px rgba(15,23,42,0.05)",
+//         transition: "all 0.2s ease",
+//         minHeight: 130,
+//         boxSizing: "border-box",
+//     },
+
+//     actionIcon: {
+//         width: 56,
+//         height: 56,
+//         borderRadius: 14,
+//         display: "flex",
+//         alignItems: "center",
+//         justifyContent: "center",
+//         flexShrink: 0,
+//     },
+
+//     actionBody: {
+//         flex: 1,
+//     },
+
+//     actionTitle: {
+//         margin: 0,
+//         fontSize: 17,
+//         color: "#111827",
+//     },
+
+//     actionText: {
+//         margin: "7px 0 0",
+//         color: "#6b7280",
+//         fontSize: 13,
+//         lineHeight: 1.5,
+//     },
+
+//     arrow: {
+//         color: "#9ca3af",
+//     },
+
+//     bottomGrid: {
+//         display: "grid",
+//         gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+//         gap: 20,
+//     },
+
+//     panel: {
+//         background: "#fff",
+//         borderRadius: 16,
+//         padding: 23,
+//         boxShadow: "0 5px 18px rgba(15,23,42,0.05)",
+//         border: "1px solid #eef0f4",
+//     },
+
+//     panelHeader: {
+//         display: "flex",
+//         justifyContent: "space-between",
+//         alignItems: "center",
+//         marginBottom: 20,
+//         gap: 10,
+//     },
+
+//     panelTitle: {
+//         margin: 0,
+//         fontSize: 17,
+//         color: "#111827",
+//     },
+
+//     panelSubtitle: {
+//         margin: "5px 0 0",
+//         color: "#9ca3af",
+//         fontSize: 12,
+//     },
+
+//     viewButton: {
+//         border: "none",
+//         background: "#f3f4f6",
+//         color: "#374151",
+//         padding: "8px 12px",
+//         borderRadius: 8,
+//         cursor: "pointer",
+//         fontSize: 12,
+//         fontWeight: 600,
+//     },
+
+//     activityList: {
+//         display: "flex",
+//         flexDirection: "column",
+//         gap: 17,
+//     },
+
+//     activityItem: {
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 12,
+//     },
+
+//     activityIcon: {
+//         width: 36,
+//         height: 36,
+//         borderRadius: 10,
+//         display: "flex",
+//         alignItems: "center",
+//         justifyContent: "center",
+//         flexShrink: 0,
+//     },
+
+//     activityInfo: {
+//         display: "flex",
+//         flexDirection: "column",
+//         gap: 3,
+//         fontSize: 13,
+//         color: "#374151",
+//     },
+
+//     orderStats: {
+//         display: "flex",
+//         flexDirection: "column",
+//         gap: 17,
+//     },
+
+//     orderRow: {
+//         display: "flex",
+//         justifyContent: "space-between",
+//         alignItems: "center",
+//         color: "#374151",
+//         fontSize: 14,
+//         paddingBottom: 12,
+//         borderBottom: "1px solid #f1f5f9",
+//     },
+
+//     orderLabel: {
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 9,
+//     },
+
+//     dot: {
+//         width: 9,
+//         height: 9,
+//         borderRadius: "50%",
+//     },
+
+//     infoBox: {
+//         marginTop: 25,
+//         background: "#ecfdf5",
+//         border: "1px solid #d1fae5",
+//         borderRadius: 14,
+//         padding: 18,
+//         display: "flex",
+//         alignItems: "center",
+//         gap: 12,
+//         color: "#065f46",
+//     },
+
+//     infoIcon: {
+//         display: "flex",
+//         alignItems: "center",
+//     },
+// };
+
+// export default AdminDashboard;
