@@ -30,3 +30,39 @@ def CreateCommandeStatusLog(data):
             "message": "Erreur lors de l'enregistrement du statut de la commande",
             "error": str(e)
         }, 500
+        
+        
+        
+def GetSingleCommandeStatusLog(commande_id):
+    try:
+        status_log = CommandeStatusLog.query.filter_by(
+            commande_id=commande_id
+        ).order_by(
+            CommandeStatusLog.created_date.desc()
+        ).first()
+
+        if not status_log:
+            return {
+                "success": False,
+                "message": "Aucun historique de statut trouvé pour cette commande",
+                "data": None
+            }, 404
+        return {
+            "success": True,
+            "message": "Statut de la commande récupéré avec succès",
+            "data": {
+                "uid": status_log.uid,
+                "commande_id": status_log.commande_id,
+                "status_commande": status_log.status_commande,
+                "teller_id": status_log.teller_id,
+                "created_date": str(status_log.created_date),
+                "updated_date": str(status_log.updated_date)
+            }
+        }, 200
+
+    except Exception as e:
+        return {
+            "success": False,
+            "message": "Erreur lors de la récupération du statut de la commande",
+            "error": str(e)
+        }, 500

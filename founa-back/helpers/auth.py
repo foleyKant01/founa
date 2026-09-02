@@ -57,6 +57,11 @@ def LoginClient():
             response_data["adresse_livraison"] = getattr(found_user, 'adresse_livraison', '')
             response_data["created_date"] = str(getattr(found_user, 'created_date', ''))
         # response_sms = verfiy_OTP(response_data['phone'])
+        if user_role == "Teller":
+            CreateActivityLog({
+                "actions": "connexion",
+                "user": found_user.uid
+            })
         return {
             "status": "success",
             "message": f"Connexion réussie en tant que {user_role}.",
@@ -69,6 +74,40 @@ def LoginClient():
             "message": f"Erreur serveur: {str(e)}"
         }, 500
 
+
+
+def CreateActivityLog(data):
+    try:
+        actions = data.get("actions")
+        user = data.get("user")
+        if not actions or not user:
+            return {
+                "status": "error",
+                "message": "actions et user sont requis"
+            }, 400
+        activity = ActivityLog(
+            actions=actions,
+            user=user
+        )
+        db.session.add(activity)
+        db.session.commit()
+        return {
+            "status": "success",
+            "message": "Activité enregistrée avec succès",
+            "data": {
+                "uid": activity.uid,
+                "actions": activity.actions,
+                "user": activity.user,
+                "created_date": str(activity.created_date),
+                "updated_date": str(activity.updated_date)
+            }
+        }, 201
+    except Exception as e:
+        db.session.rollback()
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
 
 
 

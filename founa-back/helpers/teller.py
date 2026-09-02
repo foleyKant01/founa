@@ -161,21 +161,3 @@ def StatistiquesTeller():
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
-
-
-# def DeleteUser():
-
-#     reponse = {}
-#     try:
-#         uid = request.json.get('uid')
-#         deleteuser = User.query.filter_by(uid=uid).first_or_404()
-
-#         db.session.delete(deleteuser)
-#         db.session.commit()
-#         reponse['status'] = 'success'
-
-#     except Exception as e:
-#         reponse['error_description'] = str(e)
-#         reponse['status'] = 'error'
-
-#     return reponse

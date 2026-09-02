@@ -7,6 +7,115 @@ import random
 
 
 
+def GetTellerForNewCommande():
+    try:
+        login_activities = (
+            ActivityLog.query
+            .filter(ActivityLog.actions == "connexion")
+            .order_by(ActivityLog.created_date.desc())
+            .all()
+        )
+        if not login_activities:
+            return None
+        teller_uids = []
+        for activity in login_activities:
+            if activity.user not in teller_uids:
+                teller_uids.append(activity.user)
+        if not teller_uids:
+            return None
+        tellers = (
+            Teller.query
+            .filter(Teller.uid.in_(teller_uids))
+            .all()
+        )
+        if not tellers:
+            return None
+        teller_data = []
+        for teller in tellers:
+            nombre_commandes = Commande.query.filter_by(
+                teller_id=teller.uid
+            ).count()
+            derniere_connexion = (
+                ActivityLog.query
+                .filter(
+                    ActivityLog.user == teller.uid,
+                    ActivityLog.actions == "connexion"
+                )
+                .order_by(ActivityLog.created_date.desc())
+                .first()
+            )
+            if derniere_connexion:
+                teller_data.append({
+                    "teller": teller,
+                    "nombre_commandes": nombre_commandes,
+                    "derniere_connexion": derniere_connexion.created_date
+                })
+        if not teller_data:
+            return None
+        teller_data.sort(
+            key=lambda x: (
+                x["derniere_connexion"],
+                x["nombre_commandes"]
+            ),
+            reverse=True
+        )
+        return teller_data[0]["teller"].uid
+    except Exception as e:
+        print("Erreur sélection Teller :", str(e))
+        return None
+    
+    
+def AttribuerCommandes():
+    try:
+
+        data = request.json
+        commande_id = data.get('commande_id')
+        if not commande_id:
+            return {
+                "status": "error",
+                "message": "commande_id est requis"
+            }, 400
+        single_commande = Commande.query.filter_by(
+            commande_id=commande_id
+        ).first()
+        if not single_commande:
+            return {
+                "status": "error",
+                "message": "Commande introuvable"
+            }, 404
+        teller = GetTellerForNewCommande()
+        if not teller:
+            return {
+                "status": "error",
+                "message": "Aucun teller disponible"
+            }, 404
+        single_commande.teller_id = teller.uid
+        status_log = CommandeStatusLog(
+            commande_id=single_commande.commande_id,
+            status_commande=single_commande.statut,
+            teller_id=teller.uid
+        )
+        db.session.add(status_log)
+        db.session.commit()
+        return {
+            "status": "success",
+            "message": "Commande attribuée avec succès",
+            "commande": {
+                "commande_id": single_commande.commande_id,
+                "teller_id": teller.uid,
+                "teller_name": teller.fullname,
+                "statut": single_commande.statut
+            }
+        }, 200
+    except Exception as e:
+        db.session.rollback()
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+
+
+
 def generate_order_id():
     date_part = datetime.datetime.now().strftime("%Y%m%d")  # ex: 20260104
     random_part = random.randint(100, 999)       # 3chiffres
@@ -37,14 +146,15 @@ def CreateCommande():
 
         # Calcul du prix total
         prix_total = float(produit.prix_vente) * int(quantite)
-
+        teller_id = GetTellerForNewCommande()
         commande = Commande(
             commande_id=generate_order_id(),
             client_id=client_id,
-            produit_id=produit_id,
+            produit_id=produit_id, 
             quantite=quantite,
             details=details,
             prix_total=prix_total,
+            teller_id=teller_id,
             statut="Initier",
             view="1"
         )
@@ -62,13 +172,15 @@ def CreateCommande():
                 "produit_id": commande.produit_id,
                 "details": commande.details,
                 "quantite": commande.quantite,
-                "prix_total": commande.prix_total,
-                "statut": commande.statut
+                "prix_total": commande.prix_total, 
+                "statut": commande.statut,
+                "teller_id": teller_id
             }
         }, 201
 
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
+    
 
 
 def GetAllCommandes():
@@ -83,7 +195,6 @@ def GetAllCommandes():
                 "client": c.client,
                 "produit_id": c.produit_id,
                 "produit": c.produit,
-                "teller": c.teller,
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
@@ -127,6 +238,7 @@ def GetAllCommandeByClient():
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
+                "teller_id": c.teller_id,
                 "details": c.details,
                 "view": c.view,
                 "created_date": str(c.created_date),
@@ -164,10 +276,10 @@ def GetAllCommandeByTeller():
                     "prix_vente": c.produit.prix_vente,
                     # ajoute d'autres champs nécessaires
                 },
-                "teller_id": c.teller_id,
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
+                "teller_id": c.teller_id,
                 "details": c.details,
                 "created_date": str(c.created_date),
                 "updated_date": str(c.updated_date),
@@ -224,7 +336,6 @@ def UpdateCommande():
         commande_id = data.get('commande_id')
         statut = data.get('statut')
         details = data.get('details')
-        teller_id = data.get('teller_id')
         cout_envoie_maritime = data.get('cout_envoie_maritime', 0)
         cout_envoie_aerienne = data.get('cout_envoie_aérienne', 0)
 
@@ -237,6 +348,7 @@ def UpdateCommande():
             }, 404
 
         update_commande.statut = statut
+        update_commande.details = details
         update_commande.details = details
         update_commande.cout_envoie_maritime = float(cout_envoie_maritime or 0)
         update_commande.cout_envoie_aérienne = float(cout_envoie_aerienne or 0)
@@ -254,10 +366,8 @@ def UpdateCommande():
             "status": "success",
             "message": "Commande mise à jour"
         }, 200
-
     except Exception as e:
         db.session.rollback()
-
         return {
             "status": "error",
             "message": str(e)
@@ -289,58 +399,27 @@ def OptionEnvoie():
             "message": str(e)
         }, 500
     
-    
 
-    
-def CommandeEnExpedition():
-    try:
-        commande_id = request.json.get('commande_id')
-        statut = request.json.get('statut')
-        fournisseur_id = request.json.get('fournisseur_id')
-        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
-        if not update_commande:
-            return {"status": "error", "message": "Commande introuvable"}, 404
-
-        # Mise à jour simple
-        update_commande.statut = statut
-        update_commande.fournisseur_id = fournisseur_id
-        update_commande.updated_date = datetime.datetime.utcnow()
-
-        db.session.commit()
-
-        return {"status": "success", "message": "Statut de la commande mis à jour"}, 200
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
-    
-    
     
 def DeleteExpiredCommandes():
     import datetime
     try:
         limite_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
-
         commandes = Commande.query.filter(
             Commande.statut == "Valider",
             Commande.created_date <= limite_date
         ).all()
-
         nombre_supprime = len(commandes)
-
         for commande in commandes:
             db.session.delete(commande)
-
         db.session.commit()
-
         return {
             "success": True,
             "message": f"{nombre_supprime} commande(s) expirée(s) supprimée(s)",
             "deleted_count": nombre_supprime
         }
-
     except Exception as e:
         db.session.rollback()
-
         return {
             "success": False,
             "message": "Erreur lors de la suppression des commandes expirées",
