@@ -56,7 +56,6 @@ def LoginClient():
             response_data["status"] = getattr(found_user, 'status', '')
             response_data["adresse_livraison"] = getattr(found_user, 'adresse_livraison', '')
             response_data["created_date"] = str(getattr(found_user, 'created_date', ''))
-        # response_sms = verfiy_OTP(response_data['phone'])
         if user_role == "Teller":
             CreateActivityLog({
                 "actions": "connexion",
@@ -66,7 +65,6 @@ def LoginClient():
             "status": "success",
             "message": f"Connexion réussie en tant que {user_role}.",
             "user_infos": response_data,
-            # "response_sms": response_sms,
         }, 200
     except Exception as e:
         return {
