@@ -13,7 +13,6 @@ import {
 import {
   ChevronDown,
   ChevronLeft,
-  ChevronRight,
   Minus,
   Plus,
   ShoppingBag,

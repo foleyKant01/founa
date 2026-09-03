@@ -15,7 +15,6 @@ import {
   ChevronRight,
   CalendarDays,
   Wallet,
-  ArrowLeft,
 } from "lucide-react";
 import { ReadSingleClient } from "../../services/auth.service";
 import { GetAllCommandeByClient } from "../../services/order.service";

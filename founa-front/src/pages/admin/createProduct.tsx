@@ -10,7 +10,6 @@ import {
   Link as LinkIcon,
   Package,
   Save,
-  Trash2,
   X,
 } from "lucide-react";
 import { CreateProduit } from "../../services/product.service";

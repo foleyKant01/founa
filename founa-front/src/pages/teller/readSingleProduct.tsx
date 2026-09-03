@@ -10,7 +10,6 @@ import {
   ShoppingCart,
   CalendarDays,
   RefreshCw,
-  Truck,
   Tag,
 } from "lucide-react";
 import { DeleteProduitByTeller, GetSingleProduit } from "../../services/product.service";
