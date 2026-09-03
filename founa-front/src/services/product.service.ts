@@ -44,11 +44,11 @@ export const AllSimilarProducts = (data: {
   return api.post('/produits/all_similar_products', data);
 };
 
-export const GetAllProduitByTeller = (data: {
-  teller_id: string;
-}) => {
-  return api.post('/produits/get_all_produit_by_teller', data);
-};
+// export const GetAllProduitByTeller = (data: {
+//   teller_id: string;
+// }) => {
+//   return api.post('/produits/get_all_produit_by_teller', data);
+// };
 
 export const DeleteProduitByTeller = (data: {
   teller_id: string;

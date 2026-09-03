@@ -186,28 +186,52 @@ def CreateCommande():
 def GetAllCommandes():
     try:
         commandes = Commande.query.all()
-
         result = []
         for c in commandes:
             result.append({
                 "commande_id": c.commande_id,
                 "client_id": c.client_id,
-                "client": c.client,
+                "client": {
+                    "uid": c.client.uid if c.client else None,
+                    "nom": c.client.fullname if c.client else "",
+                    "email": c.client.email if c.client else "",
+                    "phone": c.client.phone if c.client else ""
+                },
                 "produit_id": c.produit_id,
-                "produit": c.produit,
+                "produit": {
+                    "uid": c.produit.uid if c.produit else None,
+                    "nom": c.produit.nom if c.produit else ""
+                },
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
                 "details": c.details,
-                "created_date": str(c.created_date),
-                "updated_date": str(c.updated_date),
+                "teller_id": c.teller_id,
+                "fournisseur_id": c.fournisseur_id,
+                "cout_envoie_maritime": c.cout_envoie_maritime,
+                "cout_envoie_aérienne": c.cout_envoie_aérienne,
+                "option_envoie": c.option_envoie,
+                "created_date": (
+                    c.created_date.isoformat()
+                    if c.created_date
+                    else None
+                ),
+                "updated_date": (
+                    c.updated_date.isoformat()
+                    if c.updated_date
+                    else None
+                )
             })
-
-        return {"status": "success", "commandes": result}, 200
-
+        return {
+            "status": "success",
+            "commandes": result
+        }, 200
     except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
-    
+        print("Erreur GetAllCommandes :", str(e))
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
     
     
 def GetAllCommandeByClient():

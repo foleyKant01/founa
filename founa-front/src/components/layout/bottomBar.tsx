@@ -46,6 +46,39 @@ const BottomBar: React.FC = () => {
     },
   ];
 
+  // Vérifie si un utilisateur est connecté
+  const isUserConnected = () => {
+    const user = localStorage.getItem("user");
+
+    if (!user) {
+      return false;
+    }
+
+    try {
+      const parsedUser = JSON.parse(user);
+      return !!parsedUser?.uid;
+    } catch (error) {
+      console.error("Erreur lecture utilisateur :", error);
+      return false;
+    }
+  };
+
+  // Gestion de la navigation
+  const handleNavigation = (path: string) => {
+    const connected = isUserConnected();
+
+    // Activité et Commandes nécessitent une connexion
+    if (
+      (path === "/activity" || path === "/orders") &&
+      !connected
+    ) {
+      navigate("/profile");
+      return;
+    }
+
+    navigate(path);
+  };
+
   return (
     <nav style={styles.container}>
       {items.map((item) => {
@@ -55,7 +88,7 @@ const BottomBar: React.FC = () => {
         return (
           <button
             key={item.name}
-            onClick={() => navigate(item.path)}
+            onClick={() => handleNavigation(item.path)}
             style={{
               ...styles.item,
               color: isActive

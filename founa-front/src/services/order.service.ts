@@ -29,6 +29,10 @@ export const GetAllCommandeByTeller = (data: {
   return api.post('/commandes/get_all_commande_by_teller', data);
 };
 
+export const GetAllCommandes = () => {
+  return api.get('/commandes/get_all_commandes'); // adapte le path selon ta route Flask
+};
+
 
 export const DeleteExpiredCommandes = () => {
   return api.post('/commandes/delete_expired_commandes');

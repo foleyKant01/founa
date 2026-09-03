@@ -9,12 +9,20 @@ import {
   ChevronRight,
   ShieldCheck,
   BarChart3,
+  LogOut,
+  Plus,
+  ArrowUpRight,
 } from "lucide-react";
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  const admin = true; // À remplacer par ton système d'authentification
+  const handleLogout = () => {
+    localStorage.removeItem("admin");
+    navigate("/auth/login");
+  };
+
+  const admin = true;
 
   if (!admin) return null;
 
@@ -29,7 +37,7 @@ const AdminDashboard: React.FC = () => {
     },
     {
       title: "Gérer les Tellers",
-      description: "Consultez, modifiez et gérez vos Tellers.",
+      description: "Consultez, modifiez et gérez les comptes Tellers.",
       icon: Users,
       color: "#2563EB",
       background: "#EFF6FF",
@@ -37,7 +45,7 @@ const AdminDashboard: React.FC = () => {
     },
     {
       title: "Recherches sans résultat",
-      description: "Consultez les produits recherchés mais introuvables.",
+      description: "Analysez les recherches de produits introuvables.",
       icon: SearchX,
       color: "#F59E0B",
       background: "#FFFBEB",
@@ -45,11 +53,11 @@ const AdminDashboard: React.FC = () => {
     },
     {
       title: "Gérer les produits",
-      description: "Consultez et gérez l'ensemble des produits.",
+      description: "Consultez, modifiez et gérez votre catalogue.",
       icon: Package,
       color: "#7C3AED",
       background: "#F5F3FF",
-      path: "/admin/view-all-products",
+      path: "/admin/readall",
     },
     {
       title: "Gérer les commandes",
@@ -57,73 +65,137 @@ const AdminDashboard: React.FC = () => {
       icon: ShoppingCart,
       color: "#16A34A",
       background: "#F0FDF4",
-      path: "/admin/orders",
+      path: "/admin/allorders",
     },
   ];
 
   return (
     <div style={styles.container}>
 
-      {/* HEADER */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
       <header style={styles.header}>
 
         <div style={styles.headerLeft}>
-          <div style={styles.logoContainer}>
-            <ShieldCheck size={30} color="#00A4A6" />
+
+          <div style={styles.logo}>
+            <ShieldCheck size={28} color="#FFFFFF" />
           </div>
 
           <div>
-            <h1 style={styles.title}>Founa Admin</h1>
+            <h1 style={styles.title}>
+              Founa Admin
+            </h1>
+
             <p style={styles.subtitle}>
               Tableau de bord administrateur
             </p>
           </div>
+
         </div>
 
-        <div style={styles.adminBadge}>
-          <div style={styles.adminDot}></div>
-          Administrateur
+        <div style={styles.headerRight}>
+
+          <div style={styles.adminProfile}>
+
+            <div style={styles.avatar}>
+              A
+            </div>
+
+            <div>
+              <strong style={styles.adminName}>
+                Administrateur
+              </strong>
+
+              <span style={styles.online}>
+                <span style={styles.onlineDot}></span>
+                En ligne
+              </span>
+            </div>
+
+          </div>
+
+          <button
+            type="button"
+            style={styles.logoutButton}
+            onClick={handleLogout}
+          >
+            <LogOut size={17} />
+            Déconnexion
+          </button>
+
         </div>
 
       </header>
 
-      {/* WELCOME */}
-      <section style={styles.welcomeSection}>
 
-        <div>
-          <h2 style={styles.welcomeTitle}>
-            Bienvenue dans votre espace de gestion 👋
-          </h2>
+      {/* =====================================================
+          HERO
+      ===================================================== */}
+      <section style={styles.hero}>
 
-          <p style={styles.welcomeText}>
-            Gérez vos Tellers, produits, commandes et recherches
-            depuis votre tableau de bord.
-          </p>
+        <div style={styles.heroContent}>
+
+          <div style={styles.heroIcon}>
+            <BarChart3 size={34} color="#00A4A6" />
+          </div>
+
+          <div>
+            <span style={styles.heroSmallTitle}>
+              ESPACE ADMINISTRATION
+            </span>
+
+            <h2 style={styles.heroTitle}>
+              Bienvenue dans votre espace de gestion 👋
+            </h2>
+
+            <p style={styles.heroText}>
+              Gérez les utilisateurs, les produits, les commandes
+              et les recherches de la plateforme Founa depuis un
+              seul espace.
+            </p>
+          </div>
+
         </div>
 
-        <div style={styles.dashboardIcon}>
-          <BarChart3 size={42} color="#00A4A6" />
+        <div style={styles.heroStatus}>
+          <span style={styles.statusDot}></span>
+          Plateforme opérationnelle
         </div>
 
       </section>
 
-      {/* SECTION TITLE */}
+
+      {/* =====================================================
+          SECTION TITRE
+      ===================================================== */}
       <div style={styles.sectionHeader}>
+
         <div>
           <h2 style={styles.sectionTitle}>
             Gestion de la plateforme
           </h2>
 
           <p style={styles.sectionDescription}>
-            Sélectionnez une action pour continuer
+            Accédez rapidement aux principales fonctionnalités
           </p>
         </div>
+
+        <div style={styles.sectionBadge}>
+          5 fonctionnalités
+        </div>
+
       </div>
 
-      {/* CARDS */}
+
+      {/* =====================================================
+          CARDS
+      ===================================================== */}
       <div style={styles.grid}>
 
         {sections.map((section) => {
+
           const Icon = section.icon;
 
           return (
@@ -134,12 +206,14 @@ const AdminDashboard: React.FC = () => {
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "translateY(-5px)";
                 e.currentTarget.style.boxShadow =
-                  "0 12px 30px rgba(0,0,0,0.10)";
+                  "0 16px 35px rgba(15,23,42,0.10)";
+                e.currentTarget.style.borderColor = section.color;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0)";
                 e.currentTarget.style.boxShadow =
-                  "0 6px 20px rgba(0,0,0,0.06)";
+                  "0 6px 20px rgba(15,23,42,0.05)";
+                e.currentTarget.style.borderColor = "#E8ECEF";
               }}
             >
 
@@ -150,15 +224,29 @@ const AdminDashboard: React.FC = () => {
                   backgroundColor: section.background,
                 }}
               >
-                <Icon size={30} color={section.color} />
+                <Icon
+                  size={28}
+                  color={section.color}
+                  strokeWidth={2}
+                />
               </div>
+
 
               {/* CONTENT */}
               <div style={styles.cardContent}>
 
-                <h3 style={styles.cardTitle}>
-                  {section.title}
-                </h3>
+                <div style={styles.cardTop}>
+
+                  <h3 style={styles.cardTitle}>
+                    {section.title}
+                  </h3>
+
+                  <ArrowUpRight
+                    size={18}
+                    color="#9CA3AF"
+                  />
+
+                </div>
 
                 <p style={styles.cardDescription}>
                   {section.description}
@@ -171,7 +259,7 @@ const AdminDashboard: React.FC = () => {
                   }}
                 >
                   Accéder
-                  <ChevronRight size={17} />
+                  <ChevronRight size={16} />
                 </div>
 
               </div>
@@ -182,49 +270,237 @@ const AdminDashboard: React.FC = () => {
 
       </div>
 
-      {/* QUICK SUMMARY */}
-      <section style={styles.infoSection}>
 
-        <div style={styles.infoIcon}>
-          <ShieldCheck size={24} color="#00A4A6" />
+      {/* =====================================================
+          QUICK ACTIONS
+      ===================================================== */}
+      <section style={styles.quickSection}>
+
+        <div style={styles.quickHeader}>
+
+          <div>
+            <h2 style={styles.quickTitle}>
+              Accès rapide
+            </h2>
+
+            <p style={styles.quickDescription}>
+              Les actions administratives les plus utilisées
+            </p>
+          </div>
+
         </div>
 
-        <div>
-          <h3 style={styles.infoTitle}>
-            Espace administrateur sécurisé
-          </h3>
 
-          <p style={styles.infoText}>
-            Cet espace vous permet de superviser les principaux
-            éléments de la plateforme Founa : utilisateurs,
-            produits, commandes et demandes de recherche.
-          </p>
+        <div style={styles.quickGrid}>
+
+          <button
+            type="button"
+            style={styles.quickButton}
+            onClick={() => navigate("/admin/readall")}
+          >
+            <div
+              style={{
+                ...styles.quickIcon,
+                background: "#E6F7F7",
+              }}
+            >
+              <Package
+                size={21}
+                color="#00A4A6"
+              />
+            </div>
+
+            <div style={styles.quickContent}>
+              <strong>Produits</strong>
+              <span>Gérer le catalogue</span>
+            </div>
+
+            <ChevronRight
+              size={18}
+              color="#9CA3AF"
+            />
+          </button>
+
+
+          <button
+            type="button"
+            style={styles.quickButton}
+            onClick={() => navigate("/admin/allorders")}
+          >
+            <div
+              style={{
+                ...styles.quickIcon,
+                background: "#F0FDF4",
+              }}
+            >
+              <ShoppingCart
+                size={21}
+                color="#16A34A"
+              />
+            </div>
+
+            <div style={styles.quickContent}>
+              <strong>Commandes</strong>
+              <span>Suivre les commandes</span>
+            </div>
+
+            <ChevronRight
+              size={18}
+              color="#9CA3AF"
+            />
+          </button>
+
+
+          <button
+            type="button"
+            style={styles.quickButton}
+            onClick={() => navigate("/admin/view-all-tellers")}
+          >
+            <div
+              style={{
+                ...styles.quickIcon,
+                background: "#EFF6FF",
+              }}
+            >
+              <Users
+                size={21}
+                color="#2563EB"
+              />
+            </div>
+
+            <div style={styles.quickContent}>
+              <strong>Tellers</strong>
+              <span>Gérer votre équipe</span>
+            </div>
+
+            <ChevronRight
+              size={18}
+              color="#9CA3AF"
+            />
+          </button>
+
+
+          <button
+            type="button"
+            style={styles.quickButton}
+            onClick={() => navigate("/admin/create-teller")}
+          >
+            <div
+              style={{
+                ...styles.quickIcon,
+                background: "#F5F3FF",
+              }}
+            >
+              <Plus
+                size={21}
+                color="#7C3AED"
+              />
+            </div>
+
+            <div style={styles.quickContent}>
+              <strong>Nouveau Teller</strong>
+              <span>Créer un compte</span>
+            </div>
+
+            <ChevronRight
+              size={18}
+              color="#9CA3AF"
+            />
+          </button>
+
         </div>
 
       </section>
+
+
+      {/* =====================================================
+          SECURITY INFO
+      ===================================================== */}
+      <section style={styles.securitySection}>
+
+        <div style={styles.securityIcon}>
+          <ShieldCheck
+            size={24}
+            color="#00A4A6"
+          />
+        </div>
+
+        <div style={styles.securityContent}>
+
+          <strong style={styles.securityTitle}>
+            Espace administrateur sécurisé
+          </strong>
+
+          <p style={styles.securityText}>
+            Vous disposez des droits nécessaires pour superviser
+            les utilisateurs, les produits, les commandes et
+            les opérations de la plateforme Founa.
+          </p>
+
+        </div>
+
+        <div style={styles.securityBadge}>
+          <span style={styles.securityDot}></span>
+          Sécurisé
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          FOOTER
+      ===================================================== */}
+      <footer style={styles.footer}>
+
+        <span>
+          Founa Administration
+        </span>
+
+        <span>
+          •
+        </span>
+
+        <span>
+          Tableau de bord
+        </span>
+
+      </footer>
 
     </div>
   );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
+
+const styles: {
+  [key: string]: React.CSSProperties;
+} = {
+
+  /* =====================================================
+     CONTAINER
+  ===================================================== */
 
   container: {
+    width: "100%",
     minHeight: "100vh",
-    padding: "35px 30px 60px",
+    padding: "28px 35px 40px",
     background: "#F6F8FA",
     fontFamily:
       "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    boxSizing: "border-box",
   },
 
-  /* HEADER */
+
+  /* =====================================================
+     HEADER
+  ===================================================== */
 
   header: {
+    width: "100%",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 35,
     gap: 20,
+    marginBottom: 28,
     flexWrap: "wrap",
   },
 
@@ -234,94 +510,191 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: 14,
   },
 
-  logoContainer: {
+  logo: {
     width: 52,
     height: 52,
-    borderRadius: 14,
-    background: "#E6F7F7",
+    borderRadius: 15,
+    background: "#00A4A6",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    boxShadow: "0 7px 18px rgba(0,164,166,0.22)",
+    flexShrink: 0,
   },
 
   title: {
     margin: 0,
-    fontSize: 27,
+    fontSize: 26,
     fontWeight: 750,
-    color: "#17202A",
+    color: "#111827",
+    letterSpacing: "-0.4px",
   },
 
   subtitle: {
     margin: "4px 0 0",
-    fontSize: 14,
-    color: "#7A8591",
+    fontSize: 13,
+    color: "#7A8490",
   },
 
-  adminBadge: {
+  headerRight: {
     display: "flex",
     alignItems: "center",
-    gap: 8,
-    padding: "9px 15px",
-    borderRadius: 30,
-    background: "#FFFFFF",
-    border: "1px solid #E5E7EB",
-    color: "#374151",
-    fontSize: 13,
-    fontWeight: 600,
-    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+    gap: 18,
   },
 
-  adminDot: {
-    width: 8,
-    height: 8,
+  adminProfile: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: "50%",
+    background: "#111827",
+    color: "#FFFFFF",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 14,
+    fontWeight: 700,
+  },
+
+  adminName: {
+    display: "block",
+    fontSize: 13,
+    color: "#1F2937",
+  },
+
+  online: {
+    display: "flex",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 3,
+    fontSize: 11,
+    color: "#16A34A",
+  },
+
+  onlineDot: {
+    width: 6,
+    height: 6,
     borderRadius: "50%",
     background: "#16A34A",
   },
 
-  /* WELCOME */
-
-  welcomeSection: {
+  logoutButton: {
+    height: 40,
+    padding: "0 15px",
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
-    gap: 20,
-    padding: "28px 30px",
-    marginBottom: 35,
+    justifyContent: "center",
+    gap: 7,
+    border: "1px solid #E5E7EB",
+    borderRadius: 9,
+    background: "#FFFFFF",
+    color: "#374151",
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+
+
+  /* =====================================================
+     HERO
+  ===================================================== */
+
+  hero: {
+    width: "100%",
+    minHeight: 150,
+    padding: "26px 30px",
+    marginBottom: 32,
     borderRadius: 18,
     background:
-      "linear-gradient(135deg, #FFFFFF 0%, #F0FBFB 100%)",
-    border: "1px solid #E5EEEE",
-    boxShadow: "0 5px 20px rgba(0,0,0,0.04)",
+      "linear-gradient(135deg, #FFFFFF 0%, #EFFBFB 100%)",
+    border: "1px solid #DDEEEE",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 25,
+    boxSizing: "border-box",
   },
 
-  welcomeTitle: {
-    margin: 0,
-    fontSize: 22,
-    fontWeight: 700,
-    color: "#1F2937",
+  heroContent: {
+    display: "flex",
+    alignItems: "center",
+    gap: 18,
+    minWidth: 0,
   },
 
-  welcomeText: {
-    margin: "8px 0 0",
-    color: "#6B7280",
-    fontSize: 14,
-    lineHeight: 1.6,
-  },
-
-  dashboardIcon: {
-    minWidth: 70,
-    height: 70,
-    borderRadius: 18,
+  heroIcon: {
+    width: 64,
+    height: 64,
+    minWidth: 64,
+    borderRadius: 17,
     background: "#E6F7F7",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
 
-  /* SECTION */
+  heroSmallTitle: {
+    display: "block",
+    marginBottom: 5,
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: "1px",
+    color: "#00A4A6",
+  },
+
+  heroTitle: {
+    margin: 0,
+    fontSize: 22,
+    fontWeight: 750,
+    color: "#1F2937",
+    letterSpacing: "-0.3px",
+  },
+
+  heroText: {
+    maxWidth: 800,
+    margin: "7px 0 0",
+    fontSize: 13,
+    lineHeight: 1.6,
+    color: "#6B7280",
+  },
+
+  heroStatus: {
+    display: "flex",
+    alignItems: "center",
+    gap: 7,
+    padding: "9px 13px",
+    borderRadius: 30,
+    background: "#FFFFFF",
+    border: "1px solid #E1E8E8",
+    color: "#374151",
+    fontSize: 11,
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+  },
+
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: "50%",
+    background: "#16A34A",
+  },
+
+
+  /* =====================================================
+     SECTION HEADER
+  ===================================================== */
 
   sectionHeader: {
-    marginBottom: 18,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 15,
+    marginBottom: 17,
   },
 
   sectionTitle: {
@@ -332,40 +705,59 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 
   sectionDescription: {
-    margin: "5px 0 0",
-    fontSize: 13,
-    color: "#8A939E",
+    margin: "4px 0 0",
+    fontSize: 12,
+    color: "#89929D",
   },
 
-  /* GRID */
+  sectionBadge: {
+    padding: "7px 11px",
+    borderRadius: 8,
+    background: "#FFFFFF",
+    border: "1px solid #E5E7EB",
+    color: "#6B7280",
+    fontSize: 11,
+    fontWeight: 600,
+  },
+
+
+  /* =====================================================
+     MAIN GRID
+  ===================================================== */
 
   grid: {
+    width: "100%",
     display: "grid",
     gridTemplateColumns:
-      "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: 20,
-    marginBottom: 35,
+      "repeat(auto-fit, minmax(300px, 1fr))",
+    gap: 18,
+    marginBottom: 30,
   },
 
-  /* CARD */
+
+  /* =====================================================
+     CARD
+  ===================================================== */
 
   card: {
+    minHeight: 150,
     background: "#FFFFFF",
-    borderRadius: 16,
-    padding: 22,
     border: "1px solid #E8ECEF",
-    boxShadow: "0 6px 20px rgba(0,0,0,0.06)",
-    cursor: "pointer",
+    borderRadius: 16,
+    padding: 21,
     display: "flex",
-    gap: 17,
     alignItems: "flex-start",
+    gap: 15,
+    cursor: "pointer",
+    boxSizing: "border-box",
+    boxShadow: "0 6px 20px rgba(15,23,42,0.05)",
     transition: "all 0.25s ease",
   },
 
   iconContainer: {
-    width: 55,
-    height: 55,
-    minWidth: 55,
+    width: 54,
+    height: 54,
+    minWidth: 54,
     borderRadius: 14,
     display: "flex",
     alignItems: "center",
@@ -374,19 +766,27 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   cardContent: {
     flex: 1,
+    minWidth: 0,
+  },
+
+  cardTop: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
   },
 
   cardTitle: {
     margin: 0,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: 700,
     color: "#1F2937",
   },
 
   cardDescription: {
-    margin: "7px 0 13px",
-    fontSize: 13,
-    lineHeight: 1.5,
+    margin: "7px 0 14px",
+    fontSize: 12.5,
+    lineHeight: 1.55,
     color: "#7A8490",
   },
 
@@ -394,999 +794,159 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "flex",
     alignItems: "center",
     gap: 3,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 700,
   },
 
-  /* INFO */
 
-  infoSection: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 15,
-    background: "#FFFFFF",
-    // border: "1px solid #E5E7EB",
-    borderRadius: 16,
+  /* =====================================================
+     QUICK ACTIONS
+  ===================================================== */
+
+  quickSection: {
+    width: "100%",
     padding: 22,
-    // boxShadow: "0 4px 15px rgba(0,0,0,0.04)",
+    marginBottom: 22,
+    background: "#FFFFFF",
+    border: "1px solid #E8ECEF",
+    borderRadius: 16,
+    boxSizing: "border-box",
   },
 
-  infoIcon: {
-    width: 45,
-    height: 45,
-    minWidth: 45,
-    borderRadius: 12,
-    background: "#E6F7F7",
+  quickHeader: {
+    marginBottom: 18,
+  },
+
+  quickTitle: {
+    margin: 0,
+    fontSize: 16,
+    fontWeight: 700,
+    color: "#1F2937",
+  },
+
+  quickDescription: {
+    margin: "4px 0 0",
+    fontSize: 12,
+    color: "#8A939E",
+  },
+
+  quickGrid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(230px, 1fr))",
+    gap: 12,
+  },
+
+  quickButton: {
+    width: "100%",
+    minHeight: 68,
+    padding: "10px 13px",
+    border: "1px solid #EDF0F2",
+    borderRadius: 11,
+    background: "#FAFBFC",
+    display: "flex",
+    alignItems: "center",
+    gap: 11,
+    cursor: "pointer",
+    textAlign: "left",
+  },
+
+  quickIcon: {
+    width: 40,
+    height: 40,
+    minWidth: 40,
+    borderRadius: 11,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
 
-  infoTitle: {
-    margin: 0,
-    fontSize: 15,
-    fontWeight: 700,
+  quickContent: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: 3,
+  },
+
+  /* =====================================================
+     SECURITY
+  ===================================================== */
+
+  securitySection: {
+    width: "100%",
+    padding: 20,
+    marginBottom: 25,
+    background: "#F0FBFB",
+    border: "1px solid #D9EEEE",
+    borderRadius: 15,
+    display: "flex",
+    alignItems: "center",
+    gap: 13,
+    boxSizing: "border-box",
+  },
+
+  securityIcon: {
+    width: 44,
+    height: 44,
+    minWidth: 44,
+    borderRadius: 11,
+    background: "#FFFFFF",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  securityContent: {
+    flex: 1,
+  },
+
+  securityTitle: {
+    display: "block",
+    fontSize: 13,
     color: "#374151",
   },
 
-  infoText: {
-    margin: "5px 0 0",
-    fontSize: 13,
-    lineHeight: 1.6,
+  securityText: {
+    margin: "4px 0 0",
+    fontSize: 11.5,
+    lineHeight: 1.5,
     color: "#6B7280",
+  },
+
+  securityBadge: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "7px 11px",
+    borderRadius: 20,
+    background: "#FFFFFF",
+    color: "#16A34A",
+    fontSize: 11,
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+  },
+
+  securityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: "50%",
+    background: "#16A34A",
+  },
+
+
+  /* =====================================================
+     FOOTER
+  ===================================================== */
+
+  footer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingTop: 5,
+    color: "#9CA3AF",
+    fontSize: 11,
   },
 };
 
 export default AdminDashboard;
-
-
-
-// import React from "react";
-// import { useNavigate } from "react-router-dom";
-// import {
-//     Package,
-//     ShoppingCart,
-//     Users,
-//     Plus,
-//     ArrowRight,
-//     TrendingUp,
-//     Clock,
-//     CheckCircle,
-//     AlertCircle,
-//     LogOut,
-//     LayoutDashboard,
-// } from "lucide-react";
-
-// const AdminDashboard: React.FC = () => {
-//     const navigate = useNavigate();
-
-//     const admin = true; // À remplacer par ton système d'authentification
-
-//     if (!admin) return null;
-
-//     const handleLogout = () => {
-//         localStorage.removeItem("admin");
-//         navigate("/auth/login");
-//     };
-
-//     return (
-//         <div style={styles.container}>
-
-//             {/* HEADER */}
-//             <header style={styles.header}>
-
-//                 <div style={styles.headerLeft}>
-
-//                     <div style={styles.logo}>
-//                         <LayoutDashboard size={26} />
-//                     </div>
-
-//                     <div>
-//                         <h1 style={styles.title}>
-//                             Tableau de bord
-//                         </h1>
-
-//                         <p style={styles.subtitle}>
-//                             Administration de la plateforme Founa
-//                         </p>
-//                     </div>
-
-//                 </div>
-
-//                 <div style={styles.headerRight}>
-
-//                     <div style={styles.adminProfile}>
-
-//                         <div style={styles.avatar}>
-//                             A
-//                         </div>
-
-//                         <div>
-//                             <strong style={styles.adminName}>
-//                                 Administrateur
-//                             </strong>
-
-//                             <span style={styles.adminStatus}>
-//                                 ● En ligne
-//                             </span>
-//                         </div>
-
-//                     </div>
-
-//                     <button
-//                         style={styles.logoutButton}
-//                         onClick={handleLogout}
-//                     >
-//                         <LogOut size={17} />
-//                         Déconnexion
-//                     </button>
-
-//                 </div>
-
-//             </header>
-
-
-//             {/* STATISTIQUES */}
-//             <section style={styles.statsGrid}>
-
-//                 <div style={styles.statCard}>
-
-//                     <div style={{
-//                         ...styles.statIcon,
-//                         background: "#e0f7f7",
-//                         color: "#00a4a6"
-//                     }}>
-//                         <Package size={25} />
-//                     </div>
-
-//                     <div style={styles.statContent}>
-//                         <span style={styles.statLabel}>
-//                             Produits
-//                         </span>
-
-//                         <strong style={styles.statValue}>
-//                             248
-//                         </strong>
-
-//                         <span style={styles.statEvolution}>
-//                             <TrendingUp size={14} />
-//                             +12% ce mois
-//                         </span>
-//                     </div>
-
-//                 </div>
-
-
-//                 <div style={styles.statCard}>
-
-//                     <div style={{
-//                         ...styles.statIcon,
-//                         background: "#eef2ff",
-//                         color: "#4f46e5"
-//                     }}>
-//                         <ShoppingCart size={25} />
-//                     </div>
-
-//                     <div style={styles.statContent}>
-//                         <span style={styles.statLabel}>
-//                             Commandes
-//                         </span>
-
-//                         <strong style={styles.statValue}>
-//                             126
-//                         </strong>
-
-//                         <span style={styles.statEvolution}>
-//                             <TrendingUp size={14} />
-//                             +8% ce mois
-//                         </span>
-//                     </div>
-
-//                 </div>
-
-
-//                 <div style={styles.statCard}>
-
-//                     <div style={{
-//                         ...styles.statIcon,
-//                         background: "#ecfdf5",
-//                         color: "#10b981"
-//                     }}>
-//                         <Users size={25} />
-//                     </div>
-
-//                     <div style={styles.statContent}>
-//                         <span style={styles.statLabel}>
-//                             Tellers
-//                         </span>
-
-//                         <strong style={styles.statValue}>
-//                             14
-//                         </strong>
-
-//                         <span style={styles.statEvolution}>
-//                             11 actifs
-//                         </span>
-//                     </div>
-
-//                 </div>
-
-
-//                 <div style={styles.statCard}>
-
-//                     <div style={{
-//                         ...styles.statIcon,
-//                         background: "#fff7ed",
-//                         color: "#f97316"
-//                     }}>
-//                         <Clock size={25} />
-//                     </div>
-
-//                     <div style={styles.statContent}>
-//                         <span style={styles.statLabel}>
-//                             En attente
-//                         </span>
-
-//                         <strong style={styles.statValue}>
-//                             18
-//                         </strong>
-
-//                         <span style={styles.statWarning}>
-//                             À traiter
-//                         </span>
-//                     </div>
-
-//                 </div>
-
-//             </section>
-
-
-//             {/* ACTIONS PRINCIPALES */}
-//             <section>
-
-//                 <div style={styles.sectionHeader}>
-
-//                     <div>
-//                         <h2 style={styles.sectionTitle}>
-//                             Gestion de la plateforme
-//                         </h2>
-
-//                         <p style={styles.sectionSubtitle}>
-//                             Accédez rapidement aux principales fonctionnalités
-//                         </p>
-//                     </div>
-
-//                 </div>
-
-
-//                 <div style={styles.actionsGrid}>
-
-//                     {/* AJOUTER PRODUIT */}
-//                     <div
-//                         style={{
-//                             ...styles.actionCard,
-//                             borderTop: "4px solid #00a4a6"
-//                         }}
-//                         onClick={() => navigate("/admin/create")}
-//                     >
-
-//                         <div style={{
-//                             ...styles.actionIcon,
-//                             background: "#e0f7f7",
-//                             color: "#00a4a6"
-//                         }}>
-//                             <Plus size={30} />
-//                         </div>
-
-//                         <div style={styles.actionBody}>
-
-//                             <h3 style={styles.actionTitle}>
-//                                 Ajouter un produit
-//                             </h3>
-
-//                             <p style={styles.actionText}>
-//                                 Ajoutez de nouveaux produits au catalogue Founa.
-//                             </p>
-
-//                         </div>
-
-//                         <ArrowRight
-//                             size={21}
-//                             style={styles.arrow}
-//                         />
-
-//                     </div>
-
-
-//                     {/* PRODUITS */}
-//                     <div
-//                         style={{
-//                             ...styles.actionCard,
-//                             borderTop: "4px solid #4f46e5"
-//                         }}
-//                         onClick={() => navigate("/admin/readall")}
-//                     >
-
-//                         <div style={{
-//                             ...styles.actionIcon,
-//                             background: "#eef2ff",
-//                             color: "#4f46e5"
-//                         }}>
-//                             <Package size={30} />
-//                         </div>
-
-//                         <div style={styles.actionBody}>
-
-//                             <h3 style={styles.actionTitle}>
-//                                 Voir les produits
-//                             </h3>
-
-//                             <p style={styles.actionText}>
-//                                 Consultez, modifiez et gérez tous les produits.
-//                             </p>
-
-//                         </div>
-
-//                         <ArrowRight
-//                             size={21}
-//                             style={styles.arrow}
-//                         />
-
-//                     </div>
-
-
-//                     {/* COMMANDES */}
-//                     <div
-//                         style={{
-//                             ...styles.actionCard,
-//                             borderTop: "4px solid #f97316"
-//                         }}
-//                         onClick={() => navigate("/admin/orders")}
-//                     >
-
-//                         <div style={{
-//                             ...styles.actionIcon,
-//                             background: "#fff7ed",
-//                             color: "#f97316"
-//                         }}>
-//                             <ShoppingCart size={30} />
-//                         </div>
-
-//                         <div style={styles.actionBody}>
-
-//                             <h3 style={styles.actionTitle}>
-//                                 Voir les commandes
-//                             </h3>
-
-//                             <p style={styles.actionText}>
-//                                 Suivez et gérez toutes les commandes clients.
-//                             </p>
-
-//                         </div>
-
-//                         <ArrowRight
-//                             size={21}
-//                             style={styles.arrow}
-//                         />
-
-//                     </div>
-
-
-//                     {/* TELLERS */}
-//                     <div
-//                         style={{
-//                             ...styles.actionCard,
-//                             borderTop: "4px solid #10b981"
-//                         }}
-//                         onClick={() => navigate("/admin/tellers")}
-//                     >
-
-//                         <div style={{
-//                             ...styles.actionIcon,
-//                             background: "#ecfdf5",
-//                             color: "#10b981"
-//                         }}>
-//                             <Users size={30} />
-//                         </div>
-
-//                         <div style={styles.actionBody}>
-
-//                             <h3 style={styles.actionTitle}>
-//                                 Voir les Tellers
-//                             </h3>
-
-//                             <p style={styles.actionText}>
-//                                 Gérez les comptes et l'activité des Tellers.
-//                             </p>
-
-//                         </div>
-
-//                         <ArrowRight
-//                             size={21}
-//                             style={styles.arrow}
-//                         />
-
-//                     </div>
-
-//                 </div>
-
-//             </section>
-
-
-//             {/* BAS DU DASHBOARD */}
-//             <section style={styles.bottomGrid}>
-
-//                 {/* ACTIVITÉ */}
-//                 <div style={styles.panel}>
-
-//                     <div style={styles.panelHeader}>
-
-//                         <div>
-//                             <h2 style={styles.panelTitle}>
-//                                 Activité récente
-//                             </h2>
-
-//                             <p style={styles.panelSubtitle}>
-//                                 Dernières actions sur la plateforme
-//                             </p>
-//                         </div>
-
-//                         <button
-//                             style={styles.viewButton}
-//                             onClick={() => navigate("/admin/activity")}
-//                         >
-//                             Voir tout
-//                         </button>
-
-//                     </div>
-
-
-//                     <div style={styles.activityList}>
-
-//                         <div style={styles.activityItem}>
-
-//                             <div style={{
-//                                 ...styles.activityIcon,
-//                                 background: "#e0f7f7",
-//                                 color: "#00a4a6"
-//                             }}>
-//                                 <Plus size={17} />
-//                             </div>
-
-//                             <div style={styles.activityInfo}>
-
-//                                 <strong>
-//                                     Nouveau produit ajouté
-//                                 </strong>
-
-//                                 <span>
-//                                     Il y a 5 minutes
-//                                 </span>
-
-//                             </div>
-
-//                         </div>
-
-
-//                         <div style={styles.activityItem}>
-
-//                             <div style={{
-//                                 ...styles.activityIcon,
-//                                 background: "#eef2ff",
-//                                 color: "#4f46e5"
-//                             }}>
-//                                 <ShoppingCart size={17} />
-//                             </div>
-
-//                             <div style={styles.activityInfo}>
-
-//                                 <strong>
-//                                     Nouvelle commande
-//                                 </strong>
-
-//                                 <span>
-//                                     Il y a 12 minutes
-//                                 </span>
-
-//                             </div>
-
-//                         </div>
-
-
-//                         <div style={styles.activityItem}>
-
-//                             <div style={{
-//                                 ...styles.activityIcon,
-//                                 background: "#ecfdf5",
-//                                 color: "#10b981"
-//                             }}>
-//                                 <Users size={17} />
-//                             </div>
-
-//                             <div style={styles.activityInfo}>
-
-//                                 <strong>
-//                                     Nouveau Teller connecté
-//                                 </strong>
-
-//                                 <span>
-//                                     Il y a 24 minutes
-//                                 </span>
-
-//                             </div>
-
-//                         </div>
-
-//                     </div>
-
-//                 </div>
-
-
-//                 {/* COMMANDES */}
-//                 <div style={styles.panel}>
-
-//                     <div style={styles.panelHeader}>
-
-//                         <div>
-//                             <h2 style={styles.panelTitle}>
-//                                 État des commandes
-//                             </h2>
-
-//                             <p style={styles.panelSubtitle}>
-//                                 Vue rapide
-//                             </p>
-//                         </div>
-
-//                         <button
-//                             style={styles.viewButton}
-//                             onClick={() => navigate("/admin/orders")}
-//                         >
-//                             Commandes
-//                         </button>
-
-//                     </div>
-
-
-//                     <div style={styles.orderStats}>
-
-//                         <div style={styles.orderRow}>
-
-//                             <div style={styles.orderLabel}>
-//                                 <span style={{
-//                                     ...styles.dot,
-//                                     background: "#f59e0b"
-//                                 }} />
-
-//                                 En attente
-//                             </div>
-
-//                             <strong>18</strong>
-
-//                         </div>
-
-
-//                         <div style={styles.orderRow}>
-
-//                             <div style={styles.orderLabel}>
-//                                 <span style={{
-//                                     ...styles.dot,
-//                                     background: "#3b82f6"
-//                                 }} />
-
-//                                 En traitement
-//                             </div>
-
-//                             <strong>32</strong>
-
-//                         </div>
-
-
-//                         <div style={styles.orderRow}>
-
-//                             <div style={styles.orderLabel}>
-//                                 <span style={{
-//                                     ...styles.dot,
-//                                     background: "#10b981"
-//                                 }} />
-
-//                                 Livrées
-//                             </div>
-
-//                             <strong>64</strong>
-
-//                         </div>
-
-
-//                         <div style={styles.orderRow}>
-
-//                             <div style={styles.orderLabel}>
-//                                 <span style={{
-//                                     ...styles.dot,
-//                                     background: "#ef4444"
-//                                 }} />
-
-//                                 Annulées
-//                             </div>
-
-//                             <strong>12</strong>
-
-//                         </div>
-
-//                     </div>
-
-//                 </div>
-
-//             </section>
-
-
-//             {/* MESSAGE */}
-//             <div style={styles.infoBox}>
-
-//                 <div style={styles.infoIcon}>
-//                     <CheckCircle size={22} />
-//                 </div>
-
-//                 <div>
-//                     <strong>
-//                         Plateforme opérationnelle
-//                     </strong>
-
-//                     <p>
-//                         Tous les services de Founa fonctionnent normalement.
-//                     </p>
-//                 </div>
-
-//             </div>
-
-//         </div>
-//     );
-// };
-
-
-// const styles: { [key: string]: React.CSSProperties } = {
-
-//     container: {
-//         minHeight: "100vh",
-//         padding: "30px",
-//         background: "#f5f7fb",
-//         fontFamily: "Segoe UI, Arial, sans-serif",
-//         boxSizing: "border-box",
-//     },
-
-//     header: {
-//         display: "flex",
-//         justifyContent: "space-between",
-//         alignItems: "center",
-//         marginBottom: 35,
-//         gap: 20,
-//         flexWrap: "wrap",
-//     },
-
-//     headerLeft: {
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 15,
-//     },
-
-//     logo: {
-//         width: 52,
-//         height: 52,
-//         borderRadius: 14,
-//         background: "#00a4a6",
-//         color: "#fff",
-//         display: "flex",
-//         alignItems: "center",
-//         justifyContent: "center",
-//         boxShadow: "0 8px 20px rgba(0,164,166,0.25)",
-//     },
-
-//     title: {
-//         margin: 0,
-//         fontSize: 30,
-//         fontWeight: 700,
-//         color: "#111827",
-//     },
-
-//     subtitle: {
-//         margin: "5px 0 0",
-//         color: "#6b7280",
-//         fontSize: 14,
-//     },
-
-//     headerRight: {
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 20,
-//     },
-
-//     adminProfile: {
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 10,
-//     },
-
-//     avatar: {
-//         width: 42,
-//         height: 42,
-//         borderRadius: "50%",
-//         background: "#111827",
-//         color: "#fff",
-//         display: "flex",
-//         alignItems: "center",
-//         justifyContent: "center",
-//         fontWeight: 700,
-//     },
-
-//     adminName: {
-//         display: "block",
-//         color: "#1f2937",
-//         fontSize: 14,
-//     },
-
-//     adminStatus: {
-//         display: "block",
-//         color: "#10b981",
-//         fontSize: 12,
-//         marginTop: 2,
-//     },
-
-//     logoutButton: {
-//         border: "1px solid #e5e7eb",
-//         background: "#fff",
-//         color: "#374151",
-//         padding: "10px 15px",
-//         borderRadius: 10,
-//         cursor: "pointer",
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 7,
-//         fontWeight: 600,
-//     },
-
-//     statsGrid: {
-//         display: "grid",
-//         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-//         gap: 20,
-//         marginBottom: 40,
-//     },
-
-//     statCard: {
-//         background: "#fff",
-//         borderRadius: 16,
-//         padding: 22,
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 16,
-//         boxShadow: "0 5px 20px rgba(15,23,42,0.05)",
-//         border: "1px solid #eef0f4",
-//     },
-
-//     statIcon: {
-//         width: 50,
-//         height: 50,
-//         borderRadius: 13,
-//         display: "flex",
-//         alignItems: "center",
-//         justifyContent: "center",
-//         flexShrink: 0,
-//     },
-
-//     statContent: {
-//         display: "flex",
-//         flexDirection: "column",
-//         gap: 3,
-//     },
-
-//     statLabel: {
-//         color: "#6b7280",
-//         fontSize: 13,
-//     },
-
-//     statValue: {
-//         color: "#111827",
-//         fontSize: 25,
-//     },
-
-//     statEvolution: {
-//         color: "#10b981",
-//         fontSize: 12,
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 3,
-//     },
-
-//     statWarning: {
-//         color: "#f97316",
-//         fontSize: 12,
-//     },
-
-//     sectionHeader: {
-//         marginBottom: 20,
-//     },
-
-//     sectionTitle: {
-//         margin: 0,
-//         fontSize: 21,
-//         color: "#111827",
-//     },
-
-//     sectionSubtitle: {
-//         margin: "5px 0 0",
-//         color: "#6b7280",
-//         fontSize: 13,
-//     },
-
-//     actionsGrid: {
-//         display: "grid",
-//         gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-//         gap: 20,
-//         marginBottom: 35,
-//     },
-
-//     actionCard: {
-//         background: "#fff",
-//         borderRadius: 15,
-//         padding: 22,
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 17,
-//         cursor: "pointer",
-//         boxShadow: "0 5px 18px rgba(15,23,42,0.05)",
-//         transition: "all 0.2s ease",
-//         minHeight: 130,
-//         boxSizing: "border-box",
-//     },
-
-//     actionIcon: {
-//         width: 56,
-//         height: 56,
-//         borderRadius: 14,
-//         display: "flex",
-//         alignItems: "center",
-//         justifyContent: "center",
-//         flexShrink: 0,
-//     },
-
-//     actionBody: {
-//         flex: 1,
-//     },
-
-//     actionTitle: {
-//         margin: 0,
-//         fontSize: 17,
-//         color: "#111827",
-//     },
-
-//     actionText: {
-//         margin: "7px 0 0",
-//         color: "#6b7280",
-//         fontSize: 13,
-//         lineHeight: 1.5,
-//     },
-
-//     arrow: {
-//         color: "#9ca3af",
-//     },
-
-//     bottomGrid: {
-//         display: "grid",
-//         gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-//         gap: 20,
-//     },
-
-//     panel: {
-//         background: "#fff",
-//         borderRadius: 16,
-//         padding: 23,
-//         boxShadow: "0 5px 18px rgba(15,23,42,0.05)",
-//         border: "1px solid #eef0f4",
-//     },
-
-//     panelHeader: {
-//         display: "flex",
-//         justifyContent: "space-between",
-//         alignItems: "center",
-//         marginBottom: 20,
-//         gap: 10,
-//     },
-
-//     panelTitle: {
-//         margin: 0,
-//         fontSize: 17,
-//         color: "#111827",
-//     },
-
-//     panelSubtitle: {
-//         margin: "5px 0 0",
-//         color: "#9ca3af",
-//         fontSize: 12,
-//     },
-
-//     viewButton: {
-//         border: "none",
-//         background: "#f3f4f6",
-//         color: "#374151",
-//         padding: "8px 12px",
-//         borderRadius: 8,
-//         cursor: "pointer",
-//         fontSize: 12,
-//         fontWeight: 600,
-//     },
-
-//     activityList: {
-//         display: "flex",
-//         flexDirection: "column",
-//         gap: 17,
-//     },
-
-//     activityItem: {
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 12,
-//     },
-
-//     activityIcon: {
-//         width: 36,
-//         height: 36,
-//         borderRadius: 10,
-//         display: "flex",
-//         alignItems: "center",
-//         justifyContent: "center",
-//         flexShrink: 0,
-//     },
-
-//     activityInfo: {
-//         display: "flex",
-//         flexDirection: "column",
-//         gap: 3,
-//         fontSize: 13,
-//         color: "#374151",
-//     },
-
-//     orderStats: {
-//         display: "flex",
-//         flexDirection: "column",
-//         gap: 17,
-//     },
-
-//     orderRow: {
-//         display: "flex",
-//         justifyContent: "space-between",
-//         alignItems: "center",
-//         color: "#374151",
-//         fontSize: 14,
-//         paddingBottom: 12,
-//         borderBottom: "1px solid #f1f5f9",
-//     },
-
-//     orderLabel: {
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 9,
-//     },
-
-//     dot: {
-//         width: 9,
-//         height: 9,
-//         borderRadius: "50%",
-//     },
-
-//     infoBox: {
-//         marginTop: 25,
-//         background: "#ecfdf5",
-//         border: "1px solid #d1fae5",
-//         borderRadius: 14,
-//         padding: 18,
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 12,
-//         color: "#065f46",
-//     },
-
-//     infoIcon: {
-//         display: "flex",
-//         alignItems: "center",
-//     },
-// };
-
-// export default AdminDashboard;

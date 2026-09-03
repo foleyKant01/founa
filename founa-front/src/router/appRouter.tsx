@@ -12,10 +12,8 @@ import FavoritesPage from "../pages/activity/favorites";
 import HistoryPage from "../pages/activity/history";
 import HomeTeller from "../pages/teller/homeTeller";
 import HomeAdmin from "../pages/admin/homeAdmin";
-import CreateProduct from "../pages/teller/createProduct";
 import ReadAllProducts from "../pages/teller/readAllProducts";
 import ReadSingleProduct from "../pages/teller/readSingleProduct";
-import EditProduct from "../pages/teller/editProduct";
 import OrderDetailsPage from "../pages/orders/OrderDetailsPage";
 import UpdateClient from "../pages/profile/updateClient";
 import UpdatePassword from "../pages/profile/updatePasswordClient";
@@ -26,6 +24,11 @@ import ProtectedAdminRoute from "../components/routes/ProtectedRouteAdmin";
 import { AppProvider } from "../context/appContext";
 import SendOtpPage from "../pages/auth/SendOtpPage";
 import VerifyOtpPage from "../pages/auth/VerifyOtpPage";
+import AllOrderPage from "../pages/admin/allOrders";
+import ReadAllProductsAdmin from "../pages/admin/readAllProductsAdmin";
+import CreateProduct from "../pages/admin/createProduct";
+import EditProduct from "../pages/admin/editProduct";
+import ReadSingleProductAdmin from "../pages/admin/readSingleProductAdmin";
 
 
 const AppRoutes = () => {
@@ -69,19 +72,18 @@ const AppRoutes = () => {
 
            {/* 🔥 TELLER */}
           <Route path="/teller/home" element={<ProtectedRouteTeller><HomeTeller /></ProtectedRouteTeller>} />
-          <Route path="/teller/create" element={<ProtectedRouteTeller><CreateProduct /></ProtectedRouteTeller>} />
           <Route path="/teller/readall" element={<ProtectedRouteTeller><ReadAllProducts /></ProtectedRouteTeller>} />
           <Route path="/teller/readsingle/:uid" element={<ProtectedRouteTeller><ReadSingleProduct /></ProtectedRouteTeller>} />
           <Route path="/teller/allorderteller" element={<ProtectedRouteTeller><OrderTellerPage /></ProtectedRouteTeller>} />
           <Route path="/teller/stateteller" element={<ProtectedRouteTeller><StatistiquesTellerPage /></ProtectedRouteTeller>} />
-          <Route path="/teller/edit/:id" element={<ProtectedRouteTeller><EditProduct /></ProtectedRouteTeller>} />
 
           {/* 🔥 ADMIN */}
           <Route path="/admin/home" element={<ProtectedAdminRoute><HomeAdmin /></ProtectedAdminRoute>} />
-          {/* <Route path="/admin/create" element={<CreateProduct />} />
-          <Route path="/admin/readall" element={<ReadAllProducts />} />
-          <Route path="/admin/readsingle" element={<ReadSingleProduct />} />
-          <Route path="/admin/edit" element={<EditProduct />} /> */}
+          <Route path="/admin/createproduct" element={<ProtectedAdminRoute><CreateProduct /></ProtectedAdminRoute>} />
+          <Route path="/admin/readall" element={<ProtectedAdminRoute><ReadAllProductsAdmin /></ProtectedAdminRoute>} />
+          <Route path="/admin/editproduct/:uid"element={<ProtectedAdminRoute><EditProduct /></ProtectedAdminRoute>}/>
+          <Route path="/admin/readsingleproduct/:uid" element={<ProtectedAdminRoute><ReadSingleProductAdmin /></ProtectedAdminRoute>} />
+          <Route path="/admin/allorders" element={<ProtectedAdminRoute><AllOrderPage /></ProtectedAdminRoute>} />
         </Routes>
       </div>
 
