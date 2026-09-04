@@ -1,0 +1,16 @@
+{
+  "name": "Founa CI",
+  "short_name": "Founa CI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00A4A6",
+  "icons": [
+    {
+      "src": "/logo_founa.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
