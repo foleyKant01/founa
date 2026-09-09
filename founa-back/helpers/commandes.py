@@ -278,28 +278,38 @@ def GetAllCommandeByClient():
     
 def GetAllCommandeByTeller():
     try:
-        teller_id = request.json.get('teller_id')
-        all_commande = Commande.query.filter_by(teller_id=teller_id).all()
-
+        teller_id = request.json.get("teller_id")
+        if not teller_id:
+            return {
+                "status": "error",
+                "message": "teller_id requis"
+            }, 400
+        all_commande = Commande.query.filter_by(
+            teller_id=teller_id
+        ).all()
         if not all_commande:
-            return {"status": "error", "message": "Commande introuvable"}, 404
-
+            return {
+                "status": "success",
+                "commandes": []
+            }, 200
         result = []
         for c in all_commande:
             result.append({
                 "commande_id": c.commande_id,
+
                 "client": {
                     "uid": c.client.uid,
                     "nom": c.client.fullname,
                     "email": c.client.email,
                     "phone": c.client.phone,
                 },
+
                 "produit": {
                     "uid": c.produit.uid,
                     "nom": c.produit.nom,
                     "prix_vente": c.produit.prix_vente,
-                    # ajoute d'autres champs nécessaires
                 },
+
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
@@ -308,11 +318,15 @@ def GetAllCommandeByTeller():
                 "created_date": str(c.created_date),
                 "updated_date": str(c.updated_date),
             })
-
-        return {"status": "success", "commandes": result}, 200
-
+        return {
+            "status": "success",
+            "commandes": result
+        }, 200
     except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
 
 
 

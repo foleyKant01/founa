@@ -681,23 +681,25 @@ const OrderDetailsPage: React.FC = () => {
             </div>
 
             {/* INFORMATION */}
-            <div style={styles.infoNotice}>
-              <div style={styles.noticeIcon}>
-                ⚠️
-              </div>
-
-              <div>
-                <div style={styles.noticeTitle}>
-                  Important
+            {["Initier", "Prise en charge", "Valider"].includes(order.statut) && (
+              <div style={styles.infoNotice}>
+                <div style={styles.noticeIcon}>
+                  ⚠️
                 </div>
 
-                <div style={styles.noticeText}>
-                  Veuillez vérifier attentivement les
-                  informations de votre commande avant
-                  d'effectuer le paiement.
+                <div>
+                  <div style={styles.noticeTitle}>
+                    Important
+                  </div>
+
+                  <div style={styles.noticeText}>
+                    Veuillez vérifier attentivement les
+                    informations de votre commande avant
+                    d'effectuer le paiement.
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* COLONNE DROITE */}

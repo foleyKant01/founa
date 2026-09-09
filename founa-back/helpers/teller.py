@@ -136,13 +136,13 @@ def StatistiquesTeller():
         if not teller_id:
             return {"status": "error", "message": "teller_id requis"}, 400
         nb_livrees = Commande.query.filter_by(teller_id=teller_id, statut="Livrer").count()
-        total_revenu = db.session.query(func.sum(Commande.prix_total * 0.08)) \
+        total_revenu = db.session.query(func.sum(Commande.prix_total * 0.3)) \
             .filter_by(teller_id=teller_id, statut="Livrer").scalar() or 0
         revenu_par_mois = (
             db.session.query(
                 extract('year', Commande.created_date).label('year'),
                 extract('month', Commande.created_date).label('month'),
-                func.sum(Commande.prix_total * 0.08).label('revenu')
+                func.sum(Commande.prix_total * 0.03).label('revenu')
             )
             .filter_by(teller_id=teller_id, statut="Livrer")
             .group_by('year', 'month')

@@ -2469,7 +2469,7 @@ const OrderTellerPage: React.FC = () => {
 
           .refresh-button {
             width: 40px;
-            padding: 0;
+            padding: 0 0 0 10px;
             flex-shrink: 0;
           }
 

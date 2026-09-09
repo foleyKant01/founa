@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   PackagePlus,
@@ -14,26 +14,34 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+import { GetAllCommandeByTeller } from "../../services/order.service";
+
 const TellerDashboard: React.FC = () => {
   const navigate = useNavigate();
-
   const [teller, setTeller] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingStatistics, setLoadingStatistics] = useState(false);
 
-  // =========================================================
-  // RECUPERATION DU TELLER
-  // =========================================================
+  const [statistics, setStatistics] = useState({
+    produits: 0,
+    commandes: 0,
+    commandesEnCours: 0,
+    commandesLivrees: 0,
+  });
 
   useEffect(() => {
     const storedTeller = localStorage.getItem("teller");
-
     if (!storedTeller) {
       navigate("/auth/login");
       return;
     }
-
     try {
       const parsedTeller = JSON.parse(storedTeller);
+      if (!parsedTeller?.uid) {
+        localStorage.removeItem("teller");
+        navigate("/auth/login");
+        return;
+      }
       setTeller(parsedTeller);
     } catch (error) {
       console.error("Erreur lecture teller :", error);
@@ -44,36 +52,92 @@ const TellerDashboard: React.FC = () => {
     }
   }, [navigate]);
 
-  // =========================================================
-  // STATISTIQUES
-  // =========================================================
-  //
-  // Pour l'instant ce sont des valeurs d'affichage.
-  // Elles pourront ensuite être remplacées par tes APIs.
-  //
+  useEffect(() => {
+    if (!teller?.uid) return;
 
-  const statistics = useMemo(
-    () => ({
-      produits: 0,
-      commandes: 0,
-      commandesEnCours: 0,
-      commandesLivrees: 0,
-    }),
-    []
-  );
+    const loadStatistics = async () => {
+      try {
+        setLoadingStatistics(true);
+        const response = await GetAllCommandeByTeller({
+          teller_id: teller.uid,
+        });
+        if (response.data.status === "success") {
+          const commandes = response.data.commandes || [];
 
-  // =========================================================
-  // DECONNEXION
-  // =========================================================
+          const commandesLivrees = commandes.filter(
+            (commande: any) => commande.statut === "Livrer"
+          ).length;
+
+          const commandesEnCours = commandes.filter(
+            (commande: any) => commande.statut !== "Livrer"
+          ).length;
+
+          setStatistics((prev) => ({
+            ...prev,
+            commandes: commandes.length,
+            commandesEnCours,
+            commandesLivrees,
+          }));
+        } else {
+          console.error(
+            "Erreur récupération commandes :",
+            response.data.message
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Erreur récupération statistiques :",
+          error
+        );
+      } finally {
+        setLoadingStatistics(false);
+      }
+    };
+    loadStatistics();
+  }, [teller]);
 
   const handleLogout = () => {
     localStorage.removeItem("teller");
     navigate("/auth/login");
   };
 
-  // =========================================================
-  // LOADING
-  // =========================================================
+const refreshStatistics = async () => {
+  if (!teller?.uid) return;
+
+  try {
+    setLoadingStatistics(true);
+
+    const response = await GetAllCommandeByTeller({
+      teller_id: teller.uid,
+    });
+
+    if (response.data.status === "success") {
+      const commandes = response.data.commandes || [];
+
+      const commandesLivrees = commandes.filter(
+        (commande: any) => commande.statut === "Livrer"
+      ).length;
+
+      const commandesEnCours = commandes.filter(
+        (commande: any) => commande.statut !== "Livrer"
+      ).length;
+
+      setStatistics((prev) => ({
+        ...prev,
+        commandes: commandes.length,
+        commandesEnCours,
+        commandesLivrees,
+      }));
+    }
+  } catch (error) {
+    console.error(
+      "Erreur actualisation statistiques :",
+      error
+    );
+  } finally {
+    setLoadingStatistics(false);
+  }
+};
 
   if (loading) {
     return (
@@ -294,6 +358,24 @@ const TellerDashboard: React.FC = () => {
             margin: 4px 0 0;
             color: #9CA3AF;
             font-size: 13px;
+          }
+
+          .refresh-button {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #e1e6e9;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #56606f;
+          }
+
+          .refresh-button:hover {
+            border-color: #00a4a6;
+            color: #00a4a6;
           }
 
           /* =========================================
@@ -663,7 +745,7 @@ const TellerDashboard: React.FC = () => {
 
           <div className="teller-stats">
 
-            <div className="teller-stat">
+            {/* <div className="teller-stat">
               <div className="teller-stat-icon stat-teal">
                 <Package size={23} />
               </div>
@@ -672,7 +754,7 @@ const TellerDashboard: React.FC = () => {
                 <span>Produits</span>
                 <strong>{statistics.produits}</strong>
               </div>
-            </div>
+            </div> */}
 
             <div className="teller-stat">
               <div className="teller-stat-icon stat-blue">
@@ -723,29 +805,6 @@ const TellerDashboard: React.FC = () => {
           </div>
 
           <div className="teller-actions">
-
-            {/* <div
-              className="teller-action-card"
-              onClick={() => navigate("/teller/create")}
-            >
-              <div className="action-icon action-teal">
-                <PackagePlus size={24} />
-              </div>
-
-              <div className="action-content">
-                <h3>Créer un produit</h3>
-
-                <p>
-                  Ajoutez un nouveau produit à votre catalogue.
-                </p>
-              </div>
-
-              <ArrowRight
-                className="action-arrow"
-                size={19}
-              />
-            </div> */}
-
             <div
               className="teller-action-card"
               onClick={() => navigate("/teller/readall")}
@@ -836,10 +895,20 @@ const TellerDashboard: React.FC = () => {
                   </p>
                 </div>
 
-                <RefreshCw
-                  size={18}
-                  color="#9CA3AF"
-                />
+                <button
+                  className="refresh-button"
+                  onClick={refreshStatistics}
+                  title="Actualiser"
+                >
+                  <RefreshCw
+                    size={18}
+                    className={
+                      loadingStatistics
+                        ? "refresh-icon-spin"
+                        : ""
+                    }
+                  />
+                </button>
               </div>
 
               <div className="activity-item">
