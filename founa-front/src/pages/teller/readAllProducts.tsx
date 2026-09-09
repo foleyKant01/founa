@@ -379,13 +379,13 @@ const ReadAllProducts = () => {
 
           </div>
 
-          <button
+          {/* <button
             className="import-button"
             onClick={importerProduits}
           >
             <PackagePlus size={18} />
             <span>Importer un produit</span>
-          </button>
+          </button> */}
 
         </header>
 

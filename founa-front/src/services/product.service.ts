@@ -10,6 +10,13 @@ export const ImporterProduit = () => {
   return api.get('/produits/importer_produit'); // adapte le path selon ta route Flask
 };
 
+export const TopProducts = () => {
+  return api.get('/produits/top_products'); // adapte le path selon ta route Flask
+};
+
+export const MettreAJourPrixVente = () => {
+  return api.get('/produits/mettre_a_jour_prix_vente'); // adapte le path selon ta route Flask
+};
 
 export const GetSingleProduit = (data: {
   produit_id: string;

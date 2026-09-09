@@ -6,6 +6,7 @@ import {
   GetAllCommandes,
   UpdateCommande,
   DeleteExpiredCommandes,
+  AttribuerCommandes,
 } from "../../services/order.service";
 import { useNavigate } from "react-router-dom";
 
@@ -38,9 +39,47 @@ const AllOrderPage: React.FC = () => {
   const teller = JSON.parse(localStorage.getItem("teller") || "{}");
   const navigate = useNavigate();
 
-  // ============================================================
-  // CHARGEMENT DES COMMANDES
-  // ============================================================
+  const handleAttribuerCommande = async () => {
+  try {
+    setLoading(true);
+
+    const response = await AttribuerCommandes();
+
+      if (response.data.status === "success") {
+        await Swal.fire({
+          icon: "success",
+          title: "Attribution terminée",
+          text: response.data.message,
+          timer: 1800,
+          showConfirmButton: false,
+        });
+
+        // Recharge la liste des commandes
+        await loadCommandes();
+
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Erreur",
+          text: response.data.message || "Impossible d'attribuer les commandes.",
+        });
+      }
+
+    } catch (error: any) {
+      console.error("Erreur attribution commandes :", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Erreur serveur",
+        text:
+          error?.response?.data?.message ||
+          "Une erreur est survenue lors de l'attribution des commandes.",
+      });
+
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadCommandes = async () => {
     setLoading(true);
@@ -332,9 +371,7 @@ const getStatutConfig = (statut: string) => {
       ====================================================== */}
 
       <header className="page-header">
-
         <div className="header-left">
-
           <button
             className="back-button"
             onClick={() => navigate(-1)}
@@ -359,14 +396,29 @@ const getStatutConfig = (statut: string) => {
 
         </div>
 
-        <button
-          className="delete-expired-btn"
-          onClick={handleDeleteExpiredCommandes}
-          disabled={loading}
-        >
-          <span>🗑</span>
-          Supprimer ceux expirées
-        </button>
+        <div className="header-actions">
+
+          {/* BOUTON ATTRIBUER */}
+          <button
+            className="assign-command-btn"
+            onClick={handleAttribuerCommande}
+            disabled={loading}
+          >
+            <span>👤</span>
+            Attribuer commande
+          </button>
+
+          {/* BOUTON SUPPRESSION */}
+          <button
+            className="delete-expired-btn"
+            onClick={handleDeleteExpiredCommandes}
+            disabled={loading}
+          >
+            <span>🗑</span>
+            Supprimer ceux expirées
+          </button>
+
+        </div>
 
       </header>
 
@@ -1024,6 +1076,43 @@ const getStatutConfig = (statut: string) => {
           justify-content: space-between;
           gap: 25px;
           margin-bottom: 28px;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-shrink: 0;
+        }
+
+        .assign-command-btn {
+          height: 42px;
+          padding: 0 16px;
+          border: none;
+          border-radius: 10px;
+          background: #00A4A6;
+          color: white;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+
+          transition: all 0.2s ease;
+        }
+
+        .assign-command-btn:hover {
+          background: #008f91;
+          transform: translateY(-1px);
+        }
+
+        .assign-command-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
         }
 
         .header-left {

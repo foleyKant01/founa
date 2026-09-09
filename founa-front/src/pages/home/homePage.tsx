@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   GetAllProduits,
   SearchProduct,
+  TopProducts,
 } from "../../services/product.service";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../context/appContext";
@@ -26,6 +27,34 @@ const HomePage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Produit[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
+
+  const [topProducts, setTopProducts] = useState<Produit[]>([]);
+  const [loadingTopProducts, setLoadingTopProducts] = useState(true);
+  const fetchTopProducts = async () => {
+    try {
+      setLoadingTopProducts(true);
+
+      const response = await TopProducts();
+
+      if (response.data.status === "success") {
+        setTopProducts(response.data.produits || []);
+      } else {
+        setTopProducts([]);
+        console.error(
+          response.data.message || "Erreur récupération top produits"
+        );
+      }
+    } catch (error) {
+      console.error("Erreur récupération top produits :", error);
+      setTopProducts([]);
+    } finally {
+      setLoadingTopProducts(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTopProducts();
+  }, []);
 
   const { refreshCommandeCount } = useApp();
 
@@ -93,6 +122,7 @@ const HomePage: React.FC = () => {
       setSearchLoading(false);
     }
   };
+  
 
   /* =========================
      IMAGE PRODUIT
@@ -128,25 +158,17 @@ const HomePage: React.FC = () => {
      PRODUITS
   ========================= */
 
-  const topProducts = Allproduits.filter(
-    (p) => p.status === "Top"
-  );
+  // const topProducts = Allproduits.filter(
+  //   (p) => p.status === "Top"
+  // );
 
   const displayedProducts = searchText.trim()
     ? searchResults
     : Allproduits;
 
-  /* =========================
-     FORMAT PRIX
-  ========================= */
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR").format(price);
   };
-
-  /* =========================
-     CARTE PRODUIT
-  ========================= */
 
   const ProductCard = ({
     produit,
@@ -239,70 +261,195 @@ const HomePage: React.FC = () => {
           CONTENU PRINCIPAL
       ========================= */}
 
-      <main className="home-content">
-        {loadingProducts ? (
-          <div className="products-loading">
-            <div className="loading-spinner-large" />
+<main className="home-content">
+
+  {loadingProducts ? (
+
+    <div className="products-loading">
+      <div className="loading-spinner-large" />
+    </div>
+
+  ) : (
+
+    <>
+      {/* =========================
+          RECHERCHE
+      ========================= */}
+
+      {searchText.trim() ? (
+
+        <section className="products-section">
+
+          <div className="section-header">
+
+            <div>
+              <span className="section-kicker">
+                RECHERCHE
+              </span>
+
+              <h2>
+                Résultats de recherche
+              </h2>
+
+              <p>
+                Résultats pour « {searchText} »
+              </p>
+            </div>
+
+            {searchResults.length > 0 && (
+              <span className="result-count">
+                {searchResults.length} produit
+                {searchResults.length > 1 ? "s" : ""}
+              </span>
+            )}
+
           </div>
-        ) : (
-          <>
-            {/* TOUT TON CONTENU ACTUEL DES PRODUITS */}
-          </>
-        )}
 
-        {/* =========================
-            RECHERCHE
-        ========================= */}
+          {searchLoading ? (
 
-        {searchText.trim() ? (
+            <div className="empty-state">
+              <div className="loading-spinner" />
+              <p>Recherche en cours...</p>
+            </div>
 
-          <section className="products-section">
+          ) : searchResults.length === 0 ? (
+
+            <div className="empty-state">
+
+              <PackageOpen size={52} />
+
+              <h3>
+                Aucun produit trouvé
+              </h3>
+
+              <p>
+                Aucun produit ne correspond à
+                votre recherche.
+              </p>
+
+            </div>
+
+          ) : (
+
+            <div className="product-grid">
+
+              {searchResults.map((produit) => (
+                <ProductCard
+                  key={produit.uid}
+                  produit={produit}
+                />
+              ))}
+
+            </div>
+
+          )}
+
+        </section>
+
+      ) : (
+
+        <>
+
+          {/* =========================
+              TOP PRODUITS
+          ========================= */}
+
+          {!loadingTopProducts &&
+            topProducts.length > 0 && (
+
+            <section className="products-section">
+
+              <div className="section-header">
+
+                <div>
+                  <span className="section-kicker">
+                    SÉLECTION FOUNA
+                  </span>
+
+                  <h2>
+                    Produits au top
+                  </h2>
+
+                  <p>
+                    Les produits les plus commandés
+                    par nos clients.
+                  </p>
+                </div>
+
+                <button
+                  className="see-all-button"
+                  onClick={() =>
+                    document
+                      .getElementById(
+                        "popular-products"
+                      )
+                      ?.scrollIntoView({
+                        behavior: "smooth",
+                      })
+                  }
+                >
+                  Voir tous
+                  <ChevronRight size={18} />
+                </button>
+
+              </div>
+
+              <div className="top-products-slider">
+
+                {topProducts.map((produit) => (
+                  <ProductCard
+                    key={produit.uid}
+                    produit={produit}
+                    horizontal
+                    isTop
+                  />
+                ))}
+
+              </div>
+
+            </section>
+          )}
+
+          {/* =========================
+              PRODUITS POPULAIRES
+          ========================= */}
+
+          <section
+            className="products-section"
+            id="popular-products"
+          >
 
             <div className="section-header">
 
               <div>
                 <span className="section-kicker">
-                  RECHERCHE
+                  CATALOGUE FOUNA
                 </span>
 
                 <h2>
-                  Résultats de recherche
+                  Produits populaires
                 </h2>
 
                 <p>
-                  Résultats pour « {searchText} »
+                  Découvrez tous nos produits.
                 </p>
               </div>
 
-              {searchResults.length > 0 && (
-                <span className="result-count">
-                  {searchResults.length} produit
-                  {searchResults.length > 1 ? "s" : ""}
-                </span>
-              )}
-
             </div>
 
-            {searchLoading ? (
-
-              <div className="empty-state">
-                <div className="loading-spinner" />
-                <p>Recherche en cours...</p>
-              </div>
-
-            ) : displayedProducts.length === 0 ? (
+            {Allproduits.length === 0 ? (
 
               <div className="empty-state">
 
                 <PackageOpen size={52} />
 
                 <h3>
-                  Aucun produit trouvé
+                  Aucun produit disponible
                 </h3>
 
                 <p>
-                  Aucun produit ne correspond à
-                  votre recherche.
+                  Aucun produit n'est actuellement
+                  disponible.
                 </p>
 
               </div>
@@ -311,7 +458,7 @@ const HomePage: React.FC = () => {
 
               <div className="product-grid">
 
-                {displayedProducts.map((produit) => (
+                {Allproduits.map((produit) => (
                   <ProductCard
                     key={produit.uid}
                     produit={produit}
@@ -324,139 +471,15 @@ const HomePage: React.FC = () => {
 
           </section>
 
-        ) : (
+        </>
 
-          <>
+      )}
 
-            {/* =========================
-                TOP PRODUITS
-            ========================= */}
+    </>
 
-            {topProducts.length > 0 && (
-              <section className="products-section">
+  )}
 
-                <div className="section-header">
-
-                  <div>
-                    <span className="section-kicker">
-                      SÉLECTION FOUNA
-                    </span>
-
-                    <h2>
-                      Produits au top
-                    </h2>
-
-                    <p>
-                      Découvrez les produits
-                      actuellement mis en avant.
-                    </p>
-                  </div>
-
-                  <button
-                    className="see-all-button"
-                    onClick={() =>
-                      document
-                        .getElementById(
-                          "popular-products"
-                        )
-                        ?.scrollIntoView({
-                          behavior: "smooth",
-                        })
-                    }
-                  >
-                    Voir tous
-                    <ChevronRight size={18} />
-                  </button>
-
-                </div>
-
-                <div className="top-products-slider">
-
-                  {topProducts.map((produit) => (
-                    <ProductCard
-                      key={produit.uid}
-                      produit={produit}
-                      horizontal
-                    />
-                  ))}
-
-                </div>
-
-              </section>
-            )}
-
-            {/* =========================
-                PRODUITS POPULAIRES
-            ========================= */}
-
-            <section
-              className="products-section"
-              id="popular-products"
-            >
-
-              <div className="section-header">
-
-                <div>
-                  <span className="section-kicker">
-                    CATALOGUE
-                  </span>
-
-                  <h2>
-                    Produits populaires
-                  </h2>
-
-                  <p>
-                    Parcourez notre catalogue et
-                    trouvez les produits qui vous
-                    intéressent.
-                  </p>
-                </div>
-
-                <span className="product-total">
-                  {Allproduits.length} produit
-                  {Allproduits.length > 1 ? "s" : ""}
-                </span>
-
-              </div>
-
-              {Allproduits.length === 0 ? (
-
-                <div className="empty-state">
-
-                  <PackageOpen size={52} />
-
-                  <h3>
-                    Aucun produit disponible
-                  </h3>
-
-                  <p>
-                    Les produits apparaîtront ici
-                    lorsqu'ils seront disponibles.
-                  </p>
-
-                </div>
-
-              ) : (
-
-                <div className="product-grid">
-
-                  {Allproduits.map((produit) => (
-                    <ProductCard
-                      key={produit.uid}
-                      produit={produit}
-                    />
-                  ))}
-
-                </div>
-
-              )}
-
-            </section>
-
-          </>
-        )}
-
-      </main>
+</main>
 
       {/* =========================
           CSS

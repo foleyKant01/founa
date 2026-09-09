@@ -11,7 +11,10 @@ class CommandesApi(Resource):
             return GetSingleCommande() 
         
         if route == "update_commande":
-            return UpdateCommande() 
+            return UpdateCommande()
+        
+        if route == "attribuer_commandes":
+            return AttribuerCommandes()
         
         if route == "option_envoie":
             return OptionEnvoie()

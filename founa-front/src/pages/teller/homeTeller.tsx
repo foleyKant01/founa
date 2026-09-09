@@ -744,18 +744,6 @@ const refreshStatistics = async () => {
           ========================================= */}
 
           <div className="teller-stats">
-
-            {/* <div className="teller-stat">
-              <div className="teller-stat-icon stat-teal">
-                <Package size={23} />
-              </div>
-
-              <div className="teller-stat-info">
-                <span>Produits</span>
-                <strong>{statistics.produits}</strong>
-              </div>
-            </div> */}
-
             <div className="teller-stat">
               <div className="teller-stat-icon stat-blue">
                 <ShoppingCart size={23} />

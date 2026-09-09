@@ -65,7 +65,7 @@ def GetTellerForNewCommande():
         return None
     
     
-def AttribuerCommandes():
+def AttribuerUneCommande():
     try:
 
         data = request.json
@@ -89,7 +89,7 @@ def AttribuerCommandes():
                 "status": "error",
                 "message": "Aucun teller disponible"
             }, 404
-        single_commande.teller_id = teller.uid
+        single_commande.teller_id = teller
         status_log = CommandeStatusLog(
             commande_id=single_commande.commande_id,
             status_commande=single_commande.statut,
@@ -106,6 +106,59 @@ def AttribuerCommandes():
                 "teller_name": teller.fullname,
                 "statut": single_commande.statut
             }
+        }, 200
+    except Exception as e:
+        db.session.rollback()
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+        
+        
+def AttribuerCommandes():
+    try:
+        commandes_sans_teller = (
+            Commande.query
+            .filter(
+                (Commande.teller_id == None) |
+                (Commande.teller_id == "")
+            )
+            .all()
+        )
+        if not commandes_sans_teller:
+            return {
+                "status": "success",
+                "message": "Toutes les commandes sont déjà attribuées.",
+                "nombre_attribuees": 0,
+                "commandes": []
+            }, 200
+
+        commandes_attribuees = []
+        for commande in commandes_sans_teller:
+            teller_uid = GetTellerForNewCommande()
+            if not teller_uid:
+                break
+            commande.teller_id = teller_uid
+
+            status_log = CommandeStatusLog(
+                commande_id=commande.commande_id,
+                status_commande=commande.statut,
+                teller_id=teller_uid
+            )
+            db.session.add(status_log)
+
+            commandes_attribuees.append({
+                "commande_id": commande.commande_id,
+                "teller_id": teller_uid,
+                "statut": commande.statut
+            })
+        db.session.commit()
+
+        return {
+            "status": "success",
+            "message": "Commandes attribuées avec succès",
+            "nombre_attribuees": len(commandes_attribuees),
+            "commandes": commandes_attribuees
         }, 200
     except Exception as e:
         db.session.rollback()

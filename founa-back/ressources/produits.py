@@ -25,16 +25,19 @@ class ProduitsApi(Resource):
         if route == "search_product":
             return SearchProduct() 
         
-        if route == "mettre_a_jour_prix_vente":
-            return MettreAJourPrixVente()   
-        
         if route == "GenerateAccessToken":
             return GenerateAccessToken()   
              
     
     def get(self, route):
         if route == "get_all_produits":
-            return GetAllProduits()
+            return GetAllProduits() 
         
         if route == "importer_produit":
             return ImporterProduit()
+        
+        if route == "top_products":
+            return TopProducts()
+        
+        if route == "mettre_a_jour_prix_vente":
+            return MettreAJourPrixVente()

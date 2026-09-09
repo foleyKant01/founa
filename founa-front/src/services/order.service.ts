@@ -38,6 +38,9 @@ export const DeleteExpiredCommandes = () => {
   return api.post('/commandes/delete_expired_commandes');
 };
 
+export const AttribuerCommandes = () => {
+  return api.post('/commandes/attribuer_commandes');
+};
 
 export const UpdateCommande = (data: {
   commande_id: string;
