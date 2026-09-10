@@ -103,7 +103,7 @@ def ImporterProduit():
                 prix_fournisseur_usd = float(
                     data.get("prix_fournisseur") or 0
                 )
-                prix_fournisseur = (
+                prix_fournisseur = math.ceil(
                     prix_fournisseur_usd * TAUX_USD_XOF
                 )
                 prix_vente = (math.ceil(prix_fournisseur * 1.25 / 10) * 10)
@@ -482,7 +482,7 @@ def MettreAJourPrixVente():
             prix_fournisseur_usd = float(
                 p.prix_fournisseur_usd or 0
             )
-            prix_fournisseur_fcfa = (
+            prix_fournisseur_fcfa = math.ceil(
                 prix_fournisseur_usd * TAUX_USD_XOF
             )
             p.prix_fournisseur = prix_fournisseur_fcfa
