@@ -29,6 +29,9 @@ import ReadAllProductsAdmin from "../pages/admin/readAllProductsAdmin";
 import CreateProduct from "../pages/admin/createProduct";
 import EditProduct from "../pages/admin/editProduct";
 import ReadSingleProductAdmin from "../pages/admin/readSingleProductAdmin";
+import CreateTeller from "../pages/admin/createTellers";
+import ReadAllTellersPage from "../pages/admin/readAllTellers";
+import ReadAllUnavaibleProductsPage from "../pages/admin/unavaibleProduct";
 
 
 const AppRoutes = () => {
@@ -81,6 +84,9 @@ const AppRoutes = () => {
           <Route path="/admin/home" element={<ProtectedAdminRoute><HomeAdmin /></ProtectedAdminRoute>} />
           <Route path="/admin/createproduct" element={<ProtectedAdminRoute><CreateProduct /></ProtectedAdminRoute>} />
           <Route path="/admin/readall" element={<ProtectedAdminRoute><ReadAllProductsAdmin /></ProtectedAdminRoute>} />
+          <Route path="/admin/createteller" element={<ProtectedAdminRoute><CreateTeller /></ProtectedAdminRoute>} />
+          <Route path="/admin/readallteller"element={<ProtectedAdminRoute><ReadAllTellersPage /></ProtectedAdminRoute>}/>
+          <Route path="/admin/getallunavaibleproduct"element={<ProtectedAdminRoute><ReadAllUnavaibleProductsPage /></ProtectedAdminRoute>}/>
           <Route path="/admin/editproduct/:uid"element={<ProtectedAdminRoute><EditProduct /></ProtectedAdminRoute>}/>
           <Route path="/admin/readsingleproduct/:uid" element={<ProtectedAdminRoute><ReadSingleProductAdmin /></ProtectedAdminRoute>} />
           <Route path="/admin/allorders" element={<ProtectedAdminRoute><AllOrderPage /></ProtectedAdminRoute>} />

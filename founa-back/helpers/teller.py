@@ -6,7 +6,7 @@ from sqlalchemy import func, extract
 
 
 
-def CreateTeller():
+def CreateOneTeller():
     
     reponse = {}
     try:
@@ -18,21 +18,21 @@ def CreateTeller():
         if not str(confirmpassword) == str(password):
             return "Mot de passe non conforme"
         
-        new_client = Teller()
-        new_client.fullname = fullname
-        new_client.email = email
-        new_client.phone = phone
-        new_client.password = password
+        new_teller = Teller()
+        new_teller.fullname = fullname
+        new_teller.email = email
+        new_teller.phone = phone
+        new_teller.password = password
         
-        db.session.add(new_client)
+        db.session.add(new_teller)
         db.session.commit()
 
         rs = {}
-        rs['uid'] = new_client.uid
+        rs['uid'] = new_teller.uid
         rs['fullname'] = fullname
         rs['email'] = email
         rs['phone'] = phone
-        rs['creation_date'] = str(new_client.created_date)
+        rs['creation_date'] = str(new_teller.created_date)
 
         reponse['status'] = 'success'
         reponse['user_infos'] = rs
@@ -45,27 +45,27 @@ def CreateTeller():
 
 
 
-def ReadAllClients():
+def ReadAllTellers():
     response = {}
     try:
-        all_clients = Client.query.all()
+        all_teller = Teller.query.all()
 
-        if all_clients:
-            clients_informations = [
+        if all_teller:
+            teller_informations = [
                 {
-                    'uid': client.uid,
-                    'fullname': client.fullname,
-                    'email': client.email,
-                    'phone': client.phone,
-                    'creation_date': str(client.created_date)
+                    'uid': teller.uid,
+                    'fullname': teller.fullname,
+                    'email': teller.email,
+                    'phone': teller.phone,
+                    'creation_date': str(teller.created_date)
                 } 
-                for client in all_clients
+                for teller in all_teller
             ]
             response['status'] = 'success'
-            response['all_clients'] = clients_informations
+            response['all_teller'] = teller_informations
         else:
             response['status'] = 'erreur'
-            response['motif'] = 'aucun client trouvé'
+            response['motif'] = 'aucun teller trouvé'
 
     except Exception as e:
         response['status'] = 'error'
@@ -78,22 +78,22 @@ def ReadAllClients():
 def ReadSingleTeller():
     response = {}
     try:
-        cliend_id = (request.json.get('uid'))
-        client = Client.query.filter_by(uid=cliend_id).first()
+        teller_id = (request.json.get('uid'))
+        teller = Teller.query.filter_by(uid=teller_id).first()
 
-        if client:
-            client_info = {
-                'uid': client.uid,
-                'fullname': client.fullname,
-                'email': client.email,
-                'phone': client.phone,
-                'creation_date': str(client.created_date)
+        if teller:
+            teller_info = {
+                'uid': teller.uid,
+                'fullname': teller.fullname,
+                'email': teller.email,
+                'phone': teller.phone,
+                'creation_date': str(teller.created_date)
             }
             response['status'] = 'success'
-            response['client'] = client_info
+            response['teller'] = teller_info
         else:
             response['status'] = 'error'
-            response['message'] = 'Client introuvable'
+            response['message'] = 'teller introuvable'
 
     except Exception as e:
         response['status'] = 'error'
@@ -107,16 +107,16 @@ def UpdateTeller():
     response = {}
 
     try:
-        cliend_id = (request.json.get('uid'))
-        update_client = Client.query.filter_by(uid=cliend_id).first()
+        teller_id = (request.json.get('uid'))
+        update_teller = Teller.query.filter_by(uid=teller_id).first()
         
-        if update_client:
-            update_client.fullname = request.json.get('fullname', update_client.fullname)
-            update_client.email = request.json.get('email', update_client.email)
-            update_client.phone = request.json.get('phone', update_client.phone)
-            update_client.password = request.json.get('password', update_client.password)
+        if update_teller:
+            update_teller.fullname = request.json.get('fullname', update_teller.fullname)
+            update_teller.email = request.json.get('email', update_teller.email)
+            update_teller.phone = request.json.get('phone', update_teller.phone)
+            update_teller.password = request.json.get('password', update_teller.password)
      
-        db.session.add(update_client)
+        db.session.add(update_teller)
         db.session.commit() 
         
         response['status'] = 'success'

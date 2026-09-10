@@ -33,8 +33,11 @@ class ProduitsApi(Resource):
         if route == "get_all_produits":
             return GetAllProduits() 
         
+        if route == "get_all_unavaible_product":
+            return GetAllUnavaibleProduct() 
+        
         if route == "importer_produit":
-            return ImporterProduit()
+            return ImporterProduit() 
         
         if route == "top_products":
             return TopProducts()

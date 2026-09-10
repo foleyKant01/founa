@@ -163,6 +163,15 @@ class ActivityLog(db.Model):
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     
     
+class UnavaibleProduct(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
+    text_search = db.Column(db.String(128),nullable=False)
+    client_id = db.Column(db.String(128),db.ForeignKey('client.uid'),nullable=True)
+    client = db.relationship('Client',backref=db.backref('unavaibleproduct',lazy=True))
+    created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    
 # class ProduitActionsLog(db.Model):
 #     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 #     uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))

@@ -4,8 +4,8 @@ from helpers.teller import *
 
 class TellerApi(Resource):
     def post(self, route):
-        if route == "create_teller":
-            return CreateTeller()
+        if route == "create_one_teller":
+            return CreateOneTeller()
         
         if route == "read_single_teller":
             return ReadSingleTeller()
@@ -19,4 +19,4 @@ class TellerApi(Resource):
     
     def get(self, route):
         if route == "read_all_teller":
-            return ReadAllClients()
+            return ReadAllTellers()

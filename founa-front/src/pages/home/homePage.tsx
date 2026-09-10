@@ -319,12 +319,11 @@ const HomePage: React.FC = () => {
               <PackageOpen size={52} />
 
               <h3>
-                Aucun produit trouvé
+                Aucun produit trouvé pour l'instant
               </h3>
 
               <p>
-                Aucun produit ne correspond à
-                votre recherche.
+                Le produit en rapport à votre recherche sera disponible dans 48h.
               </p>
 
             </div>

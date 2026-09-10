@@ -6,6 +6,10 @@ export const GetAllProduits = () => {
   return api.get('/produits/get_all_produits'); // adapte le path selon ta route Flask
 };
 
+export const GetAllUnavaibleProduct = () => {
+  return api.get('/produits/get_all_unavaible_product'); // adapte le path selon ta route Flask
+};
+
 export const ImporterProduit = () => {
   return api.get('/produits/importer_produit'); // adapte le path selon ta route Flask
 };

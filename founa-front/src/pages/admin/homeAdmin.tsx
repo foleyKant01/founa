@@ -33,7 +33,7 @@ const AdminDashboard: React.FC = () => {
       icon: UserPlus,
       color: "#00A4A6",
       background: "#E6F7F7",
-      path: "/admin/create-teller",
+      path: "/admin/createteller",
     },
     {
       title: "Gérer les Tellers",
@@ -41,7 +41,7 @@ const AdminDashboard: React.FC = () => {
       icon: Users,
       color: "#2563EB",
       background: "#EFF6FF",
-      path: "/admin/view-all-tellers",
+      path: "/admin/readallteller",
     },
     {
       title: "Recherches sans résultat",
@@ -49,7 +49,7 @@ const AdminDashboard: React.FC = () => {
       icon: SearchX,
       color: "#F59E0B",
       background: "#FFFBEB",
-      path: "/admin/search-no-results",
+      path: "/admin/getallunavaibleproduct",
     },
     {
       title: "Gérer les produits",
@@ -354,7 +354,7 @@ const AdminDashboard: React.FC = () => {
           <button
             type="button"
             style={styles.quickButton}
-            onClick={() => navigate("/admin/view-all-tellers")}
+            onClick={() => navigate("/admin/readallteller")}
           >
             <div
               style={{
@@ -383,7 +383,7 @@ const AdminDashboard: React.FC = () => {
           <button
             type="button"
             style={styles.quickButton}
-            onClick={() => navigate("/admin/create-teller")}
+            onClick={() => navigate("/admin/createteller")}
           >
             <div
               style={{

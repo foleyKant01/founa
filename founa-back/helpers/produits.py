@@ -473,6 +473,22 @@ def GetAllProduits():
     })
     
     
+def GetAllUnavaibleProduct():
+    unavaible_product = UnavaibleProduct.query.all()
+    result = []
+    for p in unavaible_product:
+        result.append({
+            "uid": p.uid,
+            "text_search": p.text_search,
+            "client_id": p.client_id,
+            "created_date": str(p.created_date),
+        })
+    return jsonify({
+        "status": "success",
+        "unavaible_product": result
+    })
+    
+    
     
 def MettreAJourPrixVente():
     try:
@@ -730,19 +746,25 @@ def SearchProduct():
         - categorie
         - description
 
-    Les résultats sont classés selon un score de pertinence.
+    Si aucun produit n'est trouvé, la recherche est enregistrée
+    dans UnavaibleProduct pour pouvoir être traitée ultérieurement.
     """
+
     response = {}
     try:
         data = request.json or {}
         text = data.get("textSearch", "").strip()
         page = max(int(data.get("page", 1)), 1)
         per_page = max(int(data.get("per_page", 10)), 1)
+        client_id = data.get("client_id")
+
         if not text:
             return {
                 "status": "error",
                 "error_description": "textSearch is required"
             }, 400
+
+        text = text[:128]
         text_search = remove_accents(text.lower())
         words = [
             w
@@ -754,6 +776,7 @@ def SearchProduct():
                 "status": "error",
                 "error_description": "textSearch too short"
             }, 400
+
         filters = []
         for word in words:
             pattern = f"%{word}%"
@@ -766,9 +789,8 @@ def SearchProduct():
             filters.append(
                 Produit.description.ilike(pattern)
             )
-        query = Produit.query.filter(
-            or_(*filters)
-        )
+
+        query = Produit.query.filter(or_(*filters))
         all_results = query.all()
         products_scored = []
         for product in all_results:
@@ -782,6 +804,7 @@ def SearchProduct():
             description = remove_accents(
                 (product.description or "").lower()
             )
+
             for word in words:
                 if word in nom:
                     score += 50
@@ -789,6 +812,7 @@ def SearchProduct():
                     score += 30
                 if word in description:
                     score += 20
+
             if score > 0:
                 products_scored.append({
                     "product": product,
@@ -799,10 +823,41 @@ def SearchProduct():
             reverse=True
         )
         total = len(products_scored)
+
+        if total == 0:
+            recherche_existante = (
+                UnavaibleProduct.query
+                .filter(
+                    db.func.lower(
+                        UnavaibleProduct.text_search
+                    ) == text.lower()
+                )
+                .filter(
+                    UnavaibleProduct.client_id == client_id
+                )
+                .first()
+            )
+            if not recherche_existante:
+                recherche = UnavaibleProduct(
+                    text_search=text,
+                    client_id=client_id
+                )
+                db.session.add(recherche)
+                db.session.commit()
+            return {
+                "status": "success",
+                "total": 0,
+                "pages": 0,
+                "current_page": page,
+                "products": [],
+                "message": "Aucun produit disponible pour cette recherche."
+            }, 200
+
         start = (page - 1) * per_page
         end = start + per_page
         results = products_scored[start:end]
         products_list = []
+        
         for item in results:
             product = item["product"]
             products_list.append({
@@ -818,13 +873,11 @@ def SearchProduct():
                 "lien_1": product.lien_1 or "",
                 "prix_vente": product.prix_vente or 0,
                 "images": product.images or [],
-                "stock_disponible": product.stock_disponible or 0,
+                "stock_disponible": (product.stock_disponible or 0),
                 "moq": product.moq or 0,
                 "status": product.status or "",
                 "fournisseur": product.fournisseur or "",
-                "creation_date": str(
-                    product.creation_date
-                ),
+                "creation_date": str(product.creation_date),
                 "search_score": item["score"]
             })
         response = {
@@ -838,12 +891,12 @@ def SearchProduct():
             "products": products_list
         }
     except Exception as e:
+        db.session.rollback()
         response = {
             "status": "error",
             "error_description": str(e)
         }
     return response
-
 
 
 def TopProducts():
