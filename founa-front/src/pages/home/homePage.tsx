@@ -162,9 +162,9 @@ const HomePage: React.FC = () => {
   //   (p) => p.status === "Top"
   // );
 
-  const displayedProducts = searchText.trim()
-    ? searchResults
-    : Allproduits;
+  // const displayedProducts = searchText.trim()
+    // ? searchResults
+    // : Allproduits;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR").format(price);
@@ -401,7 +401,6 @@ const HomePage: React.FC = () => {
                     key={produit.uid}
                     produit={produit}
                     horizontal
-                    isTop
                   />
                 ))}
 
