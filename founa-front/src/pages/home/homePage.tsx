@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   GetAllProduits,
   SearchProduct,
@@ -6,7 +6,16 @@ import {
 } from "../../services/product.service";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../context/appContext";
-import { Search, PackageOpen, ChevronRight } from "lucide-react";
+import {
+  Search,
+  PackageOpen,
+  ChevronRight,
+  ChevronLeft,
+  ArrowRight,
+  Globe2,
+  ShoppingBag,
+  Sparkles,
+} from "lucide-react";
 
 interface Produit {
   id: number;
@@ -19,10 +28,56 @@ interface Produit {
   images: string | string[];
 }
 
+interface HeroSlide {
+  eyebrow: string;
+  title: string;
+  highlight: string;
+  description: string;
+  button: string;
+  image: string;
+  badge: string;
+}
+
+const HERO_SLIDES: HeroSlide[] = [
+  {
+    eyebrow: "VOTRE UNIVERS FOUNA",
+    title: "Trouvez.",
+    highlight: "Commandez.",
+    description:
+      "Découvrez des produits sélectionnés auprès de fournisseurs internationaux et commandez-les simplement depuis FOUNA.",
+    button: "Découvrir les produits",
+    image: "/hero-founa-1.png",
+    badge: "FOUNA",
+  },
+  {
+    eyebrow: "DES PRODUITS DU MONDE",
+    title: "Un monde de produits",
+    highlight: "à portée de main.",
+    description:
+      "FOUNA vous permet d'accéder facilement à une sélection de produits provenant de fournisseurs internationaux.",
+    button: "Explorer FOUNA",
+    image: "/hero-founa-2.png",
+    badge: "INTERNATIONAL",
+  },
+  {
+    eyebrow: "VOUS CHERCHEZ UN PRODUIT ?",
+    title: "FOUNA",
+    highlight: "le trouve.",
+    description:
+      "Recherchez simplement le produit dont vous avez besoin et découvrez les disponibilités proposées sur FOUNA.",
+    button: "Rechercher un produit",
+    image: "/hero-founa-3.png",
+    badge: "RECHERCHE",
+  },
+];
+
 const HomePage: React.FC = () => {
   const nav = useNavigate();
+  const { refreshCommandeCount } = useApp();
 
-  const [Allproduits, setProduits] = useState<Produit[]>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const [allProducts, setAllProducts] = useState<Produit[]>([]);
   const [searchText, setSearchText] = useState("");
   const [searchResults, setSearchResults] = useState<Produit[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -30,51 +85,117 @@ const HomePage: React.FC = () => {
 
   const [topProducts, setTopProducts] = useState<Produit[]>([]);
   const [loadingTopProducts, setLoadingTopProducts] = useState(true);
-  const fetchTopProducts = async () => {
-    try {
-      setLoadingTopProducts(true);
 
-      const response = await TopProducts();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHeroPaused, setIsHeroPaused] = useState(false);
 
-      if (response.data.status === "success") {
-        setTopProducts(response.data.produits || []);
-      } else {
-        setTopProducts([]);
-        console.error(
-          response.data.message || "Erreur récupération top produits"
-        );
-      }
-    } catch (error) {
-      console.error("Erreur récupération top produits :", error);
-      setTopProducts([]);
-    } finally {
-      setLoadingTopProducts(false);
-    }
+  /*
+   * =========================
+   * HERO SLIDER
+   * =========================
+   */
+
+  const nextSlide = () => {
+    setCurrentSlide((previous) =>
+      previous === HERO_SLIDES.length - 1 ? 0 : previous + 1
+    );
+  };
+
+  const previousSlide = () => {
+    setCurrentSlide((previous) =>
+      previous === 0 ? HERO_SLIDES.length - 1 : previous - 1
+    );
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
   };
 
   useEffect(() => {
-    fetchTopProducts();
+    if (isHeroPaused) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setCurrentSlide((previous) =>
+        previous === HERO_SLIDES.length - 1 ? 0 : previous + 1
+      );
+    }, 5500);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [isHeroPaused]);
+
+  const handleHeroAction = () => {
+    if (currentSlide === 2) {
+      searchInputRef.current?.focus();
+      return;
+    }
+
+    document.getElementById("popular-products")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  /*
+   * =========================
+   * TOP PRODUITS
+   * =========================
+   */
+
+  useEffect(() => {
+    const loadTopProducts = async () => {
+      try {
+        setLoadingTopProducts(true);
+
+        const response = await TopProducts();
+
+        if (response.data.status === "success") {
+          setTopProducts(response.data.produits || []);
+        } else {
+          setTopProducts([]);
+
+          console.error(
+            response.data.message || "Erreur récupération top produits"
+          );
+        }
+      } catch (error) {
+        console.error("Erreur récupération top produits :", error);
+        setTopProducts([]);
+      } finally {
+        setLoadingTopProducts(false);
+      }
+    };
+
+    loadTopProducts();
   }, []);
 
-  const { refreshCommandeCount } = useApp();
-
-  /* =========================
-     RECUPERATION PRODUITS
-  ========================= */
+  /*
+   * =========================
+   * RECUPERATION PRODUITS
+   * =========================
+   */
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setLoadingProducts(true);
 
-        const res = await GetAllProduits();
+        const response = await GetAllProduits();
 
-        setProduits(res.data.produits || []);
-      } catch (err) {
-        console.error(
-          "Erreur récupération produits:",
-          err
-        );
+        if (response.data.status === "success") {
+          setAllProducts(response.data.produits || []);
+        } else {
+          setAllProducts([]);
+          console.error(
+            response.data.message || "Erreur récupération produits"
+          );
+        }
+      } catch (error) {
+        console.error("Erreur récupération produits :", error);
+        setAllProducts([]);
       } finally {
         setLoadingProducts(false);
       }
@@ -83,92 +204,102 @@ const HomePage: React.FC = () => {
     loadProducts();
   }, []);
 
-  /* =========================
-     REFRESH COMMANDES
-  ========================= */
+  /*
+   * =========================
+   * REFRESH COMMANDES
+   * =========================
+   */
 
   useEffect(() => {
     refreshCommandeCount();
   }, [refreshCommandeCount]);
 
-  /* =========================
-     RECHERCHE
-  ========================= */
+  /*
+   * =========================
+   * RECHERCHE
+   * =========================
+   */
 
   const handleSearch = async (text: string) => {
     setSearchText(text);
 
     if (!text || text.trim().length < 2) {
       setSearchResults([]);
+      setSearchLoading(false);
       return;
     }
 
     try {
       setSearchLoading(true);
 
-      const res = await SearchProduct({
+      const response = await SearchProduct({
         textSearch: text,
       });
 
-      setSearchResults(
-        res.data.status === "success"
-          ? res.data.products || []
-          : []
-      );
-    } catch (err) {
-      console.error("Erreur recherche produits :", err);
+      if (response.data.status === "success") {
+        setSearchResults(response.data.products || []);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error("Erreur recherche produits :", error);
       setSearchResults([]);
     } finally {
       setSearchLoading(false);
     }
   };
-  
 
-  /* =========================
-     IMAGE PRODUIT
-  ========================= */
+  /*
+   * =========================
+   * IMAGE PRODUIT
+   * =========================
+   */
 
-  const getFirstImage = (
-    images: string | string[]
-  ): string => {
-    if (!images) return "/default-image.png";
+  const getFirstImage = (images: string | string[]): string => {
+    if (!images) {
+      return "/default-image.png";
+    }
 
-    let imgArray: string[] = [];
+    let imageArray: string[] = [];
 
     if (typeof images === "string") {
       try {
         const parsed = JSON.parse(images);
 
         if (Array.isArray(parsed)) {
-          imgArray = parsed;
+          imageArray = parsed;
+        } else if (typeof parsed === "string") {
+          imageArray = [parsed];
         }
       } catch {
-        imgArray = [];
+        if (images.trim() !== "") {
+          imageArray = [images];
+        }
       }
     } else {
-      imgArray = images;
+      imageArray = images;
     }
 
-    return imgArray.length > 0
-      ? imgArray[0]
+    return imageArray.length > 0
+      ? imageArray[0]
       : "/default-image.png";
   };
 
-  /* =========================
-     PRODUITS
-  ========================= */
-
-  // const topProducts = Allproduits.filter(
-  //   (p) => p.status === "Top"
-  // );
-
-  // const displayedProducts = searchText.trim()
-    // ? searchResults
-    // : Allproduits;
+  /*
+   * =========================
+   * FORMAT PRIX
+   * =========================
+   */
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR").format(price);
   };
+
+  /*
+   * =========================
+   * CARTE PRODUIT
+   * =========================
+   */
 
   const ProductCard = ({
     produit,
@@ -177,6 +308,8 @@ const HomePage: React.FC = () => {
     produit: Produit;
     horizontal?: boolean;
   }) => {
+    const image = getFirstImage(produit.images);
+
     return (
       <div
         className={
@@ -184,28 +317,32 @@ const HomePage: React.FC = () => {
             ? "product-card top-product-card"
             : "product-card"
         }
-        onClick={() =>
-          nav(`/singleproduct/${produit.uid}`)
-        }
+        onClick={() => nav(`/singleproduct/${produit.uid}`)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            nav(`/singleproduct/${produit.uid}`);
+          }
+        }}
       >
         <div className="product-image-container">
           <img
-            src={getFirstImage(produit.images)}
+            src={image}
             alt={produit.nom}
             className="product-image"
+            onError={(event) => {
+              event.currentTarget.src = "/default-image.png";
+            }}
           />
 
           {produit.status === "Top" && (
-            <span className="top-badge">
-              TOP
-            </span>
+            <span className="top-badge">TOP</span>
           )}
         </div>
 
         <div className="product-content">
-          <h3 className="product-name">
-            {produit.nom}
-          </h3>
+          <h3 className="product-name">{produit.nom}</h3>
 
           <p className="product-price">
             {formatPrice(produit.prix_vente)} FCFA
@@ -215,16 +352,20 @@ const HomePage: React.FC = () => {
     );
   };
 
+  /*
+   * =========================
+   * RENDER
+   * =========================
+   */
+
   return (
     <div className="home-page">
-
       {/* =========================
           HEADER
       ========================= */}
 
       <header className="home-header">
         <div className="header-inner">
-
           <div className="logo-container">
             <img
               src="/logo-founa2.png"
@@ -234,257 +375,317 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="search-container">
-
             <Search
               size={20}
               className="search-icon"
             />
 
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Rechercher un produit..."
               value={searchText}
-              onChange={(e) =>
-                handleSearch(e.target.value)
-              }
+              onChange={(event) => handleSearch(event.target.value)}
+              aria-label="Rechercher un produit"
             />
 
             {searchLoading && (
               <div className="search-loader" />
             )}
           </div>
-
         </div>
       </header>
 
       {/* =========================
-          CONTENU PRINCIPAL
+          HERO
       ========================= */}
 
-<main className="home-content">
+      {!searchText.trim() && (
+        <section
+          className="hero-section"
+          onMouseEnter={() => setIsHeroPaused(true)}
+          onMouseLeave={() => setIsHeroPaused(false)}
+        >
+          <div className="hero-slider">
+            {HERO_SLIDES.map((slide, index) => {
+              const isActive = index === currentSlide;
 
-  {loadingProducts ? (
+              return (
+                <div
+                  key={slide.eyebrow}
+                  className={`hero-slide ${
+                    isActive ? "active" : ""
+                  }`}
+                  style={{
+                    backgroundImage: `url("${slide.image}")`,
+                  }}
+                  aria-hidden={!isActive}
+                >
+                  <div className="hero-overlay" />
 
-    <div className="products-loading">
-      <div className="loading-spinner-large" />
-    </div>
+                  <div className="hero-content">
+                    <div className="hero-text">
+                      {/* <div className="hero-eyebrow">
+                        <Sparkles size={15} />
+                        {slide.eyebrow}
+                      </div> */}
 
-  ) : (
+                      {/* <h1>
+                        {slide.title}{" "}
+                        <span>{slide.highlight}</span>
+                      </h1> */}
 
-    <>
-      {/* =========================
-          RECHERCHE
-      ========================= */}
+                      {/* <p>{slide.description}</p> */}
 
-      {searchText.trim() ? (
+                      {/* <button
+                        type="button"
+                        className="hero-button"
+                        onClick={handleHeroAction}
+                      >
+                        {slide.button}
+                        <ArrowRight size={18} />
+                      </button> */}
+                    </div>
 
-        <section className="products-section">
+                    {/* <div className="hero-side">
+                      <div className="hero-badge">
+                        <Globe2 size={18} />
+                        <span>{slide.badge}</span>
+                      </div>
 
-          <div className="section-header">
+                      <div className="hero-floating-card">
+                        <ShoppingBag size={22} />
 
-            <div>
-              <span className="section-kicker">
-                RECHERCHE
-              </span>
+                        <div>
+                          <strong>FOUNA</strong>
+                          <span>
+                            Votre passerelle vers les produits du monde.
+                          </span>
+                        </div>
+                      </div>
+                    </div> */}
+                  </div>
+                </div>
+              );
+            })}
 
-              <h2>
-                Résultats de recherche
-              </h2>
+            {/* Bouton précédent */}
+            <button
+              type="button"
+              className="hero-arrow hero-arrow-left"
+              onClick={previousSlide}
+              aria-label="Slide précédent"
+            >
+              <ChevronLeft size={22} />
+            </button>
 
-              <p>
-                Résultats pour « {searchText} »
-              </p>
-            </div>
+            {/* Bouton suivant */}
+            <button
+              type="button"
+              className="hero-arrow hero-arrow-right"
+              onClick={nextSlide}
+              aria-label="Slide suivant"
+            >
+              <ChevronRight size={22} />
+            </button>
 
-            {searchResults.length > 0 && (
-              <span className="result-count">
-                {searchResults.length} produit
-                {searchResults.length > 1 ? "s" : ""}
-              </span>
-            )}
-
-          </div>
-
-          {searchLoading ? (
-
-            <div className="empty-state">
-              <div className="loading-spinner" />
-              <p>Recherche en cours...</p>
-            </div>
-
-          ) : searchResults.length === 0 ? (
-
-            <div className="empty-state">
-
-              <PackageOpen size={52} />
-
-              <h3>
-                Aucun produit trouvé pour l'instant
-              </h3>
-
-              <p>
-                Le produit en rapport à votre recherche sera disponible dans 48h.
-              </p>
-
-            </div>
-
-          ) : (
-
-            <div className="product-grid">
-
-              {searchResults.map((produit) => (
-                <ProductCard
-                  key={produit.uid}
-                  produit={produit}
+            {/* Indicateurs */}
+            <div className="hero-dots">
+              {HERO_SLIDES.map((slide, index) => (
+                <button
+                  key={`dot-${slide.eyebrow}`}
+                  type="button"
+                  className={`hero-dot ${
+                    index === currentSlide ? "active" : ""
+                  }`}
+                  onClick={() => goToSlide(index)}
+                  aria-label={`Aller au slide ${index + 1}`}
                 />
               ))}
-
             </div>
-
-          )}
-
+          </div>
         </section>
-
-      ) : (
-
-        <>
-
-          {/* =========================
-              TOP PRODUITS
-          ========================= */}
-
-          {!loadingTopProducts &&
-            topProducts.length > 0 && (
-
-            <section className="products-section">
-
-              <div className="section-header">
-
-                <div>
-                  <span className="section-kicker">
-                    SÉLECTION FOUNA
-                  </span>
-
-                  <h2>
-                    Produits au top
-                  </h2>
-
-                  <p>
-                    Les produits les plus commandés
-                    par nos clients.
-                  </p>
-                </div>
-
-                <button
-                  className="see-all-button"
-                  onClick={() =>
-                    document
-                      .getElementById(
-                        "popular-products"
-                      )
-                      ?.scrollIntoView({
-                        behavior: "smooth",
-                      })
-                  }
-                >
-                  Voir tous
-                  <ChevronRight size={18} />
-                </button>
-
-              </div>
-
-              <div className="top-products-slider">
-
-                {topProducts.map((produit) => (
-                  <ProductCard
-                    key={produit.uid}
-                    produit={produit}
-                    horizontal
-                  />
-                ))}
-
-              </div>
-
-            </section>
-          )}
-
-          {/* =========================
-              PRODUITS POPULAIRES
-          ========================= */}
-
-          <section
-            className="products-section"
-            id="popular-products"
-          >
-
-            <div className="section-header">
-
-              <div>
-                <span className="section-kicker">
-                  CATALOGUE FOUNA
-                </span>
-
-                <h2>
-                  Produits populaires
-                </h2>
-
-                <p>
-                  Découvrez tous nos produits.
-                </p>
-              </div>
-
-            </div>
-
-            {Allproduits.length === 0 ? (
-
-              <div className="empty-state">
-
-                <PackageOpen size={52} />
-
-                <h3>
-                  Aucun produit disponible
-                </h3>
-
-                <p>
-                  Aucun produit n'est actuellement
-                  disponible.
-                </p>
-
-              </div>
-
-            ) : (
-
-              <div className="product-grid">
-
-                {Allproduits.map((produit) => (
-                  <ProductCard
-                    key={produit.uid}
-                    produit={produit}
-                  />
-                ))}
-
-              </div>
-
-            )}
-
-          </section>
-
-        </>
-
       )}
 
-    </>
+      {/* =========================
+          CONTENU
+      ========================= */}
 
-  )}
+      <main className="home-content">
+        {loadingProducts ? (
+          <div className="products-loading">
+            <div className="loading-spinner-large" />
+            <p>Chargement des produits...</p>
+          </div>
+        ) : (
+          <>
+            {/* =========================
+                RECHERCHE
+            ========================= */}
 
-</main>
+            {searchText.trim() ? (
+              <section className="products-section">
+                <div className="section-header">
+                  <div>
+                    <span className="section-kicker">
+                      RECHERCHE
+                    </span>
+
+                    <h2>Résultats de recherche</h2>
+
+                    <p>
+                      Résultats pour « {searchText} »
+                    </p>
+                  </div>
+
+                  {!searchLoading &&
+                    searchResults.length > 0 && (
+                      <span className="result-count">
+                        {searchResults.length} produit
+                        {searchResults.length > 1 ? "s" : ""}
+                      </span>
+                    )}
+                </div>
+
+                {searchLoading ? (
+                  <div className="empty-state">
+                    <div className="loading-spinner" />
+
+                    <p>Recherche en cours...</p>
+                  </div>
+                ) : searchResults.length === 0 ? (
+                  <div className="empty-state">
+                    <PackageOpen size={52} />
+
+                    <h3>
+                      Aucun produit trouvé pour l'instant
+                    </h3>
+
+                    <p>
+                      Le produit en rapport à votre recherche
+                      sera disponible dans 48h.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="product-grid">
+                    {searchResults.map((produit) => (
+                      <ProductCard
+                        key={produit.uid}
+                        produit={produit}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+            ) : (
+              <>
+                {/* =========================
+                    TOP PRODUITS
+                ========================= */}
+
+                {!loadingTopProducts &&
+                  topProducts.length > 0 && (
+                    <section className="products-section top-section">
+                      <div className="section-header">
+                        <div>
+                          <span className="section-kicker">
+                            SÉLECTION FOUNA
+                          </span>
+
+                          <h2>Produits au top</h2>
+
+                          <p>
+                            Les produits les plus commandés
+                            par nos clients.
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="see-all-button"
+                          onClick={() =>
+                            document
+                              .getElementById("popular-products")
+                              ?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                              })
+                          }
+                        >
+                          Voir tous
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+
+                      <div className="top-products-slider">
+                        {topProducts.map((produit) => (
+                          <ProductCard
+                            key={produit.uid}
+                            produit={produit}
+                            horizontal
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                {/* =========================
+                    PRODUITS POPULAIRES
+                ========================= */}
+
+                <section
+                  className="products-section"
+                  id="popular-products"
+                >
+                  <div className="section-header">
+                    <div>
+                      <span className="section-kicker">
+                        CATALOGUE FOUNA
+                      </span>
+
+                      <h2>Produits populaires</h2>
+
+                      <p>
+                        Découvrez tous nos produits.
+                      </p>
+                    </div>
+                  </div>
+
+                  {allProducts.length === 0 ? (
+                    <div className="empty-state">
+                      <PackageOpen size={52} />
+
+                      <h3>
+                        Aucun produit disponible
+                      </h3>
+
+                      <p>
+                        Aucun produit n'est actuellement
+                        disponible.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="product-grid">
+                      {allProducts.map((produit) => (
+                        <ProductCard
+                          key={produit.uid}
+                          produit={produit}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
+          </>
+        )}
+      </main>
 
       {/* =========================
           CSS
       ========================= */}
 
       <style>{`
-
         * {
           box-sizing: border-box;
         }
@@ -524,35 +725,6 @@ const HomePage: React.FC = () => {
           gap: 25px;
         }
 
-        .products-loading {
-          width: 100%;
-          min-height: calc(100vh - 72px);
-
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          background: transparent;
-        }
-
-        .loading-spinner-large {
-          width: 45px;
-          height: 45px;
-
-          border: 4px solid #dfe7e7;
-          border-top-color: #00a4a6;
-
-          border-radius: 50%;
-
-          animation: searchSpin 0.8s linear infinite;
-        }
-
-        @keyframes searchSpin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
         .logo-container {
           display: flex;
           align-items: center;
@@ -563,6 +735,7 @@ const HomePage: React.FC = () => {
           width: 90px;
           height: 52px;
           object-fit: contain;
+          display: block;
         }
 
         .search-container {
@@ -580,8 +753,7 @@ const HomePage: React.FC = () => {
           padding: 0 16px;
 
           box-shadow:
-            0 3px 12px
-            rgba(0, 0, 0, 0.08);
+            0 3px 12px rgba(0, 0, 0, 0.08);
 
           position: relative;
         }
@@ -624,10 +796,300 @@ const HomePage: React.FC = () => {
           flex-shrink: 0;
         }
 
-        @keyframes searchSpin {
-          to {
-            transform: rotate(360deg);
-          }
+        /* =========================
+           HERO
+        ========================= */
+
+        .hero-section {
+          width: 100%;
+          background: #111827;
+        }
+
+        .hero-slider {
+          position: relative;
+          width: 100%;
+          height: 420px;
+          // overflow: hidden;
+        }
+
+        .hero-slide {
+          position: absolute;
+          inset: 0;
+
+          background-position: center;
+          background-size: cover;
+          background-repeat: no-repeat;
+
+          // opacity: 0;
+          visibility: hidden;
+
+          transition:
+            opacity 0.7s ease,
+            visibility 0.7s ease;
+
+          display: flex;
+          align-items: center;
+        }
+
+        .hero-slide.active {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        .hero-overlay {
+          position: absolute;
+          inset: 0;
+
+         
+        }
+
+        .hero-content {
+          position: relative;
+          z-index: 2;
+
+          width: 100%;
+          max-width: 1800px;
+          margin: 0 auto;
+
+          padding: 30px 80px;
+
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          gap: 40px;
+        }
+
+        .hero-text {
+          max-width: 700px;
+          color: #ffffff;
+        }
+
+        .hero-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+
+          color: #72f0ed;
+
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+
+          margin-bottom: 14px;
+        }
+
+        .hero-text h1 {
+          margin: 0;
+
+          font-size: clamp(36px, 5vw, 64px);
+          line-height: 1.02;
+          font-weight: 800;
+          letter-spacing: -1.8px;
+        }
+
+        .hero-text h1 span {
+          display: block;
+          color: #55dedb;
+        }
+
+        .hero-text p {
+          max-width: 600px;
+
+          margin: 20px 0 25px;
+
+          color: rgba(255, 255, 255, 0.88);
+
+          font-size: 16px;
+          line-height: 1.7;
+        }
+
+        .hero-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+
+          border: none;
+          border-radius: 10px;
+
+          background: #00a4a6;
+          color: #ffffff;
+
+          padding: 13px 20px;
+
+          font-size: 14px;
+          font-weight: 700;
+
+          cursor: pointer;
+
+          box-shadow:
+            0 8px 22px rgba(0, 164, 166, 0.3);
+
+          transition:
+            transform 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .hero-button:hover {
+          background: #008f91;
+          transform: translateY(-2px);
+        }
+
+        .hero-side {
+          min-width: 280px;
+
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 15px;
+        }
+
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+
+          padding: 9px 14px;
+
+          border-radius: 30px;
+
+          background: rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+
+          color: #ffffff;
+
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 1px;
+
+          backdrop-filter: blur(10px);
+        }
+
+        .hero-floating-card {
+          width: 270px;
+
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+
+          padding: 16px;
+
+          border-radius: 15px;
+
+          background: rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+
+          backdrop-filter: blur(12px);
+
+          color: #ffffff;
+
+          box-shadow:
+            0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .hero-floating-card svg {
+          color: #62e3df;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+
+        .hero-floating-card div {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .hero-floating-card strong {
+          font-size: 14px;
+          letter-spacing: 0.5px;
+        }
+
+        .hero-floating-card span {
+          color: rgba(255, 255, 255, 0.75);
+          font-size: 11px;
+          line-height: 1.5;
+        }
+
+        .hero-arrow {
+          position: absolute;
+          top: 50%;
+          z-index: 5;
+
+          width: 42px;
+          height: 42px;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 50%;
+
+          background: rgba(0, 0, 0, 0.28);
+          color: #ffffff;
+
+          cursor: pointer;
+
+          transform: translateY(-50%);
+
+          backdrop-filter: blur(6px);
+
+          transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+        }
+
+        .hero-arrow:hover {
+          background: rgba(0, 164, 166, 0.8);
+          transform:
+            translateY(-50%)
+            scale(1.05);
+        }
+
+        .hero-arrow-left {
+          left: 22px;
+        }
+
+        .hero-arrow-right {
+          right: 22px;
+        }
+
+        .hero-dots {
+          position: absolute;
+          z-index: 5;
+
+          bottom: 20px;
+          left: 50%;
+
+          transform: translateX(-50%);
+
+          display: flex;
+          align-items: center;
+          gap: 7px;
+        }
+
+        .hero-dot {
+          width: 8px;
+          height: 8px;
+
+          padding: 0;
+
+          border: none;
+          border-radius: 20px;
+
+          background: rgba(255, 255, 255, 0.45);
+
+          cursor: pointer;
+
+          transition:
+            width 0.25s ease,
+            background 0.25s ease;
+        }
+
+        .hero-dot.active {
+          width: 25px;
+          background: #00a4a6;
         }
 
         /* =========================
@@ -637,13 +1099,74 @@ const HomePage: React.FC = () => {
         .home-content {
           width: 100%;
           max-width: 1800px;
+
           margin: 0 auto;
-          padding: 30px;
+
+          padding: 35px 10px;
         }
 
         .products-section {
           width: 100%;
-          margin-bottom: 45px;
+          margin-bottom: 50px;
+          scroll-margin-top: 90px;
+        }
+
+        .top-section {
+          margin-top: 5px;
+        }
+
+        /* =========================
+           LOADING
+        ========================= */
+
+        .products-loading {
+          width: 100%;
+          min-height: 400px;
+
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+
+          gap: 15px;
+        }
+
+        .products-loading p {
+          margin: 0;
+          color: #6b7280;
+          font-size: 14px;
+        }
+
+        .loading-spinner-large {
+          width: 45px;
+          height: 45px;
+
+          border: 4px solid #dfe7e7;
+          border-top-color: #00a4a6;
+
+          border-radius: 50%;
+
+          animation:
+            searchSpin 0.8s linear infinite;
+        }
+
+        .loading-spinner {
+          width: 38px;
+          height: 38px;
+
+          border: 3px solid #e5e7eb;
+          border-top-color: #00a4a6;
+
+          border-radius: 50%;
+
+          animation:
+            searchSpin 0.8s linear infinite;
+        }
+
+        @keyframes searchSpin {
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         /* =========================
@@ -654,6 +1177,7 @@ const HomePage: React.FC = () => {
           display: flex;
           align-items: flex-end;
           justify-content: space-between;
+
           gap: 20px;
 
           margin-bottom: 20px;
@@ -689,8 +1213,7 @@ const HomePage: React.FC = () => {
           font-size: 14px;
         }
 
-        .result-count,
-        .product-total {
+        .result-count {
           white-space: nowrap;
 
           color: #6b7280;
@@ -759,7 +1282,7 @@ const HomePage: React.FC = () => {
         }
 
         /* =========================
-           GRILLE PRODUITS
+           GRILLE
         ========================= */
 
         .product-grid {
@@ -782,7 +1305,6 @@ const HomePage: React.FC = () => {
 
         .product-card {
           width: 100%;
-
           min-width: 0;
 
           background: #ffffff;
@@ -807,12 +1329,16 @@ const HomePage: React.FC = () => {
         }
 
         .product-card:hover {
-          transform:
-            translateY(-4px);
+          transform: translateY(-4px);
 
           box-shadow:
             0 10px 25px
-            rgba(0, 0, 0, 0.10);
+            rgba(0, 0, 0, 0.1);
+        }
+
+        .product-card:focus-visible {
+          outline: 3px solid rgba(0, 164, 166, 0.35);
+          outline-offset: 2px;
         }
 
         .product-image-container {
@@ -839,8 +1365,7 @@ const HomePage: React.FC = () => {
             transform 0.3s ease;
         }
 
-        .product-card:hover
-        .product-image {
+        .product-card:hover .product-image {
           transform: scale(1.04);
         }
 
@@ -851,8 +1376,7 @@ const HomePage: React.FC = () => {
           left: 10px;
 
           background: #00a4a6;
-
-          color: white;
+          color: #ffffff;
 
           font-size: 10px;
           font-weight: 700;
@@ -893,7 +1417,6 @@ const HomePage: React.FC = () => {
           color: #00a4a6;
 
           font-size: 16px;
-
           font-weight: 700;
         }
 
@@ -939,26 +1462,13 @@ const HomePage: React.FC = () => {
         }
 
         .empty-state p {
+          max-width: 500px;
+
           margin: 0;
 
           font-size: 14px;
-        }
 
-        .loading-spinner {
-          width: 38px;
-          height: 38px;
-
-          border:
-            3px solid
-            #e5e7eb;
-
-          border-top-color:
-            #00a4a6;
-
-          border-radius: 50%;
-
-          animation:
-            searchSpin 0.8s linear infinite;
+          line-height: 1.6;
         }
 
         /* =========================
@@ -966,13 +1476,30 @@ const HomePage: React.FC = () => {
         ========================= */
 
         @media (max-width: 900px) {
-
           .header-inner {
             padding:
               10px
               18px;
 
             gap: 15px;
+          }
+
+          .hero-slider {
+            height: 370px;
+          }
+
+          .hero-content {
+            padding:
+              25px
+              65px;
+          }
+
+          .hero-side {
+            min-width: 220px;
+          }
+
+          .hero-floating-card {
+            width: 230px;
           }
 
           .home-content {
@@ -1001,7 +1528,6 @@ const HomePage: React.FC = () => {
         ========================= */
 
         @media (max-width: 600px) {
-
           .home-header {
             position: sticky;
           }
@@ -1035,15 +1561,86 @@ const HomePage: React.FC = () => {
             font-size: 14px;
           }
 
+          /* HERO MOBILE */
+
+          .hero-slider {
+            height: 400px;
+          }
+
+          .hero-content {
+            padding:
+              25px
+              45px
+              35px
+              45px;
+
+            display: block;
+          }
+
+          .hero-text {
+            max-width: 100%;
+          }
+
+          .hero-eyebrow {
+            font-size: 9px;
+            margin-bottom: 10px;
+          }
+
+          .hero-text h1 {
+            font-size: 36px;
+            letter-spacing: -1px;
+          }
+
+          .hero-text p {
+            margin:
+              14px
+              0
+              18px;
+
+            font-size: 13px;
+
+            line-height: 1.55;
+
+            max-width: 100%;
+          }
+
+          .hero-button {
+            padding:
+              11px
+              15px;
+
+            font-size: 12px;
+          }
+
+          .hero-side {
+            display: none;
+          }
+
+          .hero-arrow {
+            width: 34px;
+            height: 34px;
+          }
+
+          .hero-arrow-left {
+            left: 9px;
+          }
+
+          .hero-arrow-right {
+            right: 9px;
+          }
+
+          .hero-dots {
+            bottom: 13px;
+          }
+
           .home-content {
             padding:
               20px
-              10px;
+              0;
           }
 
           .section-header {
             align-items: flex-start;
-
             flex-direction: column;
 
             gap: 10px;
@@ -1088,7 +1685,6 @@ const HomePage: React.FC = () => {
 
           .product-name {
             font-size: 13px;
-
             min-height: 36px;
           }
 
@@ -1113,6 +1709,20 @@ const HomePage: React.FC = () => {
         ========================= */
 
         @media (max-width: 380px) {
+          .hero-slider {
+            height: 350px;
+          }
+
+          .hero-content {
+            padding:
+              22px
+              40px
+              30px;
+          }
+
+          .hero-text h1 {
+            font-size: 32px;
+          }
 
           .home-content {
             padding:
@@ -1126,7 +1736,7 @@ const HomePage: React.FC = () => {
 
           .product-content {
             padding:
-              8px;
+              8px
               8px
               10px;
           }
@@ -1143,7 +1753,6 @@ const HomePage: React.FC = () => {
             flex-basis: 150px;
           }
         }
-
       `}</style>
     </div>
   );

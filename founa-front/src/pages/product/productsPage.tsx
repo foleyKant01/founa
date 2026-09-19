@@ -1145,15 +1145,13 @@ const ProductPage: React.FC = () => {
         .product-title {
           margin: 0;
 
-          color:
-            #111827;
-
-          font-size:
-            clamp(22px, 2.2vw, 32px);
-
+          color: #111827;
+          font-size:clamp(22px, 2.2vw, 32px);
           line-height: 1.25;
-
-          font-weight: 600;
+          font-weight: 550;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .price-section {
@@ -1799,7 +1797,7 @@ const ProductPage: React.FC = () => {
 
           .product-container {
             padding:
-              10px;
+              0px;
           }
 
           .product-main {
@@ -1847,7 +1845,7 @@ const ProductPage: React.FC = () => {
           }
 
           .product-title {
-            font-size: 21px;
+            font-size: 20px;
           }
 
           .product-price {
@@ -1921,7 +1919,7 @@ const ProductPage: React.FC = () => {
           }
 
           .product-title {
-            font-size: 19px;
+            font-size: 20px;
           }
 
           .product-price {

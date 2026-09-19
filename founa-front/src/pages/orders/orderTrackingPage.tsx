@@ -688,7 +688,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: "100%",
     minHeight: "100vh",
     backgroundColor: "#F5F7F8",
-    padding: "24px 24px 120px",
+    padding: "24px 10px 120px",
     fontFamily:
       "Arial, Helvetica, sans-serif",
   },
@@ -795,7 +795,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: "#FFFFFF",
     border: "1px solid #E5E7EB",
     borderRadius: 16,
-    padding: 20,
+    padding: 10,
     cursor: "pointer",
     boxShadow:
       "0 5px 18px rgba(0, 0, 0, 0.045)",
