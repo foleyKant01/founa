@@ -11,10 +11,10 @@ import {
   PackageOpen,
   ChevronRight,
   ChevronLeft,
-  ArrowRight,
-  Globe2,
-  ShoppingBag,
-  Sparkles,
+  // ArrowRight,
+  // Globe2,
+  // ShoppingBag,
+  // Sparkles,
 } from "lucide-react";
 
 interface Produit {
@@ -127,17 +127,17 @@ const HomePage: React.FC = () => {
     };
   }, [isHeroPaused]);
 
-  const handleHeroAction = () => {
-    if (currentSlide === 2) {
-      searchInputRef.current?.focus();
-      return;
-    }
+  // const handleHeroAction = () => {
+  //   if (currentSlide === 2) {
+  //     searchInputRef.current?.focus();
+  //     return;
+  //   }
 
-    document.getElementById("popular-products")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  };
+  //   document.getElementById("popular-products")?.scrollIntoView({
+  //     behavior: "smooth",
+  //     block: "start",
+  //   });
+  // };
 
   /*
    * =========================
@@ -352,34 +352,18 @@ const HomePage: React.FC = () => {
     );
   };
 
-  /*
-   * =========================
-   * RENDER
-   * =========================
-   */
-
   return (
     <div className="home-page">
-      {/* =========================
-          HEADER
-      ========================= */}
 
       <header className="home-header">
         <div className="header-inner">
           <div className="logo-container">
-            <img
-              src="/logo-founa2.png"
-              alt="FOUNA"
-              className="logo"
-            />
-          </div>
-
+            <img src="/logo-founa2.png" alt="FOUNA" className="logo"/></div>
           <div className="search-container">
             <Search
               size={20}
               className="search-icon"
             />
-
             <input
               ref={searchInputRef}
               type="text"
@@ -388,17 +372,12 @@ const HomePage: React.FC = () => {
               onChange={(event) => handleSearch(event.target.value)}
               aria-label="Rechercher un produit"
             />
-
             {searchLoading && (
               <div className="search-loader" />
             )}
           </div>
         </div>
       </header>
-
-      {/* =========================
-          HERO
-      ========================= */}
 
       {!searchText.trim() && (
         <section
@@ -506,10 +485,6 @@ const HomePage: React.FC = () => {
           </div>
         </section>
       )}
-
-      {/* =========================
-          CONTENU
-      ========================= */}
 
       <main className="home-content">
         {loadingProducts ? (
@@ -680,10 +655,6 @@ const HomePage: React.FC = () => {
           </>
         )}
       </main>
-
-      {/* =========================
-          CSS
-      ========================= */}
 
       <style>{`
         * {

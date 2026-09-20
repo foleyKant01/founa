@@ -22,6 +22,7 @@ interface UnavaibleProduct {
   text_search: string;
   client_id: string | null;
   created_date: string;
+  updated_date: string;
 }
 
 const ReadAllUnavaibleProductsPage: React.FC = () => {

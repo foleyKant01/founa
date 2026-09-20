@@ -482,6 +482,7 @@ def GetAllUnavaibleProduct():
             "text_search": p.text_search,
             "client_id": p.client_id,
             "created_date": str(p.created_date),
+            "updated_date": str(p.updated_date),
         })
     return jsonify({
         "status": "success",
