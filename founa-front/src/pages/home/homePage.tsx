@@ -744,7 +744,7 @@ const HomePage: React.FC = () => {
 
           background: transparent;
 
-          font-size: 15px;
+          font-size: 16px;
           color: #1f2937;
         }
 
