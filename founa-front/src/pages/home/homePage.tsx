@@ -750,6 +750,8 @@ const HomePage: React.FC = () => {
 
         .search-container input::placeholder {
           color: #9ca3af;
+          font-size: 14px;
+          font-weight: 400;
         }
 
         .search-loader {
@@ -1529,7 +1531,9 @@ const HomePage: React.FC = () => {
           }
 
           .search-container input {
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: 500;
+
           }
 
           /* HERO MOBILE */
