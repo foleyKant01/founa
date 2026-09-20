@@ -11,6 +11,19 @@ import {
   PackageOpen,
   ChevronRight,
   ChevronLeft,
+  Smartphone,
+  Shirt,
+  Home,
+  Sparkles,
+  Dumbbell,
+  Car,
+  Monitor,
+  BriefcaseBusiness,
+  Baby,
+  Utensils,
+  Wrench,
+  Gamepad2,
+  Armchair,
   // ArrowRight,
   // Globe2,
   // ShoppingBag,
@@ -68,6 +81,66 @@ const HERO_SLIDES: HeroSlide[] = [
     button: "Rechercher un produit",
     image: "/hero-founa-3.png",
     badge: "RECHERCHE",
+  },
+];
+
+interface CategoryItem {
+  name: string;
+  icon: React.ElementType;
+}
+
+const CATEGORIES: CategoryItem[] = [
+  {
+    name: "Électronique",
+    icon: Smartphone,
+  },
+  {
+    name: "Mode",
+    icon: Shirt,
+  },
+  {
+    name: "Maison",
+    icon: Home,
+  },
+  {
+    name: "Beauté",
+    icon: Sparkles,
+  },
+  {
+    name: "Sport",
+    icon: Dumbbell,
+  },
+  {
+    name: "Automobile",
+    icon: Car,
+  },
+  {
+    name: "Informatique",
+    icon: Monitor,
+  },
+  {
+    name: "Bureau",
+    icon: BriefcaseBusiness,
+  },
+  {
+    name: "Bébé & Enfants",
+    icon: Baby,
+  },
+  {
+    name: "Cuisine",
+    icon: Utensils,
+  },
+  {
+    name: "Bricolage",
+    icon: Wrench,
+  },
+  {
+    name: "Jeux",
+    icon: Gamepad2,
+  },
+  {
+    name: "Mobilier",
+    icon: Armchair,
   },
 ];
 
@@ -358,7 +431,7 @@ const HomePage: React.FC = () => {
       <header className="home-header">
         <div className="header-inner">
           <div className="logo-container">
-            <img src="/logo-founa2.png" alt="FOUNA" className="logo"/></div>
+            <img src="/logo-founa2.png" alt="FOUNA" className="logo" /></div>
           <div className="search-container">
             <Search
               size={20}
@@ -392,9 +465,8 @@ const HomePage: React.FC = () => {
               return (
                 <div
                   key={slide.eyebrow}
-                  className={`hero-slide ${
-                    isActive ? "active" : ""
-                  }`}
+                  className={`hero-slide ${isActive ? "active" : ""
+                    }`}
                   style={{
                     backgroundImage: `url("${slide.image}")`,
                   }}
@@ -474,13 +546,87 @@ const HomePage: React.FC = () => {
                 <button
                   key={`dot-${slide.eyebrow}`}
                   type="button"
-                  className={`hero-dot ${
-                    index === currentSlide ? "active" : ""
-                  }`}
+                  className={`hero-dot ${index === currentSlide ? "active" : ""
+                    }`}
                   onClick={() => goToSlide(index)}
                   aria-label={`Aller au slide ${index + 1}`}
                 />
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!searchText.trim() && (
+        <section className="categories-section">
+          <div className="categories-container">
+
+            <div className="categories-header">
+              <div>
+                <span className="categories-kicker">
+                  EXPLOREZ FOUNA
+                </span>
+
+                <h2>Nos catégories</h2>
+              </div>
+
+              <span className="categories-scroll-hint">
+                Faites défiler →
+              </span>
+            </div>
+
+            <div className="categories-rows">
+
+              {/* PREMIÈRE LIGNE */}
+              <div className="categories-row">
+                {CATEGORIES.slice(0, Math.ceil(CATEGORIES.length / 2)).map(
+                  (category) => {
+                    const Icon = category.icon;
+
+                    return (
+                      <button
+                        type="button"
+                        className="category-item"
+                        key={category.name}
+                      >
+                        <span className="category-circle">
+                          <Icon size={25} strokeWidth={1.8} />
+                        </span>
+
+                        <span className="category-name">
+                          {category.name}
+                        </span>
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+
+              {/* DEUXIÈME LIGNE */}
+              <div className="categories-row">
+                {CATEGORIES.slice(
+                  Math.ceil(CATEGORIES.length / 2)
+                ).map((category) => {
+                  const Icon = category.icon;
+
+                  return (
+                    <button
+                      type="button"
+                      className="category-item"
+                      key={category.name}
+                    >
+                      <span className="category-circle">
+                        <Icon size={25} strokeWidth={1.8} />
+                      </span>
+
+                      <span className="category-name">
+                        {category.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
             </div>
           </div>
         </section>
@@ -1067,6 +1213,179 @@ const HomePage: React.FC = () => {
         }
 
         /* =========================
+   CATEGORIES
+========================= */
+
+.categories-section {
+  width: 100%;
+  background: #ffffff;
+  border-top: 1px solid #eef2f2;
+  border-bottom: 1px solid #eef2f2;
+  padding: 24px 0 26px;
+}
+
+.categories-container {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 30px;
+}
+
+.categories-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.categories-kicker {
+  display: block;
+  color: #00a4a6;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+}
+
+.categories-header h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.categories-scroll-hint {
+  color: #9ca3af;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.categories-rows {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.categories-row {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  padding: 4px 4px 8px;
+
+  scroll-behavior: smooth;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.categories-row::-webkit-scrollbar {
+  display: none;
+}
+
+.category-item {
+  flex: 0 0 88px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  transition:
+    transform 0.2s ease;
+}
+
+.category-circle {
+  width: 64px;
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #f0fafa;
+  color: #00a4a6;
+
+  border: 1px solid rgba(0, 164, 166, 0.12);
+
+  box-shadow:
+    0 4px 12px rgba(0, 164, 166, 0.08);
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.category-name {
+  width: 88px;
+
+  color: #374151;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  line-height: 1.3;
+
+  text-align: center;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
+
+.category-item:hover {
+  transform: translateY(-3px);
+}
+
+.category-item:hover .category-circle {
+  background: #00a4a6;
+  color: #ffffff;
+
+  transform: scale(1.06);
+
+  box-shadow:
+    0 8px 20px rgba(0, 164, 166, 0.22);
+}
+
+.category-item:active .category-circle {
+  transform: scale(0.96);
+}
+
+.category-item:focus-visible {
+  outline: none;
+}
+
+.category-item:focus-visible .category-circle {
+  outline: 3px solid rgba(0, 164, 166, 0.25);
+  outline-offset: 3px;
+}
+
+
+
+        /* =========================
            CONTENU
         ========================= */
 
@@ -1495,6 +1814,28 @@ const HomePage: React.FC = () => {
           .top-product-card {
             flex-basis: 190px;
           }
+
+          .categories-container {
+            padding: 0 18px;
+          }
+
+          .categories-row {
+            gap: 22px;
+          }
+
+          .category-item {
+            flex-basis: 82px;
+          }
+
+          .category-circle {
+            width: 60px;
+            height: 60px;
+          }
+
+          .category-name {
+            width: 82px;
+            font-size: 11px;
+          }
         }
 
         /* =========================
@@ -1678,6 +2019,61 @@ const HomePage: React.FC = () => {
               4px
               6px;
           }
+
+          .categories-section {
+  padding: 18px 0 20px;
+}
+
+.categories-container {
+  padding: 0 10px;
+}
+
+.categories-header {
+  margin-bottom: 14px;
+  padding: 0 4px;
+}
+
+.categories-header h2 {
+  font-size: 18px;
+}
+
+.categories-kicker {
+  font-size: 9px;
+}
+
+.categories-scroll-hint {
+  font-size: 10px;
+}
+
+.categories-rows {
+  gap: 14px;
+}
+
+.categories-row {
+  gap: 18px;
+  padding-left: 2px;
+  padding-right: 10px;
+}
+
+.category-item {
+  flex: 0 0 72px;
+  gap: 7px;
+}
+
+.category-circle {
+  width: 54px;
+  height: 54px;
+}
+
+.category-circle svg {
+  width: 21px;
+  height: 21px;
+}
+
+.category-name {
+  width: 72px;
+  font-size: 10px;
+}
         }
 
         /* =========================
