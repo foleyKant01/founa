@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type SyntheticEvent,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   DeleteProduitByTeller,
@@ -54,13 +58,38 @@ const ReadSingleProductAdmin = () => {
         let imagesArray: string[] = [];
 
         if (Array.isArray(prod.images)) {
-          imagesArray = prod.images;
+          imagesArray = prod.images.filter(
+            (image: unknown): image is string =>
+              typeof image === "string" && image.trim() !== ""
+          );
         } else if (typeof prod.images === "string") {
-          try {
-            imagesArray = JSON.parse(prod.images);
-          } catch {
-            imagesArray = [];
+          const value = prod.images.trim();
+
+          if (value) {
+            try {
+              const parsed = JSON.parse(value);
+
+              if (Array.isArray(parsed)) {
+                imagesArray = parsed.filter(
+                  (image: unknown): image is string =>
+                    typeof image === "string" && image.trim() !== ""
+                );
+              } else if (
+                typeof parsed === "string" &&
+                parsed.trim() !== ""
+              ) {
+                imagesArray = [parsed];
+              }
+            } catch {
+              // L'image est directement une URL
+              imagesArray = [value];
+            }
           }
+        }
+
+        // Aucune image disponible
+        if (imagesArray.length === 0) {
+          imagesArray = ["/default-image.png"];
         }
 
         setProduct({
@@ -68,7 +97,7 @@ const ReadSingleProductAdmin = () => {
           images: imagesArray,
         });
 
-        setMainImage(imagesArray[0] || "");
+        setMainImage(imagesArray[0]);
       }
     } catch (err) {
       console.error("Erreur serveur :", err);
@@ -171,6 +200,12 @@ const ReadSingleProductAdmin = () => {
     );
   }
 
+  const handleImageError = (
+    event: React.SyntheticEvent<HTMLImageElement>
+  ) => {
+    event.currentTarget.src = "/default-image.png";
+  };
+
   return (
     <div className="product-page">
 
@@ -237,18 +272,12 @@ const ReadSingleProductAdmin = () => {
 
           <div className="main-image-container">
 
-            {mainImage ? (
-              <img
-                src={mainImage}
-                alt={product.nom}
-                className="main-image"
-              />
-            ) : (
-              <div className="no-image">
-                <span>📷</span>
-                <p>Aucune image</p>
-              </div>
-            )}
+            <img
+              src={mainImage || "/default-image.png"}
+              alt={product.nom}
+              className="main-image"
+              onError={handleImageError}
+            />
 
           </div>
 
@@ -269,8 +298,9 @@ const ReadSingleProductAdmin = () => {
                     }
                   >
                     <img
-                      src={img}
+                      src={img || "/default-image.png"}
                       alt={`${product.nom} ${index + 1}`}
+                      onError={handleImageError}
                     />
                   </button>
                 ))}

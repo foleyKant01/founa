@@ -11,7 +11,7 @@ interface Product {
   prix_vente: number;
   uid: string;
   stock_disponible: number;
-  images: string[];
+  images: string | string[];
   type?: string;
 }
 
@@ -328,7 +328,6 @@ const ReadAllProductsAdmin = () => {
               >
                 📥 Importer produit
               </button>
-
             </div>
           </div>
         </div>
@@ -352,7 +351,6 @@ const ReadAllProductsAdmin = () => {
             </button>
           )}
         </div>
-
         {/* CONTENT */}
         {loading ? (
           <div className="loader"></div>
@@ -386,19 +384,33 @@ const ReadAllProductsAdmin = () => {
               <tbody>
                 {filteredProducts.map((p) => {
                   let imageUrl = "";
+                 try {
+                  if (Array.isArray(p.images)) {
+                    imageUrl = p.images[0] || "/default-image.png";
 
-                  try {
-                    if (Array.isArray(p.images)) {
-                      imageUrl = p.images[0] || "";
-                    } else if (typeof p.images === "string") {
-                      const parsed = JSON.parse(p.images);
-                      imageUrl = Array.isArray(parsed)
-                        ? parsed[0] || ""
-                        : p.images;
+                  } else if (typeof p.images === "string") {
+                    const value = p.images.trim();
+
+                    if (!value) {
+                      imageUrl = "/default-image.png";
+                    } else {
+                      try {
+                        const parsed = JSON.parse(value);
+
+                        imageUrl = Array.isArray(parsed)
+                          ? parsed[0] || "/default-image.png"
+                          : value;
+                      } catch {
+                        // L'image est déjà une URL simple
+                        imageUrl = value;
+                      }
                     }
-                  } catch {
-                    imageUrl = "";
+                  } else {
+                    imageUrl = "/default-image.png";
                   }
+                } catch {
+                  imageUrl = "/default-image.png";
+                }
 
                   return (
                     <tr key={p.uid}>
