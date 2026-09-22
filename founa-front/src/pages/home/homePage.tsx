@@ -11,25 +11,37 @@ import {
   PackageOpen,
   ChevronRight,
   ChevronLeft,
+  Factory,
+  Zap,
   Smartphone,
   Shirt,
   Home,
   Sparkles,
-  Dumbbell,
-  Car,
-  Monitor,
-  BriefcaseBusiness,
+  HeartPulse,
   Baby,
+  Car,
+  Package,
+  Building2,
+  Wheat,
+  PawPrint,
+  FlaskConical,
+  Scissors,
+  Gift,
+  Luggage,
+  Dumbbell,
+  BriefcaseBusiness,
+  BatteryCharging,
+  Leaf,
+  ShieldCheck,
   Utensils,
-  Wrench,
-  Gamepad2,
+  Radio,
   Armchair,
-  // ArrowRight,
-  // Globe2,
-  // ShoppingBag,
-  // Sparkles,
+  Wrench,
+  Palette,
+  Pickaxe,
+  CircleDot,
+  Briefcase,
 } from "lucide-react";
-
 interface Produit {
   id: number;
   uid: string;
@@ -91,56 +103,124 @@ interface CategoryItem {
 
 const CATEGORIES: CategoryItem[] = [
   {
-    name: "Électronique",
+    name: "Machines & Industrie",
+    icon: Factory,
+  },
+  {
+    name: "Équipements & Fournitures électriques",
+    icon: Zap,
+  },
+  {
+    name: "Électronique grand public",
     icon: Smartphone,
   },
   {
-    name: "Mode",
+    name: "Vêtements & Accessoires",
     icon: Shirt,
   },
   {
-    name: "Maison",
+    name: "Maison & Jardin",
     icon: Home,
   },
   {
-    name: "Beauté",
+    name: "Beauté & Soins personnels",
     icon: Sparkles,
   },
   {
-    name: "Sport",
-    icon: Dumbbell,
+    name: "Santé & Médical",
+    icon: HeartPulse,
   },
   {
-    name: "Automobile",
-    icon: Car,
-  },
-  {
-    name: "Informatique",
-    icon: Monitor,
-  },
-  {
-    name: "Bureau",
-    icon: BriefcaseBusiness,
-  },
-  {
-    name: "Bébé & Enfants",
+    name: "Bébé, Enfants & Jouets",
     icon: Baby,
   },
   {
-    name: "Cuisine",
+    name: "Véhicules & Transport",
+    icon: Car,
+  },
+  {
+    name: "Emballage & Impression",
+    icon: Package,
+  },
+  {
+    name: "Construction & Immobilier",
+    icon: Building2,
+  },
+  {
+    name: "Agriculture & Alimentation",
+    icon: Wheat,
+  },
+  {
+    name: "Élevage & Produits pour animaux",
+    icon: PawPrint,
+  },
+  {
+    name: "Produits chimiques",
+    icon: FlaskConical,
+  },
+  {
+    name: "Textiles & Cuir",
+    icon: Scissors,
+  },
+  {
+    name: "Cadeaux, Artisanat & Souvenirs",
+    icon: Gift,
+  },
+  {
+    name: "Bagages, Sacs & Étuis",
+    icon: Luggage,
+  },
+  {
+    name: "Sports & Divertissement",
+    icon: Dumbbell,
+  },
+  {
+    name: "Fournitures de bureau & scolaires",
+    icon: BriefcaseBusiness,
+  },
+  {
+    name: "Énergie",
+    icon: BatteryCharging,
+  },
+  {
+    name: "Environnement",
+    icon: Leaf,
+  },
+  {
+    name: "Sécurité & Protection",
+    icon: ShieldCheck,
+  },
+  {
+    name: "Équipements de services",
     icon: Utensils,
   },
   {
-    name: "Bricolage",
-    icon: Wrench,
-  },
-  {
-    name: "Jeux",
-    icon: Gamepad2,
+    name: "Télécommunications",
+    icon: Radio,
   },
   {
     name: "Mobilier",
     icon: Armchair,
+  },
+  {
+    name: "Outils & Quincaillerie",
+    icon: Wrench,
+  },
+  {
+    name: "Arts & Artisanat",
+    icon: Palette,
+  },
+  {
+    name: "Minéraux & Métallurgie",
+    icon: Pickaxe,
+  },
+  {
+    name: "Caoutchouc & Plastiques",
+    icon: CircleDot,
+  },
+  {
+    name: "Services aux entreprises",
+    icon: Briefcase,
   },
 ];
 
@@ -161,6 +241,7 @@ const HomePage: React.FC = () => {
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHeroPaused, setIsHeroPaused] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   /*
    * =========================
@@ -586,8 +667,11 @@ const HomePage: React.FC = () => {
                     return (
                       <button
                         type="button"
-                        className="category-item"
+                        className={`category-item ${
+                          selectedCategory === category.name ? "active" : ""
+                        }`}
                         key={category.name}
+                        onClick={() => setSelectedCategory(category.name)}
                       >
                         <span className="category-circle">
                           <Icon size={25} strokeWidth={1.8} />
@@ -612,8 +696,11 @@ const HomePage: React.FC = () => {
                   return (
                     <button
                       type="button"
-                      className="category-item"
+                      className={`category-item ${
+                        selectedCategory === category.name ? "active" : ""
+                      }`}
                       key={category.name}
+                      onClick={() => setSelectedCategory(category.name)}
                     >
                       <span className="category-circle">
                         <Icon size={25} strokeWidth={1.8} />
@@ -1370,8 +1457,21 @@ const HomePage: React.FC = () => {
     0 8px 20px rgba(0, 164, 166, 0.22);
 }
 
-.category-item:active .category-circle {
-  transform: scale(0.96);
+.category-item.active {
+  transform: translateY(-3px);
+}
+
+.category-item.active .category-circle {
+  background: #00a4a6;
+  color: #ffffff;
+  border-color: #00a4a6;
+  box-shadow: 0 8px 20px rgba(0, 164, 166, 0.22);
+  transform: scale(1.06);
+}
+
+.category-item.active .category-name {
+  color: #00a4a6;
+  font-weight: 700;
 }
 
 .category-item:focus-visible {
