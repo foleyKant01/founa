@@ -1448,13 +1448,7 @@ const HomePage: React.FC = () => {
 }
 
 .category-item:hover .category-circle {
-  background: #00a4a6;
-  color: #ffffff;
-
   transform: scale(1.06);
-
-  box-shadow:
-    0 8px 20px rgba(0, 164, 166, 0.22);
 }
 
 .category-item.active {
