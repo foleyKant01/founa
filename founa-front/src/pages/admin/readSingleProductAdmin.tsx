@@ -1,7 +1,6 @@
 import {
   useEffect,
   useState,
-  type SyntheticEvent,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
