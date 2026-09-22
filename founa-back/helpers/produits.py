@@ -952,3 +952,20 @@ def TopProducts():
             "status": "error",
             "message": str(e)
         }, 500
+        
+        
+def GetProduitsByCategorie():
+    try:
+        categorie = request.json.get('categorie')
+        if not categorie or not categorie.strip():
+            return []
+
+        produits = Produit.query.filter_by(
+            categorie=categorie.strip()
+        ).all()
+
+        return produits
+
+    except Exception as e:
+        print(f"Erreur recherche par catégorie : {e}")
+        return []

@@ -28,6 +28,12 @@ export const GetSingleProduit = (data: {
   return api.post('/produits/get_single_produit', data);
 };
 
+export const GetProduitsByCategorie = (data: {
+  categorie: string;
+}) => {
+  return api.post('/produits/get_produits_by_categorie', data);
+};
+
 // services/product.service.ts
 export const CreateProduit = (data: FormData) => {
   return api.post('/produits/create_produit', data, {

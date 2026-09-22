@@ -20,10 +20,13 @@ class ProduitsApi(Resource):
             return AllSimilarProducts()   
              
         if route == "delete_produit_by_teller":
-            return DeleteProduitByTeller()   
+            return DeleteProduitByTeller()    
         
         if route == "search_product":
             return SearchProduct() 
+        
+        if route == "get_produits_by_categorie":
+            return GetProduitsByCategorie() 
         
         if route == "GenerateAccessToken":
             return GenerateAccessToken()   

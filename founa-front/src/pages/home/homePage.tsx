@@ -3,8 +3,9 @@ import {
   GetAllProduits,
   SearchProduct,
   TopProducts,
+  GetProduitsByCategorie,
 } from "../../services/product.service";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useApp } from "../../context/appContext";
 import {
   Search,
@@ -226,6 +227,7 @@ const CATEGORIES: CategoryItem[] = [
 
 const HomePage: React.FC = () => {
   const nav = useNavigate();
+  const location = useLocation();
   const { refreshCommandeCount } = useApp();
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -242,6 +244,49 @@ const HomePage: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHeroPaused, setIsHeroPaused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const [categoryProducts, setCategoryProducts] = useState<Produit[]>([]);
+  const [categoryLoading, setCategoryLoading] = useState(false);
+
+
+  const refreshHomePage = async () => {
+    try {
+      setLoadingProducts(true);
+
+      // Réinitialiser les recherches
+      setSearchText("");
+      setSearchResults([]);
+
+      // Réinitialiser la catégorie sélectionnée
+      setSelectedCategory("");
+      setCategoryProducts([]);
+
+      // Recharger tous les produits
+      const productsResponse = await GetAllProduits();
+
+      if (productsResponse?.data?.status === "success") {
+        setAllProducts(productsResponse.data.produits || []);
+      } else {
+        setAllProducts([]);
+      }
+
+      // Recharger les produits populaires / top produits
+      const topResponse = await TopProducts();
+
+      if (topResponse?.data?.status === "success") {
+        setTopProducts(topResponse.data.produits || []);
+      } else {
+        setTopProducts([]);
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors du rafraîchissement de la page d'accueil :",
+        error
+      );
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
 
   /*
    * =========================
@@ -367,6 +412,17 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     refreshCommandeCount();
   }, [refreshCommandeCount]);
+
+
+  useEffect(() => {
+  if (location.pathname !== "/home") {
+    return;
+  }
+
+  if (location.state?.refreshHome) {
+    refreshHomePage();
+  }
+}, [location.state?.refreshHome]);
 
   /*
    * =========================
@@ -505,6 +561,39 @@ const HomePage: React.FC = () => {
       </div>
     );
   };
+
+const handleCategoryClick = async (categorie: string) => {
+  try {
+    setSelectedCategory(categorie);
+    setCategoryLoading(true);
+    setCategoryProducts([]);
+
+    const response = await GetProduitsByCategorie({
+      categorie: categorie,
+    });
+
+    if (response.data.status === "success") {
+      setCategoryProducts(response.data.produits || []);
+    } else {
+      setCategoryProducts([]);
+
+      console.error(
+        response.data.message ||
+          "Erreur récupération produits par catégorie"
+      );
+    }
+
+  } catch (error) {
+    console.error(
+      "Erreur lors de la recherche des produits par catégorie :",
+      error
+    );
+
+    setCategoryProducts([]);
+  } finally {
+    setCategoryLoading(false);
+  }
+};
 
   return (
     <div className="home-page">
@@ -671,7 +760,7 @@ const HomePage: React.FC = () => {
                           selectedCategory === category.name ? "active" : ""
                         }`}
                         key={category.name}
-                        onClick={() => setSelectedCategory(category.name)}
+                        onClick={() => handleCategoryClick(category.name)}
                       >
                         <span className="category-circle">
                           <Icon size={25} strokeWidth={1.8} />
@@ -700,7 +789,7 @@ const HomePage: React.FC = () => {
                         selectedCategory === category.name ? "active" : ""
                       }`}
                       key={category.name}
-                      onClick={() => setSelectedCategory(category.name)}
+                      onClick={() => handleCategoryClick(category.name)}
                     >
                       <span className="category-circle">
                         <Icon size={25} strokeWidth={1.8} />
@@ -847,19 +936,79 @@ const HomePage: React.FC = () => {
                 >
                   <div className="section-header">
                     <div>
-                      <span className="section-kicker">
-                        CATALOGUE FOUNA
-                      </span>
+                      {selectedCategory ? (
+                        <>
+                          <span className="section-kicker">
+                            CATÉGORIE FOUNA
+                          </span>
 
-                      <h2>Produits populaires</h2>
+                          <h2>
+                            {selectedCategory}
+                          </h2>
 
-                      <p>
-                        Découvrez tous nos produits.
-                      </p>
+                          <p>
+                            Découvrez les produits disponibles dans la
+                            catégorie.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <span className="section-kicker">
+                            CATALOGUE FOUNA
+                          </span>
+
+                          <h2>
+                            Produits populaires
+                          </h2>
+
+                          <p>
+                            Découvrez tous nos produits.
+                          </p>
+                        </>
+                      )}
                     </div>
+
+                    {selectedCategory && !categoryLoading && (
+                      <span className="result-count">
+                        {categoryProducts.length} produit
+                        {categoryProducts.length > 1 ? "s" : ""}
+                      </span>
+                    )}
                   </div>
 
-                  {allProducts.length === 0 ? (
+                  {selectedCategory ? (
+                    categoryLoading ? (
+                      <div className="empty-state">
+                        <div className="loading-spinner" />
+
+                        <p>
+                          Chargement des produits de la catégorie...
+                        </p>
+                      </div>
+                    ) : categoryProducts.length === 0 ? (
+                      <div className="empty-state">
+                        <PackageOpen size={52} />
+
+                        <h3>
+                          Aucun produit dans cette catégorie
+                        </h3>
+
+                        <p>
+                          Aucun produit n'est actuellement disponible
+                          dans la catégorie « {selectedCategory} ».
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="product-grid">
+                        {categoryProducts.map((produit) => (
+                          <ProductCard
+                            key={produit.uid}
+                            produit={produit}
+                          />
+                        ))}
+                      </div>
+                    )
+                  ) : allProducts.length === 0 ? (
                     <div className="empty-state">
                       <PackageOpen size={52} />
 
@@ -868,8 +1017,7 @@ const HomePage: React.FC = () => {
                       </h3>
 
                       <p>
-                        Aucun produit n'est actuellement
-                        disponible.
+                        Aucun produit n'est actuellement disponible.
                       </p>
                     </div>
                   ) : (

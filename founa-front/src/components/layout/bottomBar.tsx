@@ -65,6 +65,19 @@ const BottomBar: React.FC = () => {
 
   // Gestion de la navigation
   const handleNavigation = (path: string) => {
+    // ==========================================
+    // ACCUEIL : demande de rafraîchissement
+    // ==========================================
+    if (path === "/home") {
+      navigate("/home", {
+        state: {
+          refreshHome: Date.now(),
+        },
+      });
+
+      return;
+    }
+
     const connected = isUserConnected();
 
     // Activité et Commandes nécessitent une connexion
