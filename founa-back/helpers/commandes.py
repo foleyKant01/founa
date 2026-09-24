@@ -214,7 +214,7 @@ def CreateCommande():
         )
         
         send_push_notification(
-            user_uid=teller.uid,
+            user_uid=teller_id,
             user_type="teller",
             title="Nouvelle commande",
             body=f"Une nouvelle commande {commande.commande_id} vient d'être créée.",
