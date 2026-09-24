@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "../config/firebase";
 
-// const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 let notificationsInitialized = false;
 
 export const RegisterDeviceToken = async (
@@ -52,7 +52,7 @@ export const RegisterDeviceToken = async (
     console.log("FCM TOKEN :", token);
 
     await axios.post(
-      `/api/pushnotification/register_device_token`,
+      `${API_URL}/pushnotification/register_device_token`,
       {
         user_uid,
         user_type,
