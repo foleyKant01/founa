@@ -2,7 +2,6 @@ import axios from "axios";
 import { getToken, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "../config/firebase";
 
-// const API_URL = import.meta.env.VITE_API_URL;
 let notificationsInitialized = false;
 
 export const RegisterDeviceToken = async (
@@ -60,40 +59,35 @@ export const RegisterDeviceToken = async (
         device_type: "web",
       }
     );
-
-    console.log("Token FCM enregistré sur Founa");
-
+    console.log(
+      `Token FCM enregistré pour ${user_type}`
+    );
     return token;
-
   } catch (error) {
     console.error(
       "Erreur enregistrement token FCM :",
       error
     );
-
     return null;
   }
 };
+
 
 export const listenForegroundMessages = async (
   callback: (payload: any) => void
 ) => {
   try {
     const messaging = await getFirebaseMessaging();
-
     if (!messaging) {
       return;
     }
-
     return onMessage(messaging, (payload) => {
       console.log(
         "Notification FCM reçue au premier plan :",
         payload
       );
-
       callback(payload);
     });
-
   } catch (error) {
     console.error(
       "Erreur écoute notifications FCM :",
@@ -102,36 +96,80 @@ export const listenForegroundMessages = async (
   }
 };
 
-export const initializeNotifications = async (): Promise<void> => {
 
+export const initializeNotifications = async (): Promise<void> => {
   if (notificationsInitialized) {
     return;
   }
-
   notificationsInitialized = true;
-
   try {
     console.log("Initialisation FCM...");
 
+    /*
+     * Vérifier d'abord le teller
+     */
+    const tellerData = localStorage.getItem("teller");
+
+    /*
+     * Vérifier ensuite le user
+     */
     const userData = localStorage.getItem("user");
 
-    if (!userData) {
-      console.log("Aucun utilisateur connecté");
+    /*
+     * CAS TELLER
+     */
+    if (tellerData) {
+      const teller = JSON.parse(tellerData);
+      if (!teller?.uid) {
+        console.warn("UID teller absent");
+        return;
+      }
+      console.log(
+        "Initialisation FCM pour le teller :",
+        teller.uid
+      );
+      await RegisterDeviceToken(
+        teller.uid,
+        "teller"
+      );
+    }
+
+    /*
+     * CAS USER
+     */
+    else if (userData) {
+      const user = JSON.parse(userData);
+      if (!user?.uid) {
+        console.warn("UID utilisateur absent");
+        return;
+      }
+
+      console.log(
+        "Initialisation FCM pour l'utilisateur :",
+        user.uid
+      );
+
+      await RegisterDeviceToken(
+        user.uid,
+        "user"
+      );
+    }
+
+    /*
+     * AUCUN UTILISATEUR CONNECTÉ
+     */
+    else {
+      console.log(
+        "Aucun utilisateur ou teller connecté"
+      );
       return;
     }
 
-    const user = JSON.parse(userData);
 
-    if (!user?.uid) {
-      console.warn("UID utilisateur absent");
-      return;
-    }
-
-    await RegisterDeviceToken(
-      user.uid,
-      "user"
-    );
-
+    /*
+     * Écoute des notifications lorsque
+     * l'application est ouverte
+     */
     await listenForegroundMessages((payload) => {
       console.log(
         "Notification reçue dans Founa :",
@@ -140,11 +178,9 @@ export const initializeNotifications = async (): Promise<void> => {
     });
 
   } catch (error) {
-
     console.error(
       "Erreur initialisation FCM :",
       error
     );
-
   }
 };
