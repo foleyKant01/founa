@@ -49,30 +49,52 @@ messaging.onBackgroundMessage((payload) => {
   );
 });
 
+self.addEventListener("push", (event) => {
+
+    const payload = event.data?.json() || {};
+
+    const data = payload.data || payload;
+
+    event.waitUntil(
+        self.registration.showNotification(
+            data.title || "FOUNA",
+            {
+                body: data.body || "",
+                icon: "/logo-founa2.png",
+                data: data
+            }
+        )
+    );
+});
+
+
 self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
 
-  const url =
-    event.notification?.data?.url ||
-    "https://founa.ci";
+    event.notification.close();
 
-  event.waitUntil(
-    clients.matchAll({
-      type: "window",
-      includeUncontrolled: true,
-    }).then((clientList) => {
-      for (const client of clientList) {
-        if ("focus" in client) {
-          client.navigate(url);
-          return client.focus();
-        }
-      }
+    const url =
+        event.notification?.data?.url ||
+        "https://founa.ci";
 
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
+    event.waitUntil(
+        clients.matchAll({
+            type: "window",
+            includeUncontrolled: true
+        }).then((clientList) => {
 
-      return undefined;
-    })
-  );
+            for (const client of clientList) {
+
+                if ("focus" in client) {
+
+                    client.navigate(url);
+
+                    return client.focus();
+                }
+            }
+
+            if (clients.openWindow) {
+                return clients.openWindow(url);
+            }
+        })
+    );
 });
