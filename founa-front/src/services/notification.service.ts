@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const registerFCMToken = async (
   user_uid: string,
-  user_type: "client" | "teller"
+  user_type: "user" | "teller"
 ) => {
   try {
     if (!user_uid) {
@@ -117,7 +117,7 @@ export const initializeNotifications = async (): Promise<void> => {
       return;
     }
 
-    await registerFCMToken(user.uid, "client");
+    await registerFCMToken(user.uid, "user");
 
     await listenForegroundMessages((payload) => {
       console.log(
