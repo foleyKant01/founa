@@ -2,9 +2,10 @@ import axios from "axios";
 import { getToken, onMessage } from "firebase/messaging";
 import { getFirebaseMessaging } from "../config/firebase";
 
-// const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
+let notificationsInitialized = false;
 
-export const registerFCMToken = async (
+export const RegisterDeviceToken = async (
   user_uid: string,
   user_type: "user" | "teller"
 ) => {
@@ -51,7 +52,7 @@ export const registerFCMToken = async (
     console.log("FCM TOKEN :", token);
 
     await axios.post(
-      `/pushnotification/register_device_token`,
+      `${API_URL}/pushnotification/register_device_token`,
       {
         user_uid,
         user_type,
@@ -63,6 +64,7 @@ export const registerFCMToken = async (
     console.log("Token FCM enregistré sur Founa");
 
     return token;
+
   } catch (error) {
     console.error(
       "Erreur enregistrement token FCM :",
@@ -91,6 +93,7 @@ export const listenForegroundMessages = async (
 
       callback(payload);
     });
+
   } catch (error) {
     console.error(
       "Erreur écoute notifications FCM :",
@@ -100,6 +103,13 @@ export const listenForegroundMessages = async (
 };
 
 export const initializeNotifications = async (): Promise<void> => {
+
+  if (notificationsInitialized) {
+    return;
+  }
+
+  notificationsInitialized = true;
+
   try {
     console.log("Initialisation FCM...");
 
@@ -117,7 +127,10 @@ export const initializeNotifications = async (): Promise<void> => {
       return;
     }
 
-    await registerFCMToken(user.uid, "user");
+    await RegisterDeviceToken(
+      user.uid,
+      "user"
+    );
 
     await listenForegroundMessages((payload) => {
       console.log(
@@ -127,9 +140,11 @@ export const initializeNotifications = async (): Promise<void> => {
     });
 
   } catch (error) {
+
     console.error(
       "Erreur initialisation FCM :",
       error
     );
+
   }
 };

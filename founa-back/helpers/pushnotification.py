@@ -12,11 +12,12 @@ import uuid
 def RegisterDeviceToken():
     try:
         data = request.get_json() or {}
+
         user_uid = data.get("user_uid")
         user_type = data.get("user_type")
         device_token = data.get("device_token")
         device_type = data.get("device_type", "web")
-        
+
         if not user_uid:
             return {
                 "status": "error",
@@ -40,6 +41,7 @@ def RegisterDeviceToken():
         ).first()
 
         if existing:
+
             existing.user_uid = user_uid
             existing.user_type = user_type
             existing.device_type = device_type
@@ -47,6 +49,7 @@ def RegisterDeviceToken():
             existing.updated_at = datetime.utcnow()
 
         else:
+
             token = DeviceTokens(
                 u_uid=str(uuid.uuid4()),
                 user_uid=user_uid,
@@ -55,7 +58,9 @@ def RegisterDeviceToken():
                 device_type=device_type,
                 is_active=True
             )
+
             db.session.add(token)
+
         db.session.commit()
 
         return {
@@ -64,16 +69,18 @@ def RegisterDeviceToken():
         }, 200
 
     except Exception as e:
+
         db.session.rollback()
+
         print(
             "Erreur RegisterDeviceToken:",
             str(e)
         )
+
         return {
             "status": "error",
             "message": str(e)
         }, 500
-
 
 
 def send_ios_push_notification(message: str, device_token: str):
