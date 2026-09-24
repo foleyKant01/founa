@@ -12,9 +12,11 @@ import {
   LogOut,
   Store,
   RefreshCw,
+  Bell
 } from "lucide-react";
 
 import { GetAllCommandeByTeller } from "../../services/order.service";
+import { RegisterDeviceToken } from "../../services/notification.service";
 
 const TellerDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -100,6 +102,31 @@ const TellerDashboard: React.FC = () => {
     localStorage.removeItem("teller");
     navigate("/auth/login");
   };
+
+  const handleEnableNotifications = async () => {
+  if (!teller?.uid) {
+    console.warn("Teller non connecté");
+    return;
+  }
+
+  try {
+    const token = await RegisterDeviceToken(
+      teller.uid,
+      "teller"
+    );
+
+    if (token) {
+      console.log("Notifications activées pour le teller");
+    } else {
+      console.warn("Impossible d'activer les notifications");
+    }
+  } catch (error) {
+    console.error(
+      "Erreur activation notifications :",
+      error
+    );
+  }
+};
 
 const refreshStatistics = async () => {
   if (!teller?.uid) return;
@@ -267,6 +294,43 @@ const refreshStatistics = async () => {
             font-weight: 700;
             white-space: nowrap;
           }
+
+          .teller-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.notification-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.16);
+  color: #ffffff;
+  padding: 10px 15px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.notification-button:hover {
+  background: rgba(255,255,255,0.28);
+  transform: translateY(-1px);
+}
+
+.notification-button:active {
+  transform: translateY(0);
+}
+
+.notification-button svg {
+  flex-shrink: 0;
+}
 
           /* =========================================
              STATISTIQUES
@@ -680,6 +744,19 @@ const refreshStatistics = async () => {
             .logout-container {
               justify-content: center;
             }
+            .teller-header-right {
+              width: 100%;
+              align-items: stretch;
+            }
+
+            .notification-button {
+              width: 100%;
+            }
+
+            .teller-badge {
+              width: 100%;
+              justify-content: center;
+            }
           }
 
           @media (max-width: 420px) {
@@ -732,9 +809,21 @@ const refreshStatistics = async () => {
 
             </div>
 
-            <div className="teller-badge">
-              <Store size={16} />
-              Espace Marchand
+            <div className="teller-header-right">
+
+              <button
+                className="notification-button"
+                onClick={handleEnableNotifications}
+              >
+                <Bell size={17} />
+                Activer les notifications
+              </button>
+
+              <div className="teller-badge">
+                <Store size={16} />
+                Espace Marchand
+              </div>
+
             </div>
 
           </header>
