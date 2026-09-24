@@ -33,8 +33,8 @@ messaging.onBackgroundMessage((payload) => {
       payload.notification?.body ||
       payload.data?.body ||
       "Vous avez une nouvelle notification.",
-    icon: "/logo-founa2.png",
-    badge: "/logo-founa2.png",
+    icon: "/logo-founa.png",
+    badge: "/logo-founa.png",
     data: {
       url:
         payload.data?.url ||
@@ -60,7 +60,7 @@ self.addEventListener("push", (event) => {
             data.title || "FOUNA",
             {
                 body: data.body || "",
-                icon: "/logo-founa2.png",
+                icon: "/logo-founa.png",
                 data: data
             }
         )
