@@ -15,9 +15,11 @@ import {
   ChevronRight,
   CalendarDays,
   Wallet,
+  Bell,
 } from "lucide-react";
 import { ReadSingleClient } from "../../services/auth.service";
 import { GetAllCommandeByClient } from "../../services/order.service";
+import { RegisterDeviceToken } from "../../services/notification.service";
 import { useNavigate } from "react-router-dom";
 
 interface User {
@@ -47,6 +49,8 @@ const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
 
   const navigate = useNavigate();
 
@@ -84,6 +88,39 @@ const ProfilePage: React.FC = () => {
 
     loadProfile();
   }, [uid]);
+
+  // =========================================================
+// NOTIFICATIONS
+// =========================================================
+
+const handleEnableNotifications = async () => {
+  if (!uid) {
+    console.warn("Utilisateur non connecté");
+    return;
+  }
+
+  try {
+    setNotificationLoading(true);
+
+    const token = await RegisterDeviceToken(
+      uid,
+      "user"
+    );
+
+    if (token) {
+      setNotificationEnabled(true);
+      console.log("Notifications Founa activées");
+    }
+
+  } catch (error) {
+    console.error(
+      "Erreur activation notifications :",
+      error
+    );
+  } finally {
+    setNotificationLoading(false);
+  }
+};
 
   // =========================================================
   // STATISTIQUES
@@ -524,9 +561,37 @@ const ProfilePage: React.FC = () => {
           }
 
           .profile-hero-actions {
-            display: flex;
-            gap: 10px;
-          }
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-width: 310px;
+}
+
+.profile-hero-account-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.profile-hero-account-actions .hero-action {
+  flex: 1;
+}
+
+.notification-action {
+  width: 100%;
+  justify-content: center;
+  background: rgba(255,255,255,0.24);
+  border: 1px solid rgba(255,255,255,0.35);
+}
+
+.notification-action:hover {
+  background: rgba(255,255,255,0.34);
+}
+
+.notification-action:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
 
           .hero-action {
             border: none;
@@ -909,55 +974,66 @@ const ProfilePage: React.FC = () => {
           }
 
           @media (max-width: 750px) {
-            .profile-page {
-              padding: 16px 14px 100px;
-            }
 
-            .profile-header {
-              align-items: flex-start;
-            }
+  .profile-page {
+    padding: 16px 14px 100px;
+  }
 
-            .profile-heading h1 {
-              font-size: 23px;
-            }
+  .profile-header {
+    align-items: flex-start;
+  }
 
-            .profile-hero {
-              flex-direction: column;
-              align-items: flex-start;
-              padding: 22px;
-            }
+  .profile-heading h1 {
+    font-size: 23px;
+  }
 
-            .profile-hero-actions {
-              width: 100%;
-            }
+  .profile-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 22px;
+  }
 
-            .hero-action {
-              flex: 1;
-              justify-content: center;
-            }
+  .profile-hero-actions {
+    width: 100%;
+    min-width: 0;
+  }
 
-            .profile-stats {
-              grid-template-columns: 1fr 1fr;
-            }
+  .profile-hero-account-actions {
+    width: 100%;
+  }
 
-            .profile-card {
-              padding: 18px;
-            }
+  .profile-hero-account-actions .hero-action {
+    flex: 1;
+    justify-content: center;
+  }
 
-            .order-main {
-              grid-template-columns: 1fr auto;
-            }
+  .notification-action {
+    width: 100%;
+    justify-content: center;
+  }
 
-            .order-arrow {
-              grid-column: 2;
-              grid-row: 1;
-            }
+  .profile-stats {
+    grid-template-columns: 1fr 1fr;
+  }
 
-            .order-amount {
-              grid-column: 1;
-              text-align: left;
-            }
-          }
+  .profile-card {
+    padding: 18px;
+  }
+
+  .order-main {
+    grid-template-columns: 1fr auto;
+  }
+
+  .order-arrow {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .order-amount {
+    grid-column: 1;
+    text-align: left;
+  }
+}
 
           @media (max-width: 500px) {
             .profile-stats {
@@ -1019,21 +1095,43 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <div className="profile-hero-actions">
+
+              {/* ACTIVER LES NOTIFICATIONS */}
               <button
-                className="hero-action"
-                onClick={() => navigate("/update")}
+                className="hero-action notification-action"
+                onClick={handleEnableNotifications}
+                disabled={notificationLoading || notificationEnabled}
               >
-                <Edit3 size={17} />
-                Modifier
+                <Bell size={17} />
+
+                {notificationLoading
+                  ? "Activation..."
+                  : notificationEnabled
+                  ? "Notifications activées"
+                  : "Activer les notifications"}
               </button>
 
-              <button
-                className="hero-action"
-                onClick={() => navigate("/updatepassword")}
-              >
-                <Lock size={17} />
-                Mot de passe
-              </button>
+              {/* ACTIONS COMPTE */}
+              <div className="profile-hero-account-actions">
+
+                <button
+                  className="hero-action"
+                  onClick={() => navigate("/update")}
+                >
+                  <Edit3 size={17} />
+                  Modifier
+                </button>
+
+                <button
+                  className="hero-action"
+                  onClick={() => navigate("/updatepassword")}
+                >
+                  <Lock size={17} />
+                  Mot de passe
+                </button>
+
+              </div>
+
             </div>
           </div>
 
