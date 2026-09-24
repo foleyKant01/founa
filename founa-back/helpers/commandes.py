@@ -4,6 +4,7 @@ from flask import request
 from datetime import datetime
 from helpers.commandestatuslog import *
 import random
+from services.fcm_service import send_push_notification
 
 
 
@@ -210,6 +211,18 @@ def CreateCommande():
             teller_id=teller_id,
             statut="Initier",
             view="1"
+        )
+        
+        send_push_notification(
+            user_uid=teller.uid,
+            user_type="teller",
+            title="Nouvelle commande",
+            body=f"Une nouvelle commande {commande.commande_id} vient d'être créée.",
+            data={
+                "type": "new_order",
+                "commande_id": commande.commande_id,
+                "url": "https://founa.ci/teller/orders"
+            }
         )
 
         db.session.add(commande)
@@ -447,6 +460,19 @@ def UpdateCommande():
         update_commande.updated_date = datetime.datetime.now()
         
         db.session.commit()
+        
+        send_push_notification(
+            user_uid=update_commande.client_id,
+            user_type="client",
+            title="Mise à jour de votre commande",
+            body=f"Votre commande {update_commande.commande_id} est maintenant : {update_commande.statut}",
+            data={
+                "type": "order_status",
+                "commande_id": update_commande.commande_id,
+                "statut": update_commande.statut,
+                "url": "https://founa.ci/orders"
+            }
+        )
         
         CreateCommandeStatusLog({
             "commande_id": update_commande.commande_id,

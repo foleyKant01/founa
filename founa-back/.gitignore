@@ -14,6 +14,9 @@ __pycache__/
 /venv
 .venv/
 .venv
+/env
+.env/
+.env
 /static
 .static/
 .static
@@ -29,3 +32,18 @@ __pycache__/
 /model/__pycache__
 /helpers/__pycache__
 /__pycache__
+
+# Secrets Firebase
+founa-ci-firebase-adminsdk-fbsvc-e5c0822145.json
+
+# Environment variables
+founa-back/.env
+EOF
+
+# Variables d'environnement
+.env
+.env.*
+
+# Firebase credentials
+*firebase-adminsdk*.json
+firebase-service-account.json

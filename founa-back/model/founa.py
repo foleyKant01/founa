@@ -184,3 +184,15 @@ class UnavaibleProduct(db.Model):
 #     teller = db.relationship('Teller', backref=db.backref('commandestatuslog', lazy=True))
 #     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 #     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+
+
+class DeviceTokens(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    u_uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
+    user_uid = db.Column(db.String(128), nullable=False, index=True)
+    user_type = db.Column(db.String(30), nullable=False)
+    device_token = db.Column(db.String(500), unique=True, nullable=False)
+    device_type = db.Column(db.String(50), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
