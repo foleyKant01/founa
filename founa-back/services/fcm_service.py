@@ -22,22 +22,6 @@ def initialize_firebase():
     return firebase_app
 
 
-def texte():
-    send_push_notification(
-        user_uid = "92a3be03-03c6-4882-9b3e-908adc068861",
-        user_type="user",
-        title="Mise à jour de votre commande",
-        body=f"Votre commande COM20260902305 est maintenant : Payer",
-        data={
-            "type": "order_status",
-            "commande_id": "COM20260902305",
-            "statut": "Payer",
-            "url": "https://founa.ci/orders"
-        }
-    )
-    return firebase_app
-
-
 def send_push_notification(
     user_uid: str,
     user_type: str,
