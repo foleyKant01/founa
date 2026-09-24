@@ -463,7 +463,7 @@ def UpdateCommande():
         
         send_push_notification(
             user_uid=update_commande.client_id,
-            user_type="client",
+            user_type="user",
             title="Mise à jour de votre commande",
             body=f"Votre commande {update_commande.commande_id} est maintenant : {update_commande.statut}",
             data={

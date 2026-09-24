@@ -6,3 +6,6 @@ class PushNotificationApi(Resource):
     def post(self, route):
         if route == "register_device_token": 
             return RegisterDeviceToken()
+        
+        if route == "texte": 
+            return texte()
