@@ -49,23 +49,23 @@ messaging.onBackgroundMessage((payload) => {
   );
 });
 
-self.addEventListener("push", (event) => {
+// self.addEventListener("push", (event) => {
 
-    const payload = event.data?.json() || {};
+//     const payload = event.data?.json() || {};
 
-    const data = payload.data || payload;
+//     const data = payload.data || payload;
 
-    event.waitUntil(
-        self.registration.showNotification(
-            data.title || "FOUNA",
-            {
-                body: data.body || "",
-                icon: "/logo-founa.png",
-                data: data
-            }
-        )
-    );
-});
+//     event.waitUntil(
+//         self.registration.showNotification(
+//             data.title || "FOUNA",
+//             {
+//                 body: data.body || "",
+//                 icon: "/logo-founa.png",
+//                 data: data
+//             }
+//         )
+//     );
+// });
 
 
 self.addEventListener("notificationclick", (event) => {

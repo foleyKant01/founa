@@ -104,7 +104,8 @@ const handleEnableNotifications = async () => {
 
     const token = await RegisterDeviceToken(
       uid,
-      "user"
+      "user",
+      true
     );
 
     if (token) {

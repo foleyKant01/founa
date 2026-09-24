@@ -84,23 +84,23 @@ def RegisterDeviceToken():
         }, 500
         
         
-def texte():
-    result = send_push_notification(
-        user_uid="92a3be03-03c6-4882-9b3e-908adc068861",
-        user_type="user",
-        title="Mise à jour de votre commande",
-        body="Votre commande COM20260902305 est maintenant : Payer",
-        data={
-            "type": "order_status",
-            "commande_id": "COM20260902305",
-            "statut": "Payer",
-            "url": "https://founa.ci/orders"
-        }
-    )
+# def texte():
+#     result = send_push_notification(
+#         user_uid="92a3be03-03c6-4882-9b3e-908adc068861",
+#         user_type="user",
+#         title="Mise à jour de votre commande",
+#         body="Votre commande COM20260902305 est maintenant : Payer",
+#         data={
+#             "type": "order_status",
+#             "commande_id": "COM20260902305",
+#             "statut": "Payer",
+#             "url": "https://founa.ci/orders"
+#         }
+#     )
 
-    print("Résultat notification :", result)
+#     print("Résultat notification :", result)
 
-    return result
+#     return result
 
 
 def send_ios_push_notification(message: str, device_token: str):

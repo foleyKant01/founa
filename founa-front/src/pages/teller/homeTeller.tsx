@@ -112,7 +112,8 @@ const TellerDashboard: React.FC = () => {
   try {
     const token = await RegisterDeviceToken(
       teller.uid,
-      "teller"
+      "teller",
+      false
     );
 
     if (token) {

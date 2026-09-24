@@ -6,7 +6,8 @@ let notificationsInitialized = false;
 
 export const RegisterDeviceToken = async (
   user_uid: string,
-  user_type: "user" | "teller"
+  user_type: "user" | "teller",
+  askPermission: boolean = false
 ) => {
   try {
     if (!user_uid) {
@@ -19,13 +20,23 @@ export const RegisterDeviceToken = async (
       return null;
     }
 
-    const permission = await Notification.requestPermission();
+let permission = Notification.permission;
 
-    if (permission !== "granted") {
-      console.warn("Permission notification refusée");
-      return null;
-    }
+if (
+  permission === "default" &&
+  askPermission
+) {
+  permission =
+    await Notification.requestPermission();
+}
 
+if (permission !== "granted") {
+  console.log(
+    "Notifications non autorisées."
+  );
+
+  return null;
+}
     const messaging = await getFirebaseMessaging();
 
     if (!messaging) {
