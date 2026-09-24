@@ -51,7 +51,7 @@ export const registerFCMToken = async (
     console.log("FCM TOKEN :", token);
 
     await axios.post(
-      `/notifications/register_device_token`,
+      `/pushnotification/register_device_token`,
       {
         user_uid,
         user_type,
