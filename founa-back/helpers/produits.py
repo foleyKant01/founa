@@ -60,7 +60,6 @@ def ImporterProduit():
     produits_crees = []
     erreurs = []
     produits_ignores = []
-    produits_deja_vus = set()
 
     try:
         base_dir = os.path.dirname(
@@ -95,19 +94,42 @@ def ImporterProduit():
                 )
             }
 
-        noms_deja_vus = set()
-        images_deja_vues = set()
+        # ==========================================
+        # DOUBLONS DANS LE JSON
+        # ==========================================
+
+        # On conserve les produits déjà rencontrés
+        # sous forme :
+        #
+        # (
+        #     nom_normalise,
+        #     prix_fournisseur_fcfa,
+        #     images
+        # )
+        #
+        produits_deja_vus = []
+
+        # ==========================================
+        # PARCOURS DES PRODUITS
+        # ==========================================
 
         for index, data in enumerate(produits, start=1):
 
             try:
-                nom = (data.get("nom") or "").strip()
 
-                description = (
+                # ==========================================
+                # INFORMATIONS DE BASE
+                # ==========================================
+
+                nom = str(
+                    data.get("nom") or ""
+                ).strip()
+
+                description = str(
                     data.get("description") or ""
                 ).strip()
 
-                categorie = (
+                categorie = str(
                     data.get("categorie") or ""
                 ).strip()
 
@@ -120,7 +142,7 @@ def ImporterProduit():
                 # DEVISE
                 # ==========================================
 
-                devise = (
+                devise = str(
                     data.get("devise") or "usd"
                 ).strip().lower()
 
@@ -133,11 +155,12 @@ def ImporterProduit():
                 # PRIX FOURNISSEUR
                 # ==========================================
 
+                # Prix original dans la devise du fournisseur
                 prix_fournisseur_devise = float(
                     data.get("prix_fournisseur") or 0
                 )
 
-                # Choix du taux selon la devise
+                # Choix du taux
                 if devise == "usd":
                     taux_devise = TAUX_USD_XOF
                 else:
@@ -148,7 +171,10 @@ def ImporterProduit():
                     prix_fournisseur_devise * taux_devise
                 )
 
-                # Prix de vente = prix fournisseur + 25%
+                # ==========================================
+                # PRIX DE VENTE
+                # ==========================================
+
                 prix_vente = (
                     math.ceil(
                         prix_fournisseur * 1.25 / 10
@@ -163,19 +189,19 @@ def ImporterProduit():
                     data.get("moq") or 0
                 )
 
-                informations_fournisseur = (
+                informations_fournisseur = str(
                     data.get("informations_fournisseur") or ""
                 ).strip()
-                
+
                 stock_disponible = int(
                     data.get("stock_disponible") or 0
                 )
 
-                fournisseur_nom = (
+                fournisseur_nom = str(
                     data.get("fournisseur") or ""
                 ).strip()
 
-                supplier_id = (
+                supplier_id = str(
                     data.get("supplierId") or ""
                 ).strip()
 
@@ -189,9 +215,13 @@ def ImporterProduit():
                     if valeur
                 )
 
-                lien_1 = (
+                lien_1 = str(
                     data.get("lien_1") or ""
                 ).strip()
+
+                # ==========================================
+                # IMAGES
+                # ==========================================
 
                 images = data.get("images") or []
 
@@ -199,34 +229,89 @@ def ImporterProduit():
                     images = [images]
 
                 images = [
-                    url.strip()
+                    str(url).strip()
                     for url in images
-                    if isinstance(url, str)
-                    and url.strip()
+                    if url is not None
+                    and str(url).strip()
                 ]
 
+                # Suppression des images identiques
+                # dans le même produit
+                images_normalisees = set(images)
+
                 # ==========================================
-                # DOUBLONS DANS LE JSON
+                # NORMALISATION POUR DOUBLON
                 # ==========================================
 
                 nom_normalise = nom.lower().strip()
 
-                prix_fournisseur = float(
-                    data.get("prix_fournisseur") or 0
+                # Le prix utilisé pour les doublons est
+                # le prix fournisseur en FCFA
+                prix_doublon = float(
+                    prix_fournisseur
                 )
 
-                moq = int(
-                    data.get("moq") or 0
-                )
+                # ==========================================
+                # DOUBLON DANS LE JSON
+                # ==========================================
 
-                cle_doublon = (
-                    nom_normalise,
-                    prix_fournisseur,
-                    moq
-                )
+                doublon_json = False
+                doublon_json_info = None
 
-                doublon_json = cle_doublon in produits_deja_vus
+                for produit_deja_vu in produits_deja_vus:
 
+                    nom_existant = produit_deja_vu[
+                        "nom"
+                    ]
+
+                    prix_existant = produit_deja_vu[
+                        "prix_fournisseur"
+                    ]
+
+                    images_existantes = produit_deja_vu[
+                        "images"
+                    ]
+
+                    meme_nom = (
+                        nom_normalise == nom_existant
+                    )
+
+                    meme_prix = (
+                        prix_doublon == prix_existant
+                    )
+
+                    meme_image = bool(
+                        images_normalisees.intersection(
+                            images_existantes
+                        )
+                    )
+
+                    # ==========================================
+                    # REGLE DE DOUBLON
+                    # ==========================================
+                    #
+                    # Même nom
+                    # +
+                    # Même prix fournisseur
+                    # +
+                    # Au moins une image identique
+                    #
+                    if (
+                        meme_nom
+                        and meme_prix
+                        and meme_image
+                    ):
+                        doublon_json = True
+                        doublon_json_info = {
+                            "nom": nom_existant,
+                            "prix_fournisseur": prix_existant,
+                            "images": list(
+                                images_normalisees.intersection(
+                                    images_existantes
+                                )
+                            )
+                        }
+                        break
 
                 if doublon_json:
 
@@ -236,55 +321,76 @@ def ImporterProduit():
                         "sku": data.get("sku"),
                         "prix_fournisseur": prix_fournisseur,
                         "moq": moq,
+                        "images": images,
                         "message": (
-                            "Doublon détecté : "
-                            "même nom, même prix_fournisseur et même moq "
-                            "déjà présents dans le fichier JSON"
-                        )
+                            "Doublon détecté dans le fichier JSON : "
+                            "même nom, même prix_fournisseur "
+                            "et au moins une image identique"
+                        ),
+                        "doublon_avec": doublon_json_info
                     })
 
                     continue
 
                 # ==========================================
-                # DOUBLON PAR NOM DANS LA BASE
+                # DOUBLON DANS LA BASE DE DONNÉES
                 # ==========================================
 
-                produit_existant_nom = (
-                    Produit.query
-                    .filter_by(nom=nom)
-                    .first()
-                )
+                produit_existant = None
+                image_commune = []
 
-                if produit_existant_nom:
-
-                    produits_ignores.append({
-                        "index": index,
-                        "nom": nom,
-                        "produit_uid": produit_existant_nom.uid,
-                        "message": (
-                            "Produit déjà présent dans la base "
-                            "de données avec le même nom"
-                        )
-                    })
-
-                    continue
-
-                # ==========================================
-                # DOUBLON PAR IMAGE DANS LA BASE
-                # ==========================================
-
-                produit_existant_image = None
                 produits_existants = Produit.query.all()
 
                 for produit_db in produits_existants:
+
+                    # ------------------------------------------
+                    # NOM
+                    # ------------------------------------------
+
+                    nom_db = str(
+                        produit_db.nom or ""
+                    ).strip().lower()
+
+                    meme_nom_db = (
+                        nom_normalise == nom_db
+                    )
+
+                    if not meme_nom_db:
+                        continue
+
+                    # ------------------------------------------
+                    # PRIX FOURNISSEUR
+                    # ------------------------------------------
+
+                    prix_db = float(
+                        produit_db.prix_fournisseur or 0
+                    )
+
+                    meme_prix_db = (
+                        prix_doublon == prix_db
+                    )
+
+                    if not meme_prix_db:
+                        continue
+
+                    # ------------------------------------------
+                    # IMAGES
+                    # ------------------------------------------
+
                     images_db = produit_db.images
+
                     if not images_db:
                         continue
+
+                    # Si les images sont stockées
+                    # sous forme JSON string
                     if isinstance(images_db, str):
+
                         try:
                             images_db = json.loads(
                                 images_db
                             )
+
                         except (
                             json.JSONDecodeError,
                             TypeError
@@ -298,49 +404,79 @@ def ImporterProduit():
                             images_db
                         ]
 
-                    images_db = {
+                    images_db_normalisees = {
                         str(image).strip()
                         for image in images_db
-                        if image
+                        if image is not None
+                        and str(image).strip()
                     }
 
-                    if images_normalisees.intersection(
-                        images_db
-                    ):
-                        produit_existant_image = (
-                            produit_db
+                    image_commune = list(
+                        images_normalisees.intersection(
+                            images_db_normalisees
                         )
+                    )
+
+                    meme_image_db = bool(
+                        image_commune
+                    )
+
+                    # ------------------------------------------
+                    # DOUBLON COMPLET
+                    # ------------------------------------------
+
+                    if (
+                        meme_nom_db
+                        and meme_prix_db
+                        and meme_image_db
+                    ):
+                        produit_existant = produit_db
                         break
 
-                if produit_existant_image:
+                # ==========================================
+                # SI DOUBLON BASE
+                # ==========================================
+
+                if produit_existant:
+
                     produits_ignores.append({
                         "index": index,
                         "nom": nom,
+                        "sku": data.get("sku"),
+                        "prix_fournisseur": prix_fournisseur,
+                        "moq": moq,
+                        "images": images,
                         "produit_uid": (
-                            produit_existant_image.uid
+                            produit_existant.uid
                         ),
                         "message": (
                             "Produit déjà présent dans la base "
-                            "de données avec une ou plusieurs "
-                            "images identiques"
-                        )
+                            "de données : même nom, "
+                            "même prix_fournisseur et "
+                            "au moins une image identique"
+                        ),
+                        "images_communes": image_commune
                     })
+
                     continue
 
                 # ==========================================
-                # ENREGISTREMENT DES DOUBLONS
+                # ENREGISTREMENT DU PRODUIT
+                # COMME PRODUIT DÉJÀ VU
                 # ==========================================
-                noms_deja_vus.add(
-                    nom_normalise
-                )
 
-                images_deja_vues.update(
-                    images_normalisees
-                )
+                produits_deja_vus.append({
+                    "nom": nom_normalise,
+                    "prix_fournisseur": prix_doublon,
+                    "images": set(
+                        images_normalisees
+                    )
+                })
 
                 # ==========================================
                 # CREATION DU PRODUIT
                 # ==========================================
+
                 produit = Produit(
                     nom=nom,
                     fournisseur=fournisseur,
@@ -349,61 +485,94 @@ def ImporterProduit():
                     categorie=categorie,
                     description=description,
                     lien_1=lien_1,
+
+                    # Prix fournisseur en FCFA
                     prix_fournisseur=prix_fournisseur,
+
+                    # Prix original dans la devise fournisseur
                     prix_fournisseur_devise=(
                         prix_fournisseur_devise
-                        if devise == "usd"
-                        else None
                     ),
+
                     prix_vente=prix_vente,
+
                     images=json.dumps(
                         images,
                         ensure_ascii=False
                     ),
+
                     stock_disponible=stock_disponible,
                     moq=moq
                 )
+
                 db.session.add(produit)
+
                 produits_crees.append({
                     "nom": nom,
                     "devise": devise,
-                    "prix_fournisseur": (
+
+                    # Prix original
+                    "prix_fournisseur_devise": (
                         prix_fournisseur_devise
                     ),
+
                     "taux_conversion": taux_devise,
+
+                    # Prix fournisseur FCFA
                     "prix_fournisseur_fcfa": (
                         prix_fournisseur
                     ),
+
                     "prix_vente": prix_vente,
+
                     "stock_disponible": stock_disponible,
                     "moq": moq,
                     "produit_uid": produit.uid,
                     "images": images
                 })
+
             except Exception as product_error:
+
                 erreurs.append({
                     "index": index,
                     "nom": data.get("nom", ""),
                     "erreur": str(product_error)
                 })
+
+        # ==========================================
+        # VALIDATION TRANSACTION
+        # ==========================================
+
         db.session.commit()
+
+        # ==========================================
+        # REPONSE
+        # ==========================================
+
         return {
             "status": "success",
+
             "message": (
                 f"{len(produits_crees)} produit(s) créé(s)"
             ),
+
             "produits_crees": produits_crees,
+
             "erreurs": erreurs,
+
             "produits_ignores": produits_ignores
         }
+
     except Exception as e:
+
         db.session.rollback()
+
         return {
             "status": "error",
             "message": str(e)
         }
         
-
+        
 def CreateProduit():
     try:
         nom = (request.form.get("nom") or "").strip()
