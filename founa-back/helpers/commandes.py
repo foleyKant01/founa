@@ -519,26 +519,54 @@ def OptionEnvoie():
 
     
 def DeleteExpiredCommandes():
+    
     import datetime
+
     try:
-        limite_date = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+
+        limite_date = (
+            datetime.datetime.utcnow()
+            - datetime.timedelta(days=7)
+        )
+
         commandes = Commande.query.filter(
             Commande.statut == "Valider",
             Commande.created_date <= limite_date
         ).all()
+
         nombre_supprime = len(commandes)
+
         for commande in commandes:
+
+            # Supprimer les logs de statut liés à la commande
+            CommandeStatusLog.query.filter_by(
+                commande_id=commande.uid
+            ).delete(
+                synchronize_session=False
+            )
+
+            # Supprimer ensuite la commande
             db.session.delete(commande)
+
         db.session.commit()
+
         return {
             "success": True,
-            "message": f"{nombre_supprime} commande(s) expirée(s) supprimée(s)",
+            "message": (
+                f"{nombre_supprime} commande(s) expirée(s) supprimée(s)"
+            ),
             "deleted_count": nombre_supprime
         }
+
     except Exception as e:
+
         db.session.rollback()
+
         return {
             "success": False,
-            "message": "Erreur lors de la suppression des commandes expirées",
+            "message": (
+                "Erreur lors de la suppression "
+                "des commandes expirées"
+            ),
             "error": str(e)
         }
