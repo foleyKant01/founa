@@ -10,6 +10,7 @@ from flask import jsonify
 from sqlalchemy import or_
 import unicodedata
 import cloudinary.uploader
+from sqlalchemy import func
 from werkzeug.utils import secure_filename
 
 
@@ -450,8 +451,9 @@ def CreateProduit():
         
         
 
+
 def GetAllProduits():
-    produits = Produit.query.all()
+    produits = Produit.query.order_by(func.rand()).all()
     result = []
     for p in produits:
         result.append({
@@ -459,11 +461,11 @@ def GetAllProduits():
             "nom": p.nom,
             "description": p.description,
             "lien_1": p.lien_1,
-            "prix_vente": p.prix_vente, 
-            "images": p.images, 
-            "stock_disponible": p.stock_disponible, 
-            "moq": p.moq, 
-            "status": p.status, 
+            "prix_vente": p.prix_vente,
+            "images": p.images,
+            "stock_disponible": p.stock_disponible,
+            "moq": p.moq,
+            "status": p.status,
             "fournisseur": p.fournisseur,
             "creation_date": str(p.creation_date),
         })
