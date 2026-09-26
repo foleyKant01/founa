@@ -3786,28 +3786,6 @@
         "moq": 1,
         "sku": "Null",
         "fournisseur": "Null"
-    },
-    {
-        "nom": "Chemise à Manches Courtes pour Homme",
-        "variantes": "Null",
-        "materiaux": "Null",
-        "dimensions": "Null",
-        "categorie": "Vêtements & Accessoires",
-        "poids": "Null",
-        "informations_fournisseur": "Null",
-        "description": "Cacté Tendance Mode Rue, Idée Cadeau.",
-        "lien_1": "",
-        "prix_fournisseur": 6.92,
-        "images": [
-            "itffffffkgkf",
-            "hjgkjhgjgjgj",
-            "jhkhjglhgljhgj",
-            "hbhgkjgkjgh"
-        ],
-        "stock_disponible": 5,
-        "moq": 1,
-        "sku": "Null",
-        "fournisseur": "Null"
-    },
+    }
 ]
 
