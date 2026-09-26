@@ -60,6 +60,7 @@ def ImporterProduit():
     produits_crees = []
     erreurs = []
     produits_ignores = []
+    produits_deja_vus = set()
 
     try:
         base_dir = os.path.dirname(
@@ -210,40 +211,35 @@ def ImporterProduit():
 
                 nom_normalise = nom.lower().strip()
 
-                images_normalisees = set(images)
-
-                doublon_nom_json = (
-                    nom_normalise in noms_deja_vus
+                prix_fournisseur = float(
+                    data.get("prix_fournisseur") or 0
                 )
 
-                doublon_image_json = any(
-                    image in images_deja_vues
-                    for image in images_normalisees
+                moq = int(
+                    data.get("moq") or 0
                 )
 
-                if doublon_nom_json or doublon_image_json:
+                cle_doublon = (
+                    nom_normalise,
+                    prix_fournisseur,
+                    moq
+                )
 
-                    raisons = []
+                doublon_json = cle_doublon in produits_deja_vus
 
-                    if doublon_nom_json:
-                        raisons.append(
-                            "nom du produit déjà présent "
-                            "dans le fichier JSON"
-                        )
 
-                    if doublon_image_json:
-                        raisons.append(
-                            "une ou plusieurs images déjà "
-                            "présentes dans le fichier JSON"
-                        )
+                if doublon_json:
 
                     produits_ignores.append({
                         "index": index,
                         "nom": nom,
                         "sku": data.get("sku"),
+                        "prix_fournisseur": prix_fournisseur,
+                        "moq": moq,
                         "message": (
                             "Doublon détecté : "
-                            + " et ".join(raisons)
+                            "même nom, même prix_fournisseur et même moq "
+                            "déjà présents dans le fichier JSON"
                         )
                     })
 
