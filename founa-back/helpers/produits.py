@@ -166,9 +166,9 @@ def ImporterProduit():
                     data.get("informations_fournisseur") or ""
                 ).strip()
                 
-                stock_disponible = (
-                    data.get("stock_disponible") or ""
-                ).strip()
+                stock_disponible = int(
+                    data.get("stock_disponible") or 0
+                )
 
                 fournisseur_nom = (
                     data.get("fournisseur") or ""
