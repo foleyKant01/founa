@@ -540,7 +540,7 @@ def DeleteExpiredCommandes():
 
             # Supprimer les logs de statut liés à la commande
             CommandeStatusLog.query.filter_by(
-                commande_id=commande.uid
+                commande_id=commande.commande_id
             ).delete(
                 synchronize_session=False
             )
