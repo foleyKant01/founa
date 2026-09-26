@@ -956,16 +956,50 @@ def TopProducts():
         
 def GetProduitsByCategorie():
     try:
-        categorie = request.json.get('categorie')
+        categorie = request.json.get("categorie")
+
         if not categorie or not categorie.strip():
-            return []
+            return {
+                "status": "error",
+                "message": "La catégorie est obligatoire",
+                "produits": []
+            }, 400
 
         produits = Produit.query.filter_by(
             categorie=categorie.strip()
         ).all()
 
-        return produits
+        produits_data = []
+
+        for produit in produits:
+            produits_data.append({
+                "uid": produit.uid,
+                "nom": produit.nom,
+                "status": produit.status,
+                "categorie": produit.categorie,
+                "description": produit.description,
+                "lien_1": produit.lien_1,
+                "prix_fournisseur": produit.prix_fournisseur,
+                "prix_vente": produit.prix_vente,
+                "images": produit.images,
+                "stock_disponible": produit.stock_disponible,
+                "moq": produit.moq,
+                "fournisseur": produit.fournisseur,
+                "creation_date": str(produit.creation_date),
+                "update_date": str(produit.update_date)
+            })
+
+        return {
+            "status": "success",
+            "nombre": len(produits_data),
+            "produits": produits_data
+        }, 200
 
     except Exception as e:
         print(f"Erreur recherche par catégorie : {e}")
-        return []
+
+        return {
+            "status": "error",
+            "message": str(e),
+            "produits": []
+        }, 500
