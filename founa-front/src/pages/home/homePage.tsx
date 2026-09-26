@@ -42,6 +42,13 @@ import {
   Pickaxe,
   CircleDot,
   Briefcase,
+  Watch,
+  Music,
+  CarFront,
+  Bike,
+  Laptop,
+  Refrigerator,
+  Lightbulb
 } from "lucide-react";
 interface Produit {
   id: number;
@@ -116,12 +123,28 @@ const CATEGORIES: CategoryItem[] = [
     icon: Smartphone,
   },
   {
+    name: "Téléphones & Accessoires",
+    icon: Smartphone,
+  },
+  {
+    name: "Informatique & Accessoires",
+    icon: Laptop,
+  },
+  {
     name: "Vêtements & Accessoires",
     icon: Shirt,
   },
   {
     name: "Maison & Jardin",
     icon: Home,
+  },
+  {
+    name: "Électroménager",
+    icon: Refrigerator,
+  },
+  {
+    name: "Éclairage",
+    icon: Lightbulb,
   },
   {
     name: "Beauté & Soins personnels",
@@ -138,6 +161,14 @@ const CATEGORIES: CategoryItem[] = [
   {
     name: "Véhicules & Transport",
     icon: Car,
+  },
+  {
+    name: "Automobile & Pièces détachées",
+    icon: CarFront,
+  },
+  {
+    name: "Moto & Pièces détachées",
+    icon: Bike,
   },
   {
     name: "Emballage & Impression",
@@ -222,6 +253,14 @@ const CATEGORIES: CategoryItem[] = [
   {
     name: "Services aux entreprises",
     icon: Briefcase,
+  },
+  {
+    name: "Horlogerie & Bijoux",
+    icon: Watch,
+  },
+  {
+    name: "Instruments de musique",
+    icon: Music,
   },
 ];
 
