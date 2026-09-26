@@ -165,6 +165,10 @@ def ImporterProduit():
                 informations_fournisseur = (
                     data.get("informations_fournisseur") or ""
                 ).strip()
+                
+                stock_disponible = (
+                    data.get("stock_disponible") or ""
+                ).strip()
 
                 fournisseur_nom = (
                     data.get("fournisseur") or ""
@@ -274,23 +278,17 @@ def ImporterProduit():
                 # ==========================================
 
                 produit_existant_image = None
-
                 produits_existants = Produit.query.all()
 
                 for produit_db in produits_existants:
-
                     images_db = produit_db.images
-
                     if not images_db:
                         continue
-
                     if isinstance(images_db, str):
-
                         try:
                             images_db = json.loads(
                                 images_db
                             )
-
                         except (
                             json.JSONDecodeError,
                             TypeError
@@ -313,15 +311,12 @@ def ImporterProduit():
                     if images_normalisees.intersection(
                         images_db
                     ):
-
                         produit_existant_image = (
                             produit_db
                         )
-
                         break
 
                 if produit_existant_image:
-
                     produits_ignores.append({
                         "index": index,
                         "nom": nom,
@@ -334,13 +329,11 @@ def ImporterProduit():
                             "images identiques"
                         )
                     })
-
                     continue
 
                 # ==========================================
                 # ENREGISTREMENT DES DOUBLONS
                 # ==========================================
-
                 noms_deja_vus.add(
                     nom_normalise
                 )
@@ -352,100 +345,68 @@ def ImporterProduit():
                 # ==========================================
                 # CREATION DU PRODUIT
                 # ==========================================
-
                 produit = Produit(
                     nom=nom,
-
                     fournisseur=fournisseur,
-
                     status="disponible",
-
                     devise=devise,
-
                     categorie=categorie,
-
                     description=description,
-
                     lien_1=lien_1,
-
                     prix_fournisseur=prix_fournisseur,
-
                     prix_fournisseur_devise=(
                         prix_fournisseur_devise
                         if devise == "usd"
                         else None
                     ),
-
                     prix_vente=prix_vente,
-
                     images=json.dumps(
                         images,
                         ensure_ascii=False
                     ),
-
-                    stock_disponible=100,
-
+                    stock_disponible=stock_disponible,
                     moq=moq
                 )
-
                 db.session.add(produit)
-
                 produits_crees.append({
                     "nom": nom,
-
                     "devise": devise,
-
                     "prix_fournisseur": (
                         prix_fournisseur_devise
                     ),
-
                     "taux_conversion": taux_devise,
-
                     "prix_fournisseur_fcfa": (
                         prix_fournisseur
                     ),
-
                     "prix_vente": prix_vente,
-
+                    "stock_disponible": stock_disponible,
                     "moq": moq,
-
                     "produit_uid": produit.uid,
-
                     "images": images
                 })
-
             except Exception as product_error:
-
                 erreurs.append({
                     "index": index,
                     "nom": data.get("nom", ""),
                     "erreur": str(product_error)
                 })
-
         db.session.commit()
-
         return {
             "status": "success",
-
             "message": (
                 f"{len(produits_crees)} produit(s) créé(s)"
             ),
-
             "produits_crees": produits_crees,
-
             "erreurs": erreurs,
-
             "produits_ignores": produits_ignores
         }
-
     except Exception as e:
-
         db.session.rollback()
-
         return {
             "status": "error",
             "message": str(e)
         }
+        
 
 def CreateProduit():
     try:
