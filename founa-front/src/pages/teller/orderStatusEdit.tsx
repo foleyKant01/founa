@@ -47,9 +47,10 @@ interface Commande {
   details: string;
   teller_id: string;
   created_date: string;
-
   cout_envoie_maritime?: number;
+  temps_envoie_maritime?: string;
   cout_envoie_aérienne?: number;
+  temps_envoie_aérienne?: string;
 }
 
 const OrderTellerPage: React.FC = () => {
@@ -278,12 +279,14 @@ const OrderTellerPage: React.FC = () => {
     const payload = {
       commande_id: editing.commande_id,
       statut: editing.statut,
-      details: editing.details || "",
-      teller_id: teller.uid,
-      cout_envoie_maritime:
-        Number(editing.cout_envoie_maritime) || 0,
-      cout_envoie_aérienne:
-        Number(editing.cout_envoie_aérienne) || 0,
+      details: editing.details,
+      teller_id: teller?.uid,
+
+      cout_envoie_maritime: editing.cout_envoie_maritime,
+      temps_envoie_maritime: editing.temps_envoie_maritime,
+
+      cout_envoie_aérienne: editing.cout_envoie_aérienne,
+      temps_envoie_aérienne: editing.temps_envoie_aérienne,
     };
 
     try {
@@ -1016,9 +1019,9 @@ const OrderTellerPage: React.FC = () => {
                   Valider
                 </option>
 
-                <option value="Payer">
+                {/* <option value="Payer">
                   Payer
-                </option>
+                </option> */}
 
                 <option value="Expedition">
                   Expedition
@@ -1136,100 +1139,150 @@ const OrderTellerPage: React.FC = () => {
                 {/* MARITIME */}
 
                 <div className="shipping-input">
-
                   <div className="shipping-icon maritime">
                     <Ship size={18} />
                   </div>
 
                   <div className="shipping-field">
-
-                    <label>
-                      Expédition maritime
-                    </label>
+                    <label>Frais maritime</label>
 
                     <div className="input-wrapper">
-
                       <input
                         type="number"
                         min="0"
-                        step="1"
                         placeholder="Ex : 5000"
-                        value={
-                          editing.cout_envoie_maritime ??
-                          ""
-                        }
+                        value={editing.cout_envoie_maritime ?? ""}
                         onChange={(e) =>
                           setEditing({
                             ...editing,
                             cout_envoie_maritime:
                               e.target.value === ""
                                 ? undefined
-                                : Number(
-                                    e.target.value
-                                  ),
+                                : Number(e.target.value),
                           })
                         }
                         disabled={saving}
                       />
-
-                      <span>
-                        FCFA
-                      </span>
-
+                      <span>FCFA</span>
                     </div>
+                  </div>
+                </div>
 
+                <div className="shipping-input">
+                  <div className="shipping-icon time">
+                    <Clock3 size={18} />
                   </div>
 
+                  <div className="shipping-field">
+                    <label>Temps maritime</label>
+
+                    <div className="input-wrapper">
+                      <input
+                        type="text"
+                        placeholder="Ex : 45 à 60 jours"
+                        value={editing.temps_envoie_maritime ?? ""}
+                        onChange={(e) =>
+                          setEditing({
+                            ...editing,
+                            temps_envoie_maritime: e.target.value,
+                          })
+                        }
+                        disabled={saving}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* AERIENNE */}
-
                 <div className="shipping-input">
-
                   <div className="shipping-icon air">
                     <Plane size={18} />
                   </div>
 
                   <div className="shipping-field">
-
-                    <label>
-                      Expédition aérienne
-                    </label>
+                    <label>Frais aérien</label>
 
                     <div className="input-wrapper">
-
                       <input
                         type="number"
                         min="0"
-                        step="1"
-                        placeholder="Ex : 10000"
-                        value={
-                          editing.cout_envoie_aérienne ??
-                          ""
-                        }
+                        placeholder="Ex : 12000"
+                        value={editing.cout_envoie_aérienne ?? ""}
                         onChange={(e) =>
                           setEditing({
                             ...editing,
                             cout_envoie_aérienne:
                               e.target.value === ""
                                 ? undefined
-                                : Number(
-                                    e.target.value
-                                  ),
+                                : Number(e.target.value),
+                          })
+                        }
+                        disabled={saving}
+                      />
+                      <span>FCFA</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="shipping-input">
+                  <div className="shipping-icon time">
+                    <Clock3 size={18} />
+                  </div>
+
+                  <div className="shipping-field">
+                    <label>Temps aérien</label>
+
+                    <div className="input-wrapper">
+                      <input
+                        type="text"
+                        placeholder="Ex : 7 à 15 jours"
+                        value={editing.temps_envoie_aérienne ?? ""}
+                        onChange={(e) =>
+                          setEditing({
+                            ...editing,
+                            temps_envoie_aérienne: e.target.value,
+                          })
+                        }
+                        disabled={saving}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* TEMPS D'EXPEDITION
+
+                <div className="shipping-input">
+
+                  <div className="shipping-icon time">
+                    <Clock3 size={18} />
+                  </div>
+
+                  <div className="shipping-field">
+
+                    <label>
+                      Temps d'expédition
+                    </label>
+
+                    <div className="input-wrapper">
+
+                      <input
+                        type="text"
+                        placeholder="Ex : 15 à 30 jours"
+                        value={editing.temps_envoie ?? ""}
+                        onChange={(e) =>
+                          setEditing({
+                            ...editing,
+                            temps_envoie: e.target.value,
                           })
                         }
                         disabled={saving}
                       />
 
-                      <span>
-                        FCFA
-                      </span>
-
                     </div>
 
                   </div>
 
-                </div>
+                </div> */}
 
               </div>
 
@@ -2262,6 +2315,11 @@ const OrderTellerPage: React.FC = () => {
         .shipping-icon.air {
           background: #FFF4E8;
           color: #EA580C;
+        }
+
+        .shipping-icon.time {
+          background: #EAF9F9;
+          color: #00A4A6;
         }
 
         .shipping-field {

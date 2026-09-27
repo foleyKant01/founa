@@ -24,7 +24,10 @@ interface Order {
   updated_date?: string;
   images?: string;
   cout_envoie_maritime: number;
+  temps_envoie_maritime: string;
+
   cout_envoie_aérienne: number;
+  temps_envoie_aérienne: string;
   view?: string;
 }
 
@@ -402,7 +405,7 @@ const handlePayment = async () => {
       // REDIRECTION VERS JEKO
       // ==========================================
 
-      // window.location.href = paymentUrl;
+      window.location.href = paymentUrl;
 
       return;
     }
@@ -953,6 +956,9 @@ const handlePayment = async () => {
                       <div style={styles.shippingPrice}>
                         {coutMaritime.toLocaleString()} FCFA
                       </div>
+                      <div style={styles.shippingTime}>
+                        ⏱ {order.temps_envoie_maritime || "Délai non renseigné"}
+                      </div>
                     </div>
 
                     <input
@@ -995,6 +1001,9 @@ const handlePayment = async () => {
 
                       <div style={styles.shippingPrice}>
                         {coutAerienne.toLocaleString()} FCFA
+                      </div>
+                      <div style={styles.shippingTime}>
+                        ⏱ {order.temps_envoie_aérienne || "Délai non renseigné"}
                       </div>
                     </div>
 
@@ -1078,10 +1087,6 @@ const handlePayment = async () => {
 
                   <div className="payment-methods-logos">
                     <div className="payment-methods">
-                      <span className="payment-methods-title">
-                        Choisissez votre mode de paiement
-                      </span>
-
                       <div className="payment-methods-logos">
 
                         {/* ORANGE */}
@@ -1425,6 +1430,13 @@ const styles: {
     backgroundColor: "#F5F7F8",
     fontFamily:
       "Arial, Helvetica, sans-serif",
+  },
+
+  shippingTime: {
+    marginTop: 7,
+    color: "#6F7B80",
+    fontSize: 11,
+    fontWeight: 600,
   },
 
   main: {

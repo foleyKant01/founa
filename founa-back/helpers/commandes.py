@@ -484,6 +484,8 @@ def GetSingleCommande():
                 "option_envoie": single_commande.option_envoie,
                 "cout_envoie_maritime": single_commande.cout_envoie_maritime,
                 "cout_envoie_aérienne": single_commande.cout_envoie_aérienne,
+                "temps_envoie_maritime": single_commande.temps_envoie_maritime,
+                "temps_envoie_aérienne": single_commande.temps_envoie_aérienne,
                 "view": single_commande.view,
                 "created_date": str(single_commande.created_date),
                 "updated_date": str(single_commande.updated_date),
@@ -502,8 +504,10 @@ def UpdateCommande():
         commande_id = data.get('commande_id')
         statut = data.get('statut')
         details = data.get('details')
-        cout_envoie_maritime = data.get('cout_envoie_maritime', 0)
+        cout_envoie_maritime = data.get('cout_envoie_maritime', 0) 
+        temps_envoie_maritime = data.get('temps_envoie_maritime', 0)
         cout_envoie_aerienne = data.get('cout_envoie_aérienne', 0)
+        temps_envoie_aérienne = data.get('temps_envoie_aérienne', 0)
 
         update_commande = Commande.query.filter_by(commande_id=commande_id).first()
 

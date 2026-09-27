@@ -177,8 +177,8 @@ def ImporterProduit():
 
                 prix_vente = (
                     math.ceil(
-                        prix_fournisseur * 1.25 / 10
-                    ) * 10
+                        prix_fournisseur * 1.25 / 100
+                    ) * 100
                 )
 
                 # ==========================================
