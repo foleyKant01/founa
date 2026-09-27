@@ -359,9 +359,9 @@ const TermsPage: React.FC = () => {
 
         <p>
           FOUNA<br />
-          E-mail : [EMAIL PROFESSIONNEL FOUNA]<br />
-          Téléphone : [NUMÉRO DE TÉLÉPHONE]<br />
-          Adresse : [ADRESSE DE L'EXPLOITANT]
+          E-mail : founaci.communication@gmail.com<br />
+          Téléphone : +2250702653594<br />
+          Adresse : Abidjan, Côte d'Ivoire
         </p>
 
       </main>
