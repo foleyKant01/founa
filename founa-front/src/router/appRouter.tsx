@@ -36,6 +36,8 @@ import ReadAllUnavaibleProductsPage from "../pages/admin/unavaibleProduct";
 import CookiePolicyPage from "../pages/security/cookiePolicyPage";
 import PrivacyPolicyPage from "../pages/security/privacyPolicyPage";
 import TermsPage from "../pages/security/termsPage";
+import PaymentSuccessPage from "../pages/payment/paymentSuccessPage";
+import PaymentErrorPage from "../pages/payment/paymentErrorPage";
 
 
 const AppRoutes = () => {
@@ -80,6 +82,8 @@ const AppRoutes = () => {
           <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
           <Route path="/privacypolicy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/payment/success" element={<PaymentSuccessPage />} />
+          <Route path="/payment/error" element={<PaymentErrorPage />} />
 
            {/* 🔥 TELLER */}
           <Route path="/teller/home" element={<ProtectedRouteTeller><HomeTeller /></ProtectedRouteTeller>} />

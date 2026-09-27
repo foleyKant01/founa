@@ -4,6 +4,11 @@ import {
   GetSingleCommande,
   OptionEnvoie,
 } from "../../services/order.service";
+
+import {
+  PaymentRequest
+} from "../../services/paymentJeko.service";
+
 import { useApp } from "../../context/appContext";
 
 interface Order {
@@ -37,6 +42,14 @@ const OrderDetailsPage: React.FC = () => {
 
   const [modeExpedition, setModeExpedition] =
     useState<ModeExpedition | null>(null);
+
+  type ModePaiement = "wave" | "orange" | "mtn";
+
+  const [modePaiement, setModePaiement] =
+    useState<ModePaiement | null>(null);
+
+  const [paymentLoading, setPaymentLoading] =
+    useState(false);
 
   const [shippingLoading, setShippingLoading] = useState(false);
 
@@ -343,16 +356,63 @@ const OrderDetailsPage: React.FC = () => {
     }
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (clientStatus !== "verifier") {
       setShowVerificationModal(true);
       return;
     }
 
-    window.open(
-      `https://pay.wave.com/m/M_ci_0GTnAxYCJ8tW/c/ci/?amount=${totalAPayer}&return_url=https://google.com`,
-      "_blank"
-    );
+    if (!commande_id) {
+      console.error("Commande introuvable.");
+      return;
+    }
+
+    if (!modePaiement) {
+      console.error("Veuillez sélectionner un mode de paiement.");
+      return;
+    }
+
+    try {
+      setPaymentLoading(true);
+
+      const response = await PaymentRequest({
+        commande_id,
+        paymentMethod: modePaiement,
+      });
+
+      console.log("Réponse paiement :", response.data);
+
+      if (response.data.status === "success") {
+        // Adapte cette partie selon la réponse exacte de ton backend Jeko
+        console.log("Demande de paiement créée avec succès.");
+
+        // Si ton backend retourne une URL de paiement :
+        const paymentUrl =
+          response.data.payment_url ||
+          response.data.payment?.payment_url ||
+          response.data.payment?.url;
+
+        if (paymentUrl) {
+          window.open(paymentUrl, "_blank");
+        } else {
+          console.warn(
+            "Aucune URL de paiement retournée par le backend."
+          );
+        }
+      } else {
+        console.error(
+          response.data.message ||
+            "Impossible de créer la demande de paiement."
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la demande de paiement :",
+        error
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   return (
@@ -507,6 +567,99 @@ const OrderDetailsPage: React.FC = () => {
               font-size: 13px;
             }
           }
+            .payment-methods {
+              margin-top: 18px;
+              padding-top: 18px;
+              border-top: 1px solid #e8eeee;
+            }
+
+            .payment-methods-title {
+              display: block;
+              margin-bottom: 12px;
+              color: #718385;
+              font-size: 13px;
+              font-weight: 600;
+            }
+
+            .payment-methods-logos {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              flex-wrap: wrap;
+            }
+
+            .payment-method-logo {
+              position: relative;
+              width: 76px;
+              height: 48px;
+              padding: 7px 10px;
+              border: 1px solid #e4eeee;
+              border-radius: 12px;
+              background: #ffffff;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                border-color 0.2s ease,
+                background-color 0.2s ease;
+            }
+
+            .payment-method-logo:hover {
+              transform: translateY(-2px);
+              border-color: #00a4a6;
+              box-shadow: 0 5px 15px rgba(0, 164, 166, 0.12);
+            }
+
+            .payment-method-logo-selected {
+              border: 2px solid #00a4a6;
+              background: #f0ffff;
+              box-shadow: 0 5px 15px rgba(0, 164, 166, 0.15);
+            }
+
+            .payment-method-logo img {
+              max-width: 100%;
+              max-height: 32px;
+              width: auto;
+              height: auto;
+              object-fit: contain;
+            }
+
+            .payment-method-check {
+              position: absolute;
+              right: -7px;
+              top: -7px;
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              background: #00a4a6;
+              color: #ffffff;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 11px;
+              font-weight: 800;
+              border: 2px solid #ffffff;
+            }
+
+            .payment-method-hint {
+              margin-top: 10px;
+              font-size: 11px;
+              color: #8a9299;
+            }
+
+            @media (max-width: 600px) {
+              .payment-methods-logos {
+                gap: 10px;
+              }
+
+              .payment-method-logo {
+                width: 70px;
+                height: 45px;
+              }
+            }
         `}
       </style>
 
@@ -907,6 +1060,106 @@ const OrderDetailsPage: React.FC = () => {
                     {totalAPayer.toLocaleString()} FCFA
                   </strong>
                 </div>
+                <div className="payment-methods">
+                  <span className="payment-methods-title">
+                    Modes de paiement disponibles
+                  </span>
+
+                  <div className="payment-methods-logos">
+                    <div className="payment-methods">
+                      <span className="payment-methods-title">
+                        Choisissez votre mode de paiement
+                      </span>
+
+                      <div className="payment-methods-logos">
+
+                        {/* ORANGE */}
+                        <button
+                          type="button"
+                          className={`payment-method-logo ${
+                            modePaiement === "orange"
+                              ? "payment-method-logo-selected"
+                              : ""
+                          }`}
+                          onClick={() => setModePaiement("orange")}
+                          aria-label="Payer avec Orange Money"
+                        >
+                          <img
+                            src="https://otobi.sn/wp-content/uploads/2022/03/Orange-Money-logo-1024x687.png"
+                            alt="Orange Money"
+                          />
+
+                          {modePaiement === "orange" && (
+                            <span className="payment-method-check">✓</span>
+                          )}
+                        </button>
+
+                        {/* WAVE */}
+                        <button
+                          type="button"
+                          className={`payment-method-logo ${
+                            modePaiement === "wave"
+                              ? "payment-method-logo-selected"
+                              : ""
+                          }`}
+                          onClick={() => setModePaiement("wave")}
+                          aria-label="Payer avec Wave"
+                        >
+                          <img
+                            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQzrjAxzv7yJ16G6XfS3bQRX6cZBSVogLtV7T5V9FKDQ&s=10"
+                            alt="Wave"
+                          />
+
+                          {modePaiement === "wave" && (
+                            <span className="payment-method-check">✓</span>
+                          )}
+                        </button>
+
+                        {/* MTN */}
+                        <button
+                          type="button"
+                          className={`payment-method-logo ${
+                            modePaiement === "mtn"
+                              ? "payment-method-logo-selected"
+                              : ""
+                          }`}
+                          onClick={() => setModePaiement("mtn")}
+                          aria-label="Payer avec MTN Mobile Money"
+                        >
+                          <img
+                            src="https://themadon.com/wp-content/uploads/2024/07/mtn-mobile-money-logo.png"
+                            alt="MTN Mobile Money"
+                          />
+
+                          {modePaiement === "mtn" && (
+                            <span className="payment-method-check">✓</span>
+                          )}
+                        </button>
+
+                      </div>
+
+                      {!modePaiement && (
+                        <div className="payment-method-hint">
+                          Sélectionnez un mode de paiement pour continuer.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* <div className="payment-method-logo">
+                      <img
+                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQzrjAxzv7yJ16G6XfS3bQRX6cZBSVogLtV7T5V9FKDQ&s=10"
+                        alt="Wave"
+                      />
+                    </div>
+
+                    <div className="payment-method-logo">
+                      <img
+                        src="https://themadon.com/wp-content/uploads/2024/07/mtn-mobile-money-logo.png"
+                        alt="MTN Mobile Money"
+                      />
+                    </div> */}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -922,17 +1175,23 @@ const OrderDetailsPage: React.FC = () => {
 
                 <button
                   onClick={handlePayment}
-                  disabled={!modeExpedition}
+                  disabled={!modeExpedition || !modePaiement || paymentLoading}
                   style={{
                     ...styles.payButton,
-                    opacity: modeExpedition ? 1 : 0.45,
-                    cursor: modeExpedition
-                      ? "pointer"
-                      : "not-allowed",
+                    opacity:
+                      modeExpedition && modePaiement && !paymentLoading
+                        ? 1
+                        : 0.45,
+                    cursor:
+                      modeExpedition && modePaiement && !paymentLoading
+                        ? "pointer"
+                        : "not-allowed",
                   }}
                 >
                   <span>💳</span>
-                  Payer maintenant
+                   {paymentLoading
+                    ? "Préparation du paiement..."
+                    : "Payer maintenant"}
                 </button>
 
                 <div style={styles.paymentSecure}>

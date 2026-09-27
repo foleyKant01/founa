@@ -481,6 +481,7 @@ def GetSingleCommande():
                 "prix_total": single_commande.prix_total,
                 "statut": single_commande.statut,
                 "details": single_commande.details,
+                "option_envoie": single_commande.option_envoie,
                 "cout_envoie_maritime": single_commande.cout_envoie_maritime,
                 "cout_envoie_aérienne": single_commande.cout_envoie_aérienne,
                 "view": single_commande.view,
