@@ -499,17 +499,31 @@ def GetSingleCommande():
 
 def UpdateCommande():
     try:
-        data = request.json
+        data = request.json or {}
 
-        commande_id = data.get('commande_id')
-        statut = data.get('statut')
-        details = data.get('details')
-        cout_envoie_maritime = data.get('cout_envoie_maritime', 0) 
-        temps_envoie_maritime = data.get('temps_envoie_maritime', 0)
-        cout_envoie_aerienne = data.get('cout_envoie_aérienne', 0)
-        temps_envoie_aérienne = data.get('temps_envoie_aérienne', 0)
+        commande_id = data.get("commande_id")
+        statut = data.get("statut")
+        details = data.get("details")
 
-        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
+        cout_envoie_maritime = data.get(
+            "cout_envoie_maritime", 0
+        )
+
+        temps_envoie_maritime = data.get(
+            "temps_envoie_maritime", ""
+        )
+
+        cout_envoie_aerienne = data.get(
+            "cout_envoie_aérienne", 0
+        )
+
+        temps_envoie_aérienne = data.get(
+            "temps_envoie_aérienne", ""
+        )
+
+        update_commande = Commande.query.filter_by(
+            commande_id=commande_id
+        ).first()
 
         if not update_commande:
             return {
@@ -519,21 +533,38 @@ def UpdateCommande():
 
         update_commande.statut = statut
         update_commande.details = details
-        update_commande.details = details
-        update_commande.cout_envoie_maritime = float(cout_envoie_maritime or 0)
-        update_commande.cout_envoie_aérienne = float(cout_envoie_aerienne or 0)
-        update_commande.temps_envoie_maritime = float(temps_envoie_maritime or 0)
-        update_commande.temps_envoie_aérienne = float(temps_envoie_aérienne or 0)
+
+        # Frais d'expédition = nombres
+        update_commande.cout_envoie_maritime = float(
+            cout_envoie_maritime or 0
+        )
+
+        update_commande.cout_envoie_aérienne = float(
+            cout_envoie_aerienne or 0
+        )
+
+        # Temps d'expédition = textes
+        update_commande.temps_envoie_maritime = str(
+            temps_envoie_maritime or ""
+        ).strip()
+
+        update_commande.temps_envoie_aérienne = str(
+            temps_envoie_aérienne or ""
+        ).strip()
+
         update_commande.view = "1"
         update_commande.updated_date = datetime.datetime.now()
-        
+
         db.session.commit()
-        
+
         send_push_notification(
             user_uid=update_commande.client_id,
             user_type="user",
             title="Mise à jour de votre commande",
-            body=f"Votre commande {update_commande.commande_id} est maintenant : {update_commande.statut}",
+            body=(
+                f"Votre commande {update_commande.commande_id} "
+                f"est maintenant : {update_commande.statut}"
+            ),
             data={
                 "type": "order_status",
                 "commande_id": update_commande.commande_id,
@@ -541,18 +572,21 @@ def UpdateCommande():
                 "url": "https://founa.ci/orders"
             }
         )
-        
+
         CreateCommandeStatusLog({
             "commande_id": update_commande.commande_id,
             "statut": update_commande.statut,
             "teller_id": update_commande.teller_id
         })
+
         return {
             "status": "success",
             "message": "Commande mise à jour"
         }, 200
+
     except Exception as e:
         db.session.rollback()
+
         return {
             "status": "error",
             "message": str(e)
