@@ -2,6 +2,7 @@ import requests
 from config.constant import *
 from flask import request 
 from model.founa import *
+from services.fcm_service import send_push_notification
 from helpers.commandestatuslog import CreateCommandeStatusLog
 import hmac
 import hashlib
@@ -71,6 +72,30 @@ def GetAllJekoStores():
                 "n'est pas un JSON valide."
             )
         }, 500 
+        
+        
+def GetJekoStoreIdByName(store_name):
+    result, status_code = GetAllJekoStores()
+
+    if status_code != 200:
+        return None, result
+
+    stores = result.get("stores", [])
+
+    if not isinstance(stores, list):
+        return None, {
+            "status": "error",
+            "message": "La liste des stores Jeko est invalide."
+        }
+
+    for store in stores:
+        if store.get("name") == store_name:
+            return store.get("id"), None
+
+    return None, {
+        "status": "error",
+        "message": f"Store Jeko '{store_name}' introuvable."
+    }
         
             
         
@@ -151,12 +176,20 @@ def PaymentRequest():
         # Calcul du montant total
         prix_total = single_commande.prix_total or 0
         amountCents = prix_total + cout_envoie
+        # Récupérer automatiquement le store Founa CI
+        # store_id, store_error = GetJekoStoreIdByName("Founa CI")
+        # if not store_id:
+        #     return {
+        #         "status": "error",
+        #         "message": "Le store Jeko 'Founa CI' est introuvable.",
+        #         "details": store_error
+        #     }, 500
         # Payload Jeko
         payload = {
             "amountCents": amountCents,
             "currency": "XOF",
             "reference": single_commande.commande_id,
-            "storeId": "7b247170-dbf3-4731-9ec8-be176651b217",
+            "storeId": "eb765f96-3eb0-413a-9f65-dd573f5eaf94",
             "paymentDetails": {
                 "type": "redirect",
                 "data": {
@@ -166,7 +199,6 @@ def PaymentRequest():
                 }
             }
         }
-        # Appel Jeko
         result, status_code = CreateJekoPaymentRequest(
             payload
         )
@@ -432,6 +464,19 @@ def ReceiveJekoWebhook():
                     "statut": "Payer",
                     "teller_id": commande.teller_id
                 })
+                
+                send_push_notification(
+                    user_uid=commande.client_id,
+                    user_type="user",
+                    title="Mise à jour de votre commande",
+                    body=f"Votre commande {commande.commande_id} est maintenant : {commande.statut}",
+                    data={
+                        "type": "order_status",
+                        "commande_id": commande.commande_id,
+                        "statut": commande.statut,
+                        "url": "https://founa.ci/orders"
+                    }
+                )
 
                 if isinstance(log_result, tuple):
                     log_data, log_status = log_result
