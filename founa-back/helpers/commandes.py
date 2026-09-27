@@ -301,24 +301,69 @@ def GetAllCommandes():
     
     
 def GetAllCommandeByClient():
+    
     try:
-        # data = request.get_json(force=True)  # ✅ plus sûr
-        # client_id = data.get("client_id")
-        client_id = request.json.get("client_id")
-        if not client_id: 
-            return {"status": "error", "message": "client_id manquant"}, 400
 
-        all_commande = Commande.query.filter_by(client_id=client_id).all()
-        if not all_commande:
-            return {"status": "error", "message": "Commande introuvable"}, 404
-        
+        data = request.json or {}
+
+        client_id = (
+            data.get("client_id") or ""
+        ).strip()
+
+        if not client_id:
+            return {
+                "status": "error",
+                "message": "client_id manquant",
+                "commandes": []
+            }, 400
+
+        all_commande = (
+            Commande.query
+            .filter_by(client_id=client_id)
+            .order_by(Commande.created_date.desc())
+            .all()
+        )
+
         result = []
+
         for c in all_commande:
-            single_product = Produit.query.filter_by(uid=c.produit_id).first()
-            print(c.produit_id)
+
+            single_product = (
+                Produit.query
+                .filter_by(uid=c.produit_id)
+                .first()
+            )
+
+            # Si le produit n'existe plus,
+            # on ne bloque pas toutes les commandes.
             if not single_product:
-                return {"status": "error", "message": "Produit introuvable alors Commande impossible"}, 404
-            
+
+                result.append({
+                    "commande_id": c.commande_id,
+                    "client_id": c.client_id,
+                    "produit_id": c.produit_id,
+                    "nom": "Produit indisponible",
+                    "fournisseur_id": c.fournisseur_id,
+                    "quantite": c.quantite,
+                    "prix_total": c.prix_total,
+                    "statut": c.statut,
+                    "teller_id": c.teller_id,
+                    "details": c.details,
+                    "view": c.view,
+                    "created_date": (
+                        str(c.created_date)
+                        if c.created_date
+                        else None
+                    ),
+                    "updated_date": (
+                        str(c.updated_date)
+                        if c.updated_date
+                        else None
+                    ),
+                })
+
+                continue
+
             result.append({
                 "commande_id": c.commande_id,
                 "client_id": c.client_id,
@@ -331,15 +376,31 @@ def GetAllCommandeByClient():
                 "teller_id": c.teller_id,
                 "details": c.details,
                 "view": c.view,
-                "created_date": str(c.created_date),
-                "updated_date": str(c.updated_date),
+                "created_date": (
+                    str(c.created_date)
+                    if c.created_date
+                    else None
+                ),
+                "updated_date": (
+                    str(c.updated_date)
+                    if c.updated_date
+                    else None
+                ),
             })
-            
-        return {"status": "success", "commandes": result}, 200
+
+        return {
+            "status": "success",
+            "nombre": len(result),
+            "commandes": result
+        }, 200
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
-    
+
+        return {
+            "status": "error",
+            "message": str(e),
+            "commandes": []
+        }, 500
     
     
 def GetAllCommandeByTeller():
