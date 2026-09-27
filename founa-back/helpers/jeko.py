@@ -268,7 +268,6 @@ def CreateJekoPaymentRequest(payload):
 
 
 
-JEKO_WEBHOOK_SECRET = SECRET_WEBHOOK
 
 
 def VerifyJekoWebhookSignature(raw_body, signature):
@@ -279,14 +278,14 @@ def VerifyJekoWebhookSignature(raw_body, signature):
     HMAC-SHA256 et le secret partagé avec Jeko.
     """
 
-    if not JEKO_WEBHOOK_SECRET:
+    if not SECRET_WEBHOOK:
         return False
 
     if not signature:
         return False
 
     expected_signature = hmac.new(
-        JEKO_WEBHOOK_SECRET.encode("utf-8"),
+        SECRET_WEBHOOK.encode("utf-8"),
         raw_body,
         hashlib.sha256
     ).hexdigest()
