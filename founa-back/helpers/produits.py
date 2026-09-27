@@ -370,7 +370,7 @@ def ImporterProduit():
 
                     prix_fournisseur=prix_fournisseur,
 
-                    prix_fournisseur_usd=(
+                    prix_fournisseur_devise=(
                         prix_fournisseur_devise
                         if devise == "usd"
                         else None
@@ -664,11 +664,25 @@ def MettreAJourPrixVente():
         produits = Produit.query.all()
         produits_mis_a_jour = []
         for p in produits:
-            prix_fournisseur_usd = float(
-                p.prix_fournisseur_usd or 0
+            devise = (
+                (p.devise or "usd")
+                .strip()
+                .lower()
+            )
+            if devise == "usd":
+                taux_conversion = TAUX_USD_XOF
+            elif devise == "euro":
+                taux_conversion = TAUX_EURO_XOF
+            else:
+                raise ValueError(
+                    f"Devise inconnue pour le produit "
+                    f"'{p.nom}' : {p.devise}"
+                )
+            prix_fournisseur_devise = float(
+                p.prix_fournisseur_devise or 0
             )
             prix_fournisseur_fcfa = math.ceil(
-                prix_fournisseur_usd * TAUX_USD_XOF
+                prix_fournisseur_devise * taux_conversion
             )
             p.prix_fournisseur = prix_fournisseur_fcfa
             prix_vente = (
@@ -680,14 +694,23 @@ def MettreAJourPrixVente():
             produits_mis_a_jour.append({
                 "uid": p.uid,
                 "nom": p.nom,
-                "prix_fournisseur_usd": prix_fournisseur_usd,
-                "prix_fournisseur_fcfa": prix_fournisseur_fcfa,
-                "prix_vente": p.prix_vente
+                "devise": devise,
+                "prix_fournisseur_devise":
+                    prix_fournisseur_devise,
+                "taux_conversion":
+                    taux_conversion,
+                "prix_fournisseur_fcfa":
+                    prix_fournisseur_fcfa,
+                "prix_vente":
+                    p.prix_vente
             })
         db.session.commit()
         return {
             "status": "success",
-            "message": f"{len(produits_mis_a_jour)} produit(s) mis à jour",
+            "message": (
+                f"{len(produits_mis_a_jour)} "
+                f"produit(s) mis à jour"
+            ),
             "produits": produits_mis_a_jour
         }
     except Exception as e:
