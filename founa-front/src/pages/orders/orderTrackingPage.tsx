@@ -831,7 +831,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 17,
     fontWeight: 750,
     color: "#1F272D",
-    lineHeight: 1.35,
+    // lineHeight: 1.35,
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: 2,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    lineHeight: "1.4",
+    maxHeight: "2.8em",
   },
 
   orderMeta: {
