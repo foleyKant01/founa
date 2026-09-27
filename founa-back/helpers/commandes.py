@@ -522,6 +522,8 @@ def UpdateCommande():
         update_commande.details = details
         update_commande.cout_envoie_maritime = float(cout_envoie_maritime or 0)
         update_commande.cout_envoie_aérienne = float(cout_envoie_aerienne or 0)
+        update_commande.temps_envoie_maritime = float(temps_envoie_maritime or 0)
+        update_commande.temps_envoie_aérienne = float(temps_envoie_aérienne or 0)
         update_commande.view = "1"
         update_commande.updated_date = datetime.datetime.now()
         

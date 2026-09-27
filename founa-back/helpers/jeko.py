@@ -298,6 +298,237 @@ def VerifyJekoWebhookSignature(raw_body, signature):
 
 def ReceiveJekoWebhook():
     try:
+        # =========================================================
+        # 1. Récupérer le body brut
+        # =========================================================
+        raw_body = request.get_data()
+
+        if not raw_body:
+            return {
+                "status": "error",
+                "message": "Payload webhook vide."
+            }, 400
+
+        # =========================================================
+        # 2. Vérification de la signature Jeko
+        # =========================================================
+        signature = request.headers.get("Jeko-Signature", "")
+
+        if not VerifyJekoWebhookSignature(raw_body, signature):
+            return {
+                "status": "error",
+                "message": "Signature webhook Jeko invalide."
+            }, 401
+
+        # =========================================================
+        # 3. Parser le JSON
+        # =========================================================
+        try:
+            data = json.loads(raw_body)
+        except json.JSONDecodeError:
+            return {
+                "status": "error",
+                "message": "Le payload webhook contient un JSON invalide."
+            }, 400
+
+        if not isinstance(data, dict):
+            return {
+                "status": "error",
+                "message": "Le payload webhook doit être un objet JSON."
+            }, 400
+
+        # =========================================================
+        # 4. Récupérer les informations du paiement
+        # =========================================================
+        transaction_id = data.get("id")
+        status = data.get("status")
+        transaction_type = data.get("transactionType")
+        payment_method = data.get("paymentMethod")
+
+        amount_data = data.get("amount") or {}
+
+        amount = amount_data.get("amount")
+        currency = amount_data.get("currency")
+
+        fees_data = data.get("fees") or {}
+
+        fees = fees_data.get("amount")
+        fees_currency = fees_data.get("currency")
+
+        transaction_details = data.get("transactionDetails") or {}
+
+        reference = transaction_details.get("reference")
+        payment_link_id = transaction_details.get("paymentLinkId")
+
+        # =========================================================
+        # 5. Vérifications minimales
+        # =========================================================
+        if not transaction_id:
+            return {
+                "status": "error",
+                "message": "L'identifiant de transaction Jeko est obligatoire."
+            }, 400
+
+        if not reference:
+            return {
+                "status": "error",
+                "message": "La référence de commande est absente."
+            }, 400
+
+        # =========================================================
+        # 6. Vérifier si le webhook a déjà été reçu
+        # =========================================================
+        webhook_existant = Webhook.query.filter_by(
+            transaction_id=transaction_id
+        ).first()
+
+        if webhook_existant:
+            return {
+                "status": "success",
+                "message": "Webhook déjà reçu.",
+                "duplicate": True,
+                "webhook_uid": webhook_existant.uid
+            }, 200
+
+        # =========================================================
+        # 7. Chercher la commande
+        # =========================================================
+        commande = Commande.query.filter_by(
+            commande_id=reference
+        ).first()
+
+        if not commande:
+            return {
+                "status": "error",
+                "message": f"Commande introuvable : {reference}"
+            }, 404
+
+        # =========================================================
+        # 8. Date d'exécution
+        # =========================================================
+        executed_at = None
+
+        executed_at_raw = data.get("executedAt")
+
+        if executed_at_raw:
+            try:
+                executed_at = datetime.datetime.strptime(
+                    executed_at_raw,
+                    "%Y-%m-%d %H:%M:%S"
+                )
+            except ValueError:
+                executed_at = None
+
+        # =========================================================
+        # 9. Enregistrer le webhook
+        # =========================================================
+        webhook = Webhook(
+            transaction_id=transaction_id,
+            transaction_type=transaction_type,
+            reference=reference,
+            payment_link_id=payment_link_id,
+            status=status,
+            payment_method=payment_method,
+            amount=amount,
+            currency=currency,
+            fees=fees,
+            fees_currency=fees_currency,
+            counterpart_label=data.get("counterpartLabel"),
+            counterpart_identifier=data.get("counterpartIdentifier"),
+            business_name=data.get("businessName"),
+            store_name=data.get("storeName"),
+            description=data.get("description"),
+            executed_at=executed_at,
+            payload=data,
+            processed=False
+        )
+
+        db.session.add(webhook)
+
+        # =========================================================
+        # 10. TRAITEMENT DU PAIEMENT
+        # =========================================================
+        if status == "success":
+
+            # -----------------------------------------------------
+            # Vérifier que la commande n'est pas déjà payée
+            # -----------------------------------------------------
+            if commande.statut != "Payer":
+
+                ancien_statut = commande.statut
+
+                # -------------------------------------------------
+                # Changer le statut de la commande
+                # -------------------------------------------------
+                commande.statut = "Payer"
+
+                commande.updated_date = datetime.datetime.utcnow()
+
+                # -------------------------------------------------
+                # Écrire dans les logs
+                # -------------------------------------------------
+                status_log = CommandeStatusLog(
+                    commande_id=commande.commande_id,
+                    status_commande="Payer",
+                    teller_id=commande.teller_id
+                )
+
+                db.session.add(status_log)
+
+                print(
+                    f"[JEKO] Commande {commande.commande_id} "
+                    f"passée de '{ancien_statut}' à 'Payer'"
+                )
+
+            else:
+                print(
+                    f"[JEKO] Commande {commande.commande_id} "
+                    f"est déjà au statut 'Payer'."
+                )
+
+        # =========================================================
+        # 11. Si paiement échoué
+        # =========================================================
+        elif status in ["failed", "error", "cancelled", "canceled"]:
+
+            print(
+                f"[JEKO] Paiement échoué pour la commande "
+                f"{commande.commande_id}. Status Jeko : {status}"
+            )
+
+        # =========================================================
+        # 12. Marquer le webhook comme traité
+        # =========================================================
+        webhook.processed = True
+        webhook.processed_at = datetime.datetime.utcnow()
+
+        # =========================================================
+        # 13. Commit global
+        # =========================================================
+        db.session.commit()
+
+        return {
+            "status": "success",
+            "message": "Webhook Jeko traité avec succès.",
+            "transaction_id": transaction_id,
+            "commande_id": commande.commande_id,
+            "commande_status": commande.statut
+        }, 200
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            f"[JEKO WEBHOOK ERROR] {str(e)}"
+        )
+
+        return {
+            "status": "error",
+            "message": "Erreur lors du traitement du webhook Jeko.",
+            "error": str(e)
+        }, 500
+    try:
         # ==========================================
         # 1. RECUPERATION DU BODY BRUT
         # ==========================================
