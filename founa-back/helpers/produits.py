@@ -60,20 +60,24 @@ def ImporterProduit():
     produits_crees = []
     erreurs = []
     produits_ignores = []
+
     try:
         base_dir = os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))
         )
+
         fichier_json = os.path.join(
             base_dir,
             "data",
             "produits.json"
         )
+
         if not os.path.exists(fichier_json):
             return {
                 "status": "error",
                 "message": f"Fichier introuvable : {fichier_json}"
             }
+
         with open(
             fichier_json,
             "r",
@@ -84,34 +88,91 @@ def ImporterProduit():
         if not isinstance(produits, list):
             return {
                 "status": "error",
-                "message": "Le fichier produits.json doit contenir une liste de produits."
+                "message": (
+                    "Le fichier produits.json doit contenir "
+                    "une liste de produits."
+                )
             }
+
         noms_deja_vus = set()
         images_deja_vues = set()
+
         for index, data in enumerate(produits, start=1):
+
             try:
                 nom = (data.get("nom") or "").strip()
+
                 description = (
                     data.get("description") or ""
                 ).strip()
+
                 categorie = (
                     data.get("categorie") or ""
                 ).strip()
+
                 if not nom:
                     raise ValueError(
                         "Le nom du produit est obligatoire"
                     )
-                prix_fournisseur_usd = float(
+
+                # ==========================================
+                # DEVISE
+                # ==========================================
+
+                devise = (
+                    data.get("devise") or "usd"
+                ).strip().lower()
+
+                if devise not in ["usd", "euro"]:
+                    raise ValueError(
+                        "La devise doit être 'usd' ou 'euro'"
+                    )
+
+                # ==========================================
+                # PRIX FOURNISSEUR
+                # ==========================================
+
+                prix_fournisseur_devise = float(
                     data.get("prix_fournisseur") or 0
                 )
+
+                # Choix du taux selon la devise
+                if devise == "usd":
+                    taux_devise = TAUX_USD_XOF
+                else:
+                    taux_devise = TAUX_EURO_XOF
+
+                # Conversion en FCFA
                 prix_fournisseur = math.ceil(
-                    prix_fournisseur_usd * TAUX_USD_XOF
+                    prix_fournisseur_devise * taux_devise
                 )
-                prix_vente = (math.ceil(prix_fournisseur * 1.25 / 10) * 10)
-                moq = int(data.get("moq") or 0)
-                informations_fournisseur = (data.get("informations_fournisseur") or "").strip()
-                fournisseur_nom = (data.get("fournisseur") or "").strip()
-                supplier_id = (data.get("supplierId") or "").strip()
+
+                # Prix de vente = prix fournisseur + 25%
+                prix_vente = (
+                    math.ceil(
+                        prix_fournisseur * 1.25 / 10
+                    ) * 10
+                )
+
+                # ==========================================
+                # AUTRES INFORMATIONS
+                # ==========================================
+
+                moq = int(
+                    data.get("moq") or 0
+                )
+
+                informations_fournisseur = (
+                    data.get("informations_fournisseur") or ""
+                ).strip()
+
+                fournisseur_nom = (
+                    data.get("fournisseur") or ""
+                ).strip()
+
+                supplier_id = (
+                    data.get("supplierId") or ""
+                ).strip()
 
                 fournisseur = ", ".join(
                     valeur
@@ -122,38 +183,56 @@ def ImporterProduit():
                     ]
                     if valeur
                 )
+
                 lien_1 = (
                     data.get("lien_1") or ""
                 ).strip()
+
                 images = data.get("images") or []
 
                 if not isinstance(images, list):
                     images = [images]
+
                 images = [
                     url.strip()
                     for url in images
                     if isinstance(url, str)
                     and url.strip()
                 ]
+
+                # ==========================================
+                # DOUBLONS DANS LE JSON
+                # ==========================================
+
                 nom_normalise = nom.lower().strip()
+
                 images_normalisees = set(images)
+
                 doublon_nom_json = (
                     nom_normalise in noms_deja_vus
                 )
+
                 doublon_image_json = any(
                     image in images_deja_vues
                     for image in images_normalisees
                 )
+
                 if doublon_nom_json or doublon_image_json:
+
                     raisons = []
+
                     if doublon_nom_json:
                         raisons.append(
-                            "nom du produit déjà présent dans le fichier JSON"
+                            "nom du produit déjà présent "
+                            "dans le fichier JSON"
                         )
+
                     if doublon_image_json:
                         raisons.append(
-                            "une ou plusieurs images déjà présentes dans le fichier JSON"
+                            "une ou plusieurs images déjà "
+                            "présentes dans le fichier JSON"
                         )
+
                     produits_ignores.append({
                         "index": index,
                         "nom": nom,
@@ -163,13 +242,21 @@ def ImporterProduit():
                             + " et ".join(raisons)
                         )
                     })
+
                     continue
+
+                # ==========================================
+                # DOUBLON PAR NOM DANS LA BASE
+                # ==========================================
+
                 produit_existant_nom = (
                     Produit.query
                     .filter_by(nom=nom)
                     .first()
                 )
+
                 if produit_existant_nom:
+
                     produits_ignores.append({
                         "index": index,
                         "nom": nom,
@@ -179,37 +266,62 @@ def ImporterProduit():
                             "de données avec le même nom"
                         )
                     })
+
                     continue
+
+                # ==========================================
+                # DOUBLON PAR IMAGE DANS LA BASE
+                # ==========================================
+
                 produit_existant_image = None
+
                 produits_existants = Produit.query.all()
+
                 for produit_db in produits_existants:
+
                     images_db = produit_db.images
+
                     if not images_db:
                         continue
+
                     if isinstance(images_db, str):
+
                         try:
                             images_db = json.loads(
                                 images_db
                             )
-                        except (json.JSONDecodeError, TypeError):
+
+                        except (
+                            json.JSONDecodeError,
+                            TypeError
+                        ):
                             images_db = [
                                 images_db
                             ]
+
                     if not isinstance(images_db, list):
-                        images_db = [images_db]
+                        images_db = [
+                            images_db
+                        ]
+
                     images_db = {
                         str(image).strip()
                         for image in images_db
                         if image
                     }
+
                     if images_normalisees.intersection(
                         images_db
                     ):
+
                         produit_existant_image = (
                             produit_db
                         )
+
                         break
+
                 if produit_existant_image:
+
                     produits_ignores.append({
                         "index": index,
                         "nom": nom,
@@ -222,64 +334,118 @@ def ImporterProduit():
                             "images identiques"
                         )
                     })
+
                     continue
+
+                # ==========================================
+                # ENREGISTREMENT DES DOUBLONS
+                # ==========================================
+
                 noms_deja_vus.add(
                     nom_normalise
                 )
+
                 images_deja_vues.update(
                     images_normalisees
                 )
+
+                # ==========================================
+                # CREATION DU PRODUIT
+                # ==========================================
+
                 produit = Produit(
                     nom=nom,
+
                     fournisseur=fournisseur,
+
                     status="disponible",
+
+                    devise=devise,
+
                     categorie=categorie,
+
                     description=description,
+
                     lien_1=lien_1,
+
                     prix_fournisseur=prix_fournisseur,
-                    prix_fournisseur_usd=prix_fournisseur_usd,
+
+                    prix_fournisseur_usd=(
+                        prix_fournisseur_devise
+                        if devise == "usd"
+                        else None
+                    ),
+
                     prix_vente=prix_vente,
+
                     images=json.dumps(
                         images,
                         ensure_ascii=False
                     ),
+
                     stock_disponible=100,
+
                     moq=moq
                 )
+
                 db.session.add(produit)
+
                 produits_crees.append({
                     "nom": nom,
-                    "prix_fournisseur_usd": prix_fournisseur_usd,
-                    "prix_fournisseur_fcfa": prix_fournisseur,
+
+                    "devise": devise,
+
+                    "prix_fournisseur": (
+                        prix_fournisseur_devise
+                    ),
+
+                    "taux_conversion": taux_devise,
+
+                    "prix_fournisseur_fcfa": (
+                        prix_fournisseur
+                    ),
+
                     "prix_vente": prix_vente,
+
                     "moq": moq,
+
                     "produit_uid": produit.uid,
+
                     "images": images
                 })
+
             except Exception as product_error:
+
                 erreurs.append({
                     "index": index,
                     "nom": data.get("nom", ""),
                     "erreur": str(product_error)
                 })
+
         db.session.commit()
+
         return {
             "status": "success",
+
             "message": (
                 f"{len(produits_crees)} produit(s) créé(s)"
             ),
+
             "produits_crees": produits_crees,
+
             "erreurs": erreurs,
+
             "produits_ignores": produits_ignores
         }
+
     except Exception as e:
+
         db.session.rollback()
+
         return {
             "status": "error",
             "message": str(e)
         }
-
-
 
 def CreateProduit():
     try:
