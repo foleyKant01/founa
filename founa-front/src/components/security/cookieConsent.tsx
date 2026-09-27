@@ -543,7 +543,7 @@ const CookieConsent: React.FC = () => {
                 permettant d'améliorer votre expérience.
                 <br />
 
-                <a href="/cookie-policy">
+                <a href="/cookiepolicy">
                   En savoir plus sur les cookies
                 </a>
               </p>
