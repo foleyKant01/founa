@@ -402,7 +402,7 @@ const handlePayment = async () => {
       // REDIRECTION VERS JEKO
       // ==========================================
 
-      window.location.href = paymentUrl;
+      // window.location.href = paymentUrl;
 
       return;
     }
