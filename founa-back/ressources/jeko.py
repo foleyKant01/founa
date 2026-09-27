@@ -10,7 +10,7 @@ class JekoApi(Resource):
         if route == "payment_request":
             return PaymentRequest() 
         
-        if route == "/payment/webhook":
+        if route == "payment/webhook":
             return ReceiveJekoWebhook()
         
         if route == "get_all_produit_by_teller":
