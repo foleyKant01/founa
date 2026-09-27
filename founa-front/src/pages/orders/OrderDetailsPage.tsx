@@ -356,64 +356,75 @@ const OrderDetailsPage: React.FC = () => {
     }
   };
 
-  const handlePayment = async () => {
-    if (clientStatus !== "verifier") {
-      setShowVerificationModal(true);
-      return;
-    }
+const handlePayment = async () => {
+  if (clientStatus !== "verifier") {
+    setShowVerificationModal(true);
+    return;
+  }
 
-    if (!commande_id) {
-      console.error("Commande introuvable.");
-      return;
-    }
+  if (!commande_id) {
+    console.error("Commande introuvable.");
+    return;
+  }
 
-    if (!modePaiement) {
-      console.error("Veuillez sélectionner un mode de paiement.");
-      return;
-    }
+  if (!modePaiement) {
+    console.error("Veuillez sélectionner un mode de paiement.");
+    return;
+  }
 
-    try {
-      setPaymentLoading(true);
+  try {
+    setPaymentLoading(true);
 
-      const response = await PaymentRequest({
-        commande_id,
-        paymentMethod: modePaiement,
-      });
+    const response = await PaymentRequest({
+      commande_id,
+      paymentMethod: modePaiement,
+    });
 
-      console.log("Réponse paiement :", response.data);
+    console.log("Réponse paiement :", response.data);
 
-      if (response.data.status === "success") {
-        // Adapte cette partie selon la réponse exacte de ton backend Jeko
-        console.log("Demande de paiement créée avec succès.");
+    // ==========================================
+    // PAIEMENT CRÉÉ AVEC SUCCÈS
+    // ==========================================
 
-        // Si ton backend retourne une URL de paiement :
-        const paymentUrl =
-          response.data.payment_url ||
-          response.data.payment?.payment_url ||
-          response.data.payment?.url;
+    if (response.data.status === "success") {
+      const paymentUrl = response.data.payment?.redirectUrl;
 
-        if (paymentUrl) {
-          window.open(paymentUrl, "_blank");
-        } else {
-          console.warn(
-            "Aucune URL de paiement retournée par le backend."
-          );
-        }
-      } else {
+      console.log("URL de paiement Jeko :", paymentUrl);
+
+      if (!paymentUrl) {
         console.error(
-          response.data.message ||
-            "Impossible de créer la demande de paiement."
+          "Aucune URL de paiement Jeko retournée par le backend."
         );
+        return;
       }
-    } catch (error) {
-      console.error(
-        "Erreur lors de la demande de paiement :",
-        error
-      );
-    } finally {
-      setPaymentLoading(false);
+
+      // ==========================================
+      // REDIRECTION VERS JEKO
+      // ==========================================
+
+      window.location.href = paymentUrl;
+
+      return;
     }
-  };
+
+    // ==========================================
+    // ERREUR BACKEND
+    // ==========================================
+
+    console.error(
+      response.data.message ||
+        "Impossible de créer la demande de paiement."
+    );
+
+  } catch (error) {
+    console.error(
+      "Erreur lors de la demande de paiement :",
+      error
+    );
+  } finally {
+    setPaymentLoading(false);
+  }
+};
 
   return (
     <div style={styles.page}>
