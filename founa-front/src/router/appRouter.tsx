@@ -33,6 +33,10 @@ import CreateTeller from "../pages/admin/createTellers";
 import ReadAllTellersPage from "../pages/admin/readAllTellers";
 import ReadAllUnavaibleProductsPage from "../pages/admin/unavaibleProduct";
 
+import CookiePolicyPage from "../pages/security/cookiePolicyPage";
+import PrivacyPolicyPage from "../pages/security/privacyPolicyPage";
+import TermsPage from "../pages/security/termsPage";
+
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -72,6 +76,10 @@ const AppRoutes = () => {
           <Route path="/activity/history" element={<HistoryPage />} />
           <Route path="/singleproduct/:uid" element={<ProductPage />} />
           <Route path="/order/:commande_id" element={<OrderDetailsPage />} />
+
+          <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
+          <Route path="/privacypolicy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
 
            {/* 🔥 TELLER */}
           <Route path="/teller/home" element={<ProtectedRouteTeller><HomeTeller /></ProtectedRouteTeller>} />

@@ -16,6 +16,10 @@ import {
   CalendarDays,
   Wallet,
   Bell,
+  ShieldCheck,
+  FileText,
+  Cookie,
+  MessageCircle,
 } from "lucide-react";
 import { ReadSingleClient } from "../../services/auth.service";
 import { GetAllCommandeByClient } from "../../services/order.service";
@@ -267,6 +271,27 @@ const handleEnableNotifications = async () => {
   const handleLogout = () => {
     localStorage.removeItem("user");
     window.location.href = "/home";
+  };
+
+    // =========================================================
+  // CONTACT FOUNA
+  // =========================================================
+
+  const handleContactEmail = () => {
+    window.location.href =
+      "mailto:contact@founa.ci?subject=Contact%20FOUNA";
+  };
+
+  const handleContactWhatsapp = () => {
+    const message = encodeURIComponent(
+      "Bonjour FOUNA, je souhaite obtenir des informations concernant mon compte."
+    );
+
+    window.open(
+      `https://wa.me/2250702653594?text=${message}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
   };
 
   // =========================================================
@@ -804,6 +829,81 @@ const handleEnableNotifications = async () => {
             background: #F8FFFF;
           }
 
+                    /* AIDE & INFORMATIONS */
+
+          .profile-help-section {
+            margin-top: 22px;
+          }
+
+          .profile-help-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          }
+
+          .profile-help-item {
+            width: 100%;
+            border: 1px solid #E5E7EB;
+            background: #ffffff;
+            color: #374151;
+            padding: 13px 15px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: left;
+          }
+
+          .profile-help-item:hover {
+            border-color: #00A4A6;
+            color: #00A4A6;
+            background: #F8FFFF;
+            transform: translateX(2px);
+          }
+
+          .profile-help-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+          }
+
+          .profile-help-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: #E8F8F8;
+            color: #00A4A6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          .profile-contact-email:hover {
+            border-color: #3B82F6;
+            color: #2563EB;
+            background: #F8FAFF;
+          }
+
+          .profile-contact-email .profile-help-icon {
+            color: #2563EB;
+            background: #EFF6FF;
+          }
+
+          .profile-contact-whatsapp:hover {
+            border-color: #16A34A;
+            color: #15803D;
+            background: #F7FFF9;
+          }
+
+          .profile-contact-whatsapp .profile-help-icon {
+            color: #16A34A;
+            background: #F0FDF4;
+          }
+
           .logout-action {
             color: #DC2626;
             border-color: #FEE2E2;
@@ -1295,6 +1395,140 @@ const handleEnableNotifications = async () => {
                   </button>
 
                 </div>
+              </div>
+
+                            {/* AIDE & INFORMATIONS */}
+              <div className="profile-card profile-help-section">
+
+                <div className="card-title">
+                  <div className="card-title-left">
+
+                    <div className="card-title-icon">
+                      <ShieldCheck size={18} />
+                    </div>
+
+                    <h3>
+                      Aide & Informations
+                    </h3>
+
+                  </div>
+                </div>
+
+                <div className="profile-help-list">
+
+                  {/* POLITIQUE DE CONFIDENTIALITÉ */}
+                  <button
+                    type="button"
+                    className="profile-help-item"
+                    onClick={() =>
+                      navigate("/privacypolicy")
+                    }
+                  >
+                    <div className="profile-help-item-left">
+
+                      <div className="profile-help-icon">
+                        <ShieldCheck size={17} />
+                      </div>
+
+                      <span>
+                        Politique de confidentialité
+                      </span>
+
+                    </div>
+
+                    <ChevronRight size={18} />
+                  </button>
+
+                  {/* CONDITIONS D'UTILISATION */}
+                  <button
+                    type="button"
+                    className="profile-help-item"
+                    onClick={() =>
+                      navigate("/terms")
+                    }
+                  >
+                    <div className="profile-help-item-left">
+
+                      <div className="profile-help-icon">
+                        <FileText size={17} />
+                      </div>
+
+                      <span>
+                        Conditions d'utilisation
+                      </span>
+
+                    </div>
+
+                    <ChevronRight size={18} />
+                  </button>
+
+                  {/* POLITIQUE DES COOKIES */}
+                  <button
+                    type="button"
+                    className="profile-help-item"
+                    onClick={() =>
+                      navigate("/cookiepolicy")
+                    }
+                  >
+                    <div className="profile-help-item-left">
+
+                      <div className="profile-help-icon">
+                        <Cookie size={17} />
+                      </div>
+
+                      <span>
+                        Politique des cookies
+                      </span>
+
+                    </div>
+
+                    <ChevronRight size={18} />
+                  </button>
+
+                  {/* CONTACT EMAIL */}
+                  <button
+                    type="button"
+                    className="profile-help-item profile-contact-email"
+                    onClick={handleContactEmail}
+                  >
+                    <div className="profile-help-item-left">
+
+                      <div className="profile-help-icon">
+                        <Mail size={17} />
+                      </div>
+
+                      <span>
+                        Contacter FOUNA par E-mail
+                      </span>
+
+                    </div>
+
+                    <ChevronRight size={18} />
+                  </button>
+
+                  {/* CONTACT WHATSAPP */}
+                  <button
+                    type="button"
+                    className="profile-help-item profile-contact-whatsapp"
+                    onClick={handleContactWhatsapp}
+                  >
+                    <div className="profile-help-item-left">
+
+                      <div className="profile-help-icon">
+                        <MessageCircle size={17} />
+                      </div>
+
+                      <span>
+                        Contacter FOUNA via WhatsApp
+                      </span>
+
+                    </div>
+
+                    <ChevronRight size={18} />
+                  </button>
+
+                </div>
+
               </div>
 
             </div>

@@ -646,40 +646,29 @@ def UpdateProduit():
 
 def AllSimilarProducts():
     response = {}
-
     try:
         data = request.json or {}
-
         uid = data.get("uid")
         product_name = (data.get("nom") or "").strip()
         product_description = (data.get("description") or "").strip()
         product_categorie = (data.get("categorie") or "").strip()
 
-        # ---------------------------------------------------------
-        # 1. Vérification des informations nécessaires
-        # ---------------------------------------------------------
         if not uid:
             return {
                 "status": "error",
                 "error_description": "L'identifiant du produit est obligatoire",
                 "products": []
             }, 400
-
         if not product_categorie:
             return {
                 "status": "success",
                 "products": []
             }
-
         if not product_name and not product_description:
             return {
                 "status": "success",
                 "products": []
             }
-
-        # ---------------------------------------------------------
-        # 2. Mots à ignorer
-        # ---------------------------------------------------------
         stop_words = {
             "le", "la", "les",
             "un", "une", "des",
@@ -697,231 +686,123 @@ def AllSimilarProducts():
             "homme", "femme",
             "hommes", "femmes"
         }
-
-        # ---------------------------------------------------------
-        # 3. Extraction des mots importants du NOM
-        # ---------------------------------------------------------
         name_words = re.findall(
             r"[a-zA-ZÀ-ÿ]+",
             product_name.lower()
         )
-
         name_words = [
             word
             for word in name_words
             if len(word) >= 3
             and word not in stop_words
         ]
-
-        # Supprimer les doublons
         name_words = list(dict.fromkeys(name_words))
-
-        # ---------------------------------------------------------
-        # 4. Extraction des mots importants de la DESCRIPTION
-        # ---------------------------------------------------------
         description_words = re.findall(
             r"[a-zA-ZÀ-ÿ]+",
             product_description.lower()
         )
-
         description_words = [
             word
             for word in description_words
             if len(word) >= 4
             and word not in stop_words
         ]
-
-        # Supprimer les doublons
         description_words = list(dict.fromkeys(description_words))
-
-        # ---------------------------------------------------------
-        # 5. Recherche UNIQUEMENT dans la même catégorie
-        # ---------------------------------------------------------
         candidate_filters = []
-
-        # Correspondance sur les mots du nom
         for word in name_words:
             candidate_filters.append(
                 Produit.nom.ilike(f"%{word}%")
             )
-
-        # Correspondance sur les mots de la description
         for word in description_words[:15]:
             candidate_filters.append(
                 Produit.description.ilike(f"%{word}%")
             )
-
-        # ---------------------------------------------------------
-        # 6. Construire la requête
-        # ---------------------------------------------------------
         query = Produit.query
-
-        # Exclure le produit actuel
         query = query.filter(
             Produit.uid != uid
         )
-
-        # Même catégorie OBLIGATOIRE
         query = query.filter(
             Produit.categorie.ilike(
                 product_categorie
             )
         )
-
-        # Si aucun mot exploitable
         if not candidate_filters:
             return {
                 "status": "success",
                 "products": []
             }
-
-        # Parmi les produits de la même catégorie,
-        # chercher ceux qui ont au moins une correspondance
         all_products = (
             query
             .filter(or_(*candidate_filters))
             .all()
         )
-
-        # ---------------------------------------------------------
-        # 7. Calcul du score
-        # ---------------------------------------------------------
         products_info = []
-
         for product in all_products:
-
             score = 0
-
             nom = (
                 (product.nom or "")
                 .strip()
                 .lower()
             )
-
             description = (
                 (product.description or "")
                 .strip()
                 .lower()
             )
-
-            # -----------------------------------------------------
-            # Correspondances dans le NOM
-            # -----------------------------------------------------
             matched_name_words = 0
-
             for word in name_words:
-
                 if word in nom:
                     matched_name_words += 1
-
-            # Chaque mot trouvé = +10
-            # Maximum = 50 points
             if matched_name_words > 0:
-
                 score += min(
                     matched_name_words * 10,
                     50
                 )
-
-            # -----------------------------------------------------
-            # Correspondances dans la DESCRIPTION
-            # -----------------------------------------------------
             matched_description_words = 0
-
             for word in description_words:
-
                 if word in description:
                     matched_description_words += 1
-
-            # Chaque mot trouvé = +2
-            # Maximum = 20 points
             if matched_description_words > 0:
-
                 score += min(
                     matched_description_words * 2,
                     20
                 )
-
-            # -----------------------------------------------------
-            # Bonus selon le pourcentage de mots du nom trouvés
-            # -----------------------------------------------------
             if len(name_words) > 0:
-
                 name_match_percentage = (
                     matched_name_words / len(name_words)
                 )
-
-                # Au moins 75% des mots du nom
                 if name_match_percentage >= 0.75:
-
                     score += 20
-
-                # Au moins 50% des mots du nom
                 elif name_match_percentage >= 0.50:
-
                     score += 10
-
-            # -----------------------------------------------------
-            # 8. Ajouter le produit
-            # -----------------------------------------------------
             if score > 0:
-
                 products_info.append({
-
                     "id": product.id,
-
                     "uid": product.uid,
-
                     "nom": product.nom,
-
                     "description": product.description,
-
                     "categorie": product.categorie,
-
                     "prix_fournisseur": product.prix_fournisseur,
-
                     "prix_vente": product.prix_vente,
-
                     "stock_disponible": product.stock_disponible,
-
                     "moq": product.moq,
-
                     "fournisseur": product.fournisseur,
-
                     "images": product.images,
-
                     "similarity_score": score,
-
                     "matched_name_words": matched_name_words,
-
                     "matched_description_words": matched_description_words
                 })
-
-        # ---------------------------------------------------------
-        # 9. Trier par similarité
-        # ---------------------------------------------------------
         products_info.sort(
             key=lambda product: product["similarity_score"],
             reverse=True
         )
-
-        # ---------------------------------------------------------
-        # 10. Limiter à 10 produits
-        # ---------------------------------------------------------
         products_info = products_info[:10]
-
-        # ---------------------------------------------------------
-        # 11. Réponse
-        # ---------------------------------------------------------
         response["status"] = "success"
         response["products"] = products_info
-
     except Exception as e:
-
         response["status"] = "error"
         response["error_description"] = str(e)
         response["products"] = []
-
     return response
 
 
