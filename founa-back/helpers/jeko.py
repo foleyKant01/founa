@@ -175,7 +175,7 @@ def PaymentRequest():
             }, 400
         # Calcul du montant total
         prix_total = single_commande.prix_total or 0
-        amountCents = prix_total + cout_envoie
+        amountCents = (prix_total + cout_envoie) * 100
         # Récupérer automatiquement le store Founa CI
         # store_id, store_error = GetJekoStoreIdByName("Founa CI")
         # if not store_id:

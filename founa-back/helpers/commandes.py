@@ -179,25 +179,19 @@ def generate_order_id():
 def CreateCommande():
     try:
         data = request.json
-
         client_id = data.get('client_id')
         produit_id = data.get('produit_id')
         quantite = data.get('quantite')
         details = data.get('details')
-
         if not client_id or not produit_id or not quantite:
             return {"status": "error", "message": "client_id, produit_id et quantite sont requis"}, 400
-
         # Vérifier que client ➕ produit existent
         client = Client.query.filter_by(uid=client_id).first()
         produit = Produit.query.filter_by(uid=produit_id).first()
-
         if not client:
             return {"status": "error", "message": "Client introuvable"}, 404
-
         if not produit:
             return {"status": "error", "message": "Produit introuvable"}, 404
-
         # Calcul du prix total
         prix_total = float(produit.prix_vente) * int(quantite)
         teller_id = GetTellerForNewCommande()
@@ -212,7 +206,6 @@ def CreateCommande():
             statut="Initier",
             view="1"
         )
-        
         send_push_notification(
             user_uid=teller_id,
             user_type="teller",
@@ -224,10 +217,8 @@ def CreateCommande():
                 "url": "https://founa.ci/teller/orders"
             }
         )
-
         db.session.add(commande)
         db.session.commit()
-
         return {
             "status": "success",
             "message": "Commande créée avec succès",
@@ -243,7 +234,6 @@ def CreateCommande():
                 "teller_id": teller_id
             }
         }, 201
-
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
     
@@ -298,46 +288,37 @@ def GetAllCommandes():
             "status": "error",
             "message": str(e)
         }, 500
+        
     
     
 def GetAllCommandeByClient():
-    
     try:
-
         data = request.json or {}
-
         client_id = (
             data.get("client_id") or ""
         ).strip()
-
         if not client_id:
             return {
                 "status": "error",
                 "message": "client_id manquant",
                 "commandes": []
             }, 400
-
         all_commande = (
             Commande.query
             .filter_by(client_id=client_id)
             .order_by(Commande.created_date.desc())
             .all()
         )
-
         result = []
-
         for c in all_commande:
-
             single_product = (
                 Produit.query
                 .filter_by(uid=c.produit_id)
                 .first()
             )
-
             # Si le produit n'existe plus,
             # on ne bloque pas toutes les commandes.
             if not single_product:
-
                 result.append({
                     "commande_id": c.commande_id,
                     "client_id": c.client_id,
@@ -361,9 +342,7 @@ def GetAllCommandeByClient():
                         else None
                     ),
                 })
-
                 continue
-
             result.append({
                 "commande_id": c.commande_id,
                 "client_id": c.client_id,
@@ -387,15 +366,12 @@ def GetAllCommandeByClient():
                     else None
                 ),
             })
-
         return {
             "status": "success",
             "nombre": len(result),
             "commandes": result
         }, 200
-
     except Exception as e:
-
         return {
             "status": "error",
             "message": str(e),
@@ -423,20 +399,17 @@ def GetAllCommandeByTeller():
         for c in all_commande:
             result.append({
                 "commande_id": c.commande_id,
-
                 "client": {
                     "uid": c.client.uid,
                     "nom": c.client.fullname,
                     "email": c.client.email,
                     "phone": c.client.phone,
                 },
-
                 "produit": {
                     "uid": c.produit.uid,
                     "nom": c.produit.nom,
                     "prix_vente": c.produit.prix_vente,
                 },
-
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
@@ -462,13 +435,10 @@ def GetSingleCommande():
         commande_id = (request.json.get('commande_id'))
         single_commande = Commande.query.filter_by(commande_id=commande_id).first()
         single_product = Produit.query.filter_by(uid=single_commande.produit_id).first()
-
         if not single_commande:
             return {"status": "error", "message": "Commande introuvable"}, 404
-        
         single_commande.view = "0"
         db.session.commit()
-        
         return {
             "status": "success",
             "commande": {
@@ -491,7 +461,6 @@ def GetSingleCommande():
                 "updated_date": str(single_commande.updated_date),
             }
         }, 200
-
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
 
@@ -500,63 +469,46 @@ def GetSingleCommande():
 def UpdateCommande():
     try:
         data = request.json or {}
-
         commande_id = data.get("commande_id")
         statut = data.get("statut")
         details = data.get("details")
-
         cout_envoie_maritime = data.get(
             "cout_envoie_maritime", 0
         )
-
         temps_envoie_maritime = data.get(
             "temps_envoie_maritime", ""
         )
-
         cout_envoie_aerienne = data.get(
             "cout_envoie_aérienne", 0
         )
-
         temps_envoie_aérienne = data.get(
             "temps_envoie_aérienne", ""
         )
-
         update_commande = Commande.query.filter_by(
             commande_id=commande_id
         ).first()
-
         if not update_commande:
             return {
                 "status": "error",
                 "message": "Commande introuvable"
             }, 404
-
         update_commande.statut = statut
         update_commande.details = details
-
-        # Frais d'expédition = nombres
         update_commande.cout_envoie_maritime = float(
             cout_envoie_maritime or 0
         )
-
         update_commande.cout_envoie_aérienne = float(
             cout_envoie_aerienne or 0
         )
-
-        # Temps d'expédition = textes
         update_commande.temps_envoie_maritime = str(
             temps_envoie_maritime or ""
         ).strip()
-
         update_commande.temps_envoie_aérienne = str(
             temps_envoie_aérienne or ""
         ).strip()
-
         update_commande.view = "1"
         update_commande.updated_date = datetime.datetime.now()
-
         db.session.commit()
-
         send_push_notification(
             user_uid=update_commande.client_id,
             user_type="user",
@@ -572,25 +524,22 @@ def UpdateCommande():
                 "url": "https://founa.ci/orders"
             }
         )
-
         CreateCommandeStatusLog({
             "commande_id": update_commande.commande_id,
             "statut": update_commande.statut,
             "teller_id": update_commande.teller_id
         })
-
         return {
             "status": "success",
             "message": "Commande mise à jour"
         }, 200
-
     except Exception as e:
         db.session.rollback()
-
         return {
             "status": "error",
             "message": str(e)
         }, 500
+    
     
     
 def OptionEnvoie():
@@ -621,37 +570,27 @@ def OptionEnvoie():
 
     
 def DeleteExpiredCommandes():
-    
     import datetime
-
     try:
-
         limite_date = (
             datetime.datetime.utcnow()
             - datetime.timedelta(days=7)
         )
-
         commandes = Commande.query.filter(
             Commande.statut == "Valider",
             Commande.created_date <= limite_date
         ).all()
-
         nombre_supprime = len(commandes)
-
         for commande in commandes:
-
             # Supprimer les logs de statut liés à la commande
             CommandeStatusLog.query.filter_by(
                 commande_id=commande.commande_id
             ).delete(
                 synchronize_session=False
             )
-
             # Supprimer ensuite la commande
             db.session.delete(commande)
-
         db.session.commit()
-
         return {
             "success": True,
             "message": (
@@ -659,11 +598,8 @@ def DeleteExpiredCommandes():
             ),
             "deleted_count": nombre_supprime
         }
-
     except Exception as e:
-
         db.session.rollback()
-
         return {
             "success": False,
             "message": (
@@ -672,3 +608,4 @@ def DeleteExpiredCommandes():
             ),
             "error": str(e)
         }
+        
