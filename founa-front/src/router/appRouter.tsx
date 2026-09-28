@@ -38,6 +38,10 @@ import PrivacyPolicyPage from "../pages/security/privacyPolicyPage";
 import TermsPage from "../pages/security/termsPage";
 import PaymentSuccessPage from "../pages/payment/paymentSuccessPage";
 import PaymentErrorPage from "../pages/payment/paymentErrorPage";
+import CreatePartnerPub from "../pages/admin/createPartnerPub";
+import ReadAllPartnerPubPage from "../pages/admin/readAllPartnerPub";
+import ProtectedRoutePartnerPub from "../components/routes/ProtectedRoutePartnerPub";
+import HomePartnerPub from "../pages/partnerpub/homePartnerPub";
 
 
 const AppRoutes = () => {
@@ -48,7 +52,8 @@ const AppRoutes = () => {
   // toutes les routes teller
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isTellerRoute = location.pathname.startsWith("/teller");
-  const showBottomBar = !authPages.includes(location.pathname) && !isTellerRoute && !isAdminRoute;
+  const isPartnerPubRoute = location.pathname.startsWith("/partnerpub");
+  const showBottomBar = !authPages.includes(location.pathname) && !isTellerRoute && !isAdminRoute && !isPartnerPubRoute;
 
   return (
     <>
@@ -92,12 +97,18 @@ const AppRoutes = () => {
           <Route path="/teller/allorderteller" element={<ProtectedRouteTeller><OrderTellerPage /></ProtectedRouteTeller>} />
           <Route path="/teller/stateteller" element={<ProtectedRouteTeller><StatistiquesTellerPage /></ProtectedRouteTeller>} />
 
+          {/* 🔥 PARTNERPUB */}
+          <Route path="/partnerpub/home" element={<ProtectedRoutePartnerPub><HomePartnerPub /></ProtectedRoutePartnerPub>} />
+          <Route path="/partnerpub/statepartnerpub" element={<ProtectedRoutePartnerPub><StatistiquesTellerPage /></ProtectedRoutePartnerPub>} />
+
           {/* 🔥 ADMIN */}
           <Route path="/admin/home" element={<ProtectedAdminRoute><HomeAdmin /></ProtectedAdminRoute>} />
           <Route path="/admin/createproduct" element={<ProtectedAdminRoute><CreateProduct /></ProtectedAdminRoute>} />
           <Route path="/admin/readall" element={<ProtectedAdminRoute><ReadAllProductsAdmin /></ProtectedAdminRoute>} />
           <Route path="/admin/createteller" element={<ProtectedAdminRoute><CreateTeller /></ProtectedAdminRoute>} />
           <Route path="/admin/readallteller"element={<ProtectedAdminRoute><ReadAllTellersPage /></ProtectedAdminRoute>}/>
+          <Route path="/admin/createpartnerpub" element={<ProtectedAdminRoute><CreatePartnerPub /></ProtectedAdminRoute>} />
+          <Route path="/admin/readallpartnerpub" element={<ProtectedAdminRoute><ReadAllPartnerPubPage /></ProtectedAdminRoute>} />
           <Route path="/admin/getallunavaibleproduct"element={<ProtectedAdminRoute><ReadAllUnavaibleProductsPage /></ProtectedAdminRoute>}/>
           <Route path="/admin/editproduct/:uid"element={<ProtectedAdminRoute><EditProduct /></ProtectedAdminRoute>}/>
           <Route path="/admin/readsingleproduct/:uid" element={<ProtectedAdminRoute><ReadSingleProductAdmin /></ProtectedAdminRoute>} />

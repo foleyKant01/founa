@@ -43,6 +43,7 @@ class Client(db.Model):
     fullname = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
     phone = db.Column(db.String(128), nullable=False)
+    code_promo = db.Column(db.String(128), nullable=True)
     status = db.Column(db.String(128), nullable=False, default="non-verifier") # verifier, non-verifier
     adresse_livraison = db.Column(db.Text)
     password = db.Column(db.String(128), nullable=False)
@@ -75,6 +76,18 @@ class Teller(db.Model):
     fullname = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
     phone = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
+    created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    
+    
+class PartnerPub(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
+    fullname = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(128), unique=True, nullable=False)
+    phone = db.Column(db.String(128), nullable=False)
+    code_promo = db.Column(db.String(128), nullable=False)
     password = db.Column(db.String(128), nullable=False)
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
@@ -115,7 +128,7 @@ class Commande(db.Model):
     fournisseur = db.relationship('Fournisseur', backref=db.backref('commande', lazy=True))
     quantite = db.Column(db.Integer, nullable=False)
     prix_total = db.Column(db.Float, nullable=False)
-    statut = db.Column(db.String(128), default='commande Initier') # commande en charge, Validerr, Payer, en expedition, en livraison, Livrerr
+    statut = db.Column(db.String(128), default='commande Initier') # commande en charge, Validerr, Payer, en expedition, en livraison, Livrer
     details = db.Column(db.Text, nullable=True)
     cout_envoie_maritime = db.Column(db.Float, nullable=True)
     cout_envoie_aérienne = db.Column(db.Float, nullable=True)

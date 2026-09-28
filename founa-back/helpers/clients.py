@@ -12,64 +12,112 @@ def generate_otp():
 
 
 def CreateClient():
-    
     try:
         data = request.json or {}
-        fullname = data.get("fullname")
-        email = data.get("email")
-        phone = data.get("phone")
-        adresse_livraison = data.get("adresse_livraison")
+        fullname = (data.get("fullname") or "").strip()
+        email = (data.get("email") or "").strip().lower()
+        phone = (data.get("phone") or "").strip()
+        code_promo = (data.get("code_promo") or "").strip()
+        adresse_livraison = (data.get("adresse_livraison") or "").strip()
         password = data.get("password")
         confirmpassword = data.get("confirmpassword")
+
+        # Vérification des champs obligatoires
         if not fullname or not email or not phone or not password:
             return {
                 "status": "error",
                 "message": "Tous les champs obligatoires doivent être renseignés."
             }, 400
+
+        # Vérification des mots de passe
         if str(password) != str(confirmpassword):
             return {
                 "status": "error",
                 "message": "Les mots de passe ne correspondent pas."
             }, 400
+
+        # Vérification de l'email
         existing_email = Client.query.filter_by(
             email=email
         ).first()
+
         if existing_email:
-            return {"status": "error", "message": "Cette adresse email est déjà utilisée."}, 409
+            return {
+                "status": "error",
+                "message": "Cette adresse email est déjà utilisée."
+            }, 409
+
+        # Vérification du téléphone
         existing_phone = Client.query.filter_by(
             phone=phone
         ).first()
+
         if existing_phone:
             return {
                 "status": "error",
                 "message": "Ce numéro de téléphone est déjà utilisé."
             }, 409
-            
+
+        # ==========================================================
+        # CODE PROMO FACULTATIF
+        # ==========================================================
+
+        if code_promo:
+            existing_code_promo = PartnerPub.query.filter_by(
+                code_promo=code_promo
+            ).first()
+
+            if not existing_code_promo:
+                return {
+                    "status": "error",
+                    "message": "Ce code promo n'existe pas."
+                }, 409
+
+        # ==========================================================
+        # CRÉATION DU CLIENT
+        # ==========================================================
+
         new_client = Client()
+
         new_client.fullname = fullname
         new_client.email = email
         new_client.phone = phone
+
+        # Si aucun code promo n'est fourni,
+        # on enregistre None
+        new_client.code_promo = code_promo if code_promo else None
+
         new_client.adresse_livraison = adresse_livraison
         new_client.password = password
+
         db.session.add(new_client)
         db.session.commit()
-        
+
+        # ==========================================================
+        # INFORMATIONS UTILISATEUR
+        # ==========================================================
+
         user_infos = {
             "uid": new_client.uid,
             "fullname": new_client.fullname,
             "email": new_client.email,
             "phone": new_client.phone,
+            "code_promo": new_client.code_promo,
             "adresse_livraison": new_client.adresse_livraison,
             "creation_date": str(new_client.created_date)
         }
+
         return {
             "status": "success",
             "message": "Compte créé. Un code de vérification a été envoyé par SMS.",
             "verification_required": True,
             "user_infos": user_infos
         }, 200
+
     except Exception as e:
+
         db.session.rollback()
+
         return {
             "status": "error",
             "message": "Erreur lors de la création du compte.",

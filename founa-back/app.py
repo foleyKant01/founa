@@ -14,8 +14,9 @@ from ressources.fournisseurs import FournisseursApi
 from ressources.produits import ProduitsApi
 from ressources.favoris import FavorisApi 
 from ressources.alibaba import AlibabaApi
-from ressources.pushnotification import PushNotificationApi
+from ressources.pushnotification import PushNotificationApi 
 from ressources.jeko import JekoApi
+from ressources.partnerpub import PartnerPubApi
 from ressources.commandestatuslog import CommandeStatusLogApi
 from flask_migrate import Migrate 
 
@@ -127,8 +128,9 @@ api.add_resource(FavorisApi, '/api/favoris/<string:route>', endpoint='all_favori
 api.add_resource(AuthApi, '/api/auth/<string:route>', endpoint='all_auth', methods=['GET', 'POST', 'DELETE', 'PATCH']) 
 api.add_resource(AlibabaApi, '/api/alibaba/<string:route>', endpoint='all_alibaba', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 api.add_resource(JekoApi, '/api/jeko/<string:route>', endpoint='all_jeko', methods=['GET', 'POST', 'DELETE', 'PATCH']) 
-api.add_resource(PushNotificationApi, '/api/pushnotification/<string:route>', endpoint='all_pushnotification', methods=['GET', 'POST', 'DELETE', 'PATCH'])
+api.add_resource(PushNotificationApi, '/api/pushnotification/<string:route>', endpoint='all_pushnotification', methods=['GET', 'POST', 'DELETE', 'PATCH']) 
 api.add_resource(CommandeStatusLogApi, '/api/commandestatuslog/<string:route>', endpoint='all_commandestatuslog', methods=['GET', 'POST', 'DELETE', 'PATCH'])
+api.add_resource(PartnerPubApi, '/api/partner_pub/<string:route>', endpoint='all_partner_pub', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 
 @app.route("/api/test", methods=["GET"])
 def test():

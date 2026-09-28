@@ -28,12 +28,12 @@ const AdminDashboard: React.FC = () => {
 
   const sections = [
     {
-      title: "Créer un Teller",
-      description: "Ajoutez un nouveau Teller à votre équipe.",
-      icon: UserPlus,
-      color: "#00A4A6",
+      title: "Gérer les Partenaire Publicitaire.",
+      description: "Consultez, modifiez et gérez les comptes Partenaire Publicitaire.",
+      // description: "Ajoutez un nouveau partenaire publicitaire à Founa.",
+      icon: UserPlus, color: "#00A4A6",
       background: "#E6F7F7",
-      path: "/admin/createteller",
+      path: "/admin/readallpartnerpub",
     },
     {
       title: "Gérer les Tellers",
@@ -380,32 +380,14 @@ const AdminDashboard: React.FC = () => {
           </button>
 
 
-          <button
-            type="button"
-            style={styles.quickButton}
-            onClick={() => navigate("/admin/createteller")}
-          >
-            <div
-              style={{
-                ...styles.quickIcon,
-                background: "#F5F3FF",
-              }}
-            >
-              <Plus
-                size={21}
-                color="#7C3AED"
-              />
-            </div>
-
-            <div style={styles.quickContent}>
-              <strong>Nouveau Teller</strong>
-              <span>Créer un compte</span>
-            </div>
-
-            <ChevronRight
-              size={18}
-              color="#9CA3AF"
-            />
+          <button type="button" style={styles.quickButton} onClick={() => navigate("/admin/createpartnerpub")} > 
+            <div style={{ ...styles.quickIcon, background: "#F5F3FF", }} > 
+              <Plus size={21} color="#7C3AED" /> 
+            </div> 
+            <div style={styles.quickContent}> 
+              <strong>Nouveau PartnerPub</strong> 
+              <span>Créer un partenaire</span> 
+            </div> <ChevronRight size={18} color="#9CA3AF" /> 
           </button>
 
         </div>

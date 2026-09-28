@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CreateClient } from "../../services/auth.service"; // ✅ AJOUT ICI
+import { CreateClient } from "../../services/auth.service";
 
 const Toast: React.FC<{
     message: string;
@@ -21,12 +21,10 @@ const Toast: React.FC<{
                 right: 0,
                 marginRight: 35,
                 width: "100%",
-                // maxWidth: "100%",
                 margin: "0",
                 background: colors[type],
                 color: "#fff",
                 padding: "14px 18px",
-                // borderRadius: 10,
                 fontSize: 17,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                 textAlign: "center",
@@ -38,36 +36,53 @@ const Toast: React.FC<{
     );
 };
 
-
 const RegisterPage: React.FC = () => {
     const nav = useNavigate();
 
     const [fullname, setFullname] = useState("");
     const [phone, setPhone] = useState("");
     const [adresse, setAdresse] = useState("");
+    const [codePromo, setCodePromo] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
-    const showToast = (message: string, type: "success" | "error" | "info") => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 2500); // disparaît après 2,5 sec
-    };
 
+    const [toast, setToast] = useState<{
+        message: string;
+        type: "success" | "error" | "info";
+    } | null>(null);
+
+    const showToast = (
+        message: string,
+        type: "success" | "error" | "info"
+    ) => {
+        setToast({ message, type });
+
+        setTimeout(() => {
+            setToast(null);
+        }, 2500);
+    };
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (password !== confirmPassword) {
-            alert("Les mots de passe ne correspondent pas.");
+            showToast(
+                "Les mots de passe ne correspondent pas.",
+                "error"
+            );
             return;
         }
 
-        // 🔵 Construction du payload pour l'API
+        // Construction du payload pour l'API
         const payload = {
             fullname,
             phone,
             adresse_livraison: adresse,
+
+            // Code promo facultatif
+            code_promo: codePromo.trim(),
+
             email,
             password,
             confirmpassword: confirmPassword,
@@ -77,22 +92,33 @@ const RegisterPage: React.FC = () => {
             const response = await CreateClient(payload);
 
             if (response.data.status === "success") {
-                showToast("Votre compte a été créé avec succès !", "success");
-                setTimeout(() => nav("/auth/login"), 2000);
-            } else {
-                showToast(response.data.error_description, "error");
-            }
+                showToast(
+                    "Votre compte a été créé avec succès !",
+                    "success"
+                );
 
+                setTimeout(() => {
+                    nav("/auth/login");
+                }, 2000);
+            } else {
+                showToast(
+                    response.data.error_description ||
+                        "Impossible de créer votre compte.",
+                    "error"
+                );
+            }
         } catch (error) {
             console.error(error);
-            showToast("Erreur lors de l'inscription.", "error");
-        }
 
+            showToast(
+                "Erreur lors de l'inscription.",
+                "error"
+            );
+        }
     };
 
     return (
         <div style={styles.container}>
-
             <div style={styles.logoWrapper}>
                 <img
                     src="/logo-founa.png"
@@ -122,7 +148,7 @@ const RegisterPage: React.FC = () => {
                         onChange={(e) => setPhone(e.target.value)}
                         required
                         pattern="[0-9]{8,15}"
-                        title="Veuillez entrer un numéro de téléphone Valider"
+                        title="Veuillez entrer un numéro de téléphone valide"
                     />
 
                     <input
@@ -133,6 +159,23 @@ const RegisterPage: React.FC = () => {
                         onChange={(e) => setAdresse(e.target.value)}
                         required
                     />
+
+                    {/* Code promo facultatif */}
+                    <div style={styles.promoWrapper}>
+                        <input
+                            type="text"
+                            placeholder="Code promo (facultatif)"
+                            style={styles.input}
+                            value={codePromo}
+                            onChange={(e) =>
+                                setCodePromo(e.target.value.toUpperCase())
+                            }
+                        />
+
+                        <span style={styles.promoHint}>
+                            Vous avez un code promo ? Entrez-le ici.
+                        </span>
+                    </div>
 
                     <input
                         type="email"
@@ -157,7 +200,9 @@ const RegisterPage: React.FC = () => {
                         placeholder="Confirmer le mot de passe"
                         style={styles.input}
                         value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        onChange={(e) =>
+                            setConfirmPassword(e.target.value)
+                        }
                         required
                     />
 
@@ -176,13 +221,18 @@ const RegisterPage: React.FC = () => {
                     </span>
                 </p>
             </div>
-            {/* 🔔 Rendu du toast */}
-        {toast && <Toast message={toast.message} type={toast.type} />}
+
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                />
+            )}
         </div>
     );
 };
 
-/* 🎨 Styles FOuna */
+/* 🎨 Styles FOUNA */
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
         height: "100vh",
@@ -228,12 +278,27 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
 
     input: {
+        width: "100%",
+        boxSizing: "border-box",
         padding: "12px 15px",
         borderRadius: 8,
         border: "1px solid #ccc",
         fontSize: 16,
         outline: "none",
         transition: "0.2s",
+    },
+
+    promoWrapper: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 5,
+        textAlign: "left",
+    },
+
+    promoHint: {
+        fontSize: 12,
+        color: "#777",
+        paddingLeft: 4,
     },
 
     button: {

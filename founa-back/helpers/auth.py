@@ -7,69 +7,237 @@ from helpers.send_mailer import *
 
 
 USER_TABLES = [
+
     {"model": Admin, "role": "Admin"},
+
     {"model": Teller, "role": "Teller"},
+
     {"model": Client, "role": "Client"},
+
+    {"model": PartnerPub, "role": "PartnerPub"},
+
 ]
 
-def LoginClient():
-    """
-    Login universel pour Admin, Teller et Client.
-    Connexion par email. Les mots de passe doivent être hachés.
-    """
-    try:
-        data = request.get_json()
-        email = data.get('email')
-        phone = data.get('phone')
-        password = data.get('password')
 
-        if not email or not password:
+def LoginClient():
+
+    """
+    Login universel pour Admin, Teller, Client et PartnerPub.
+
+    Connexion possible avec :
+
+    - email + mot de passe
+    - téléphone + mot de passe
+    """
+
+    try:
+
+        data = request.get_json() or {}
+
+        email = (data.get("email") or "").strip().lower()
+
+        phone = (data.get("phone") or "").strip()
+
+        password = data.get("password")
+
+        # =========================================
+        # VALIDATION
+        # =========================================
+
+        if not email and not phone:
+
             return {
-                'status': 'error',
-                'message': 'Les champs email et mot de passe sont requis.'
+                "status": "error",
+                "message": "Veuillez renseigner votre email ou votre numéro de téléphone."
             }, 400
+
+        if not password:
+
+            return {
+                "status": "error",
+                "message": "Le mot de passe est requis."
+            }, 400
+
+        # =========================================
+        # RECHERCHE DE L'UTILISATEUR
+        # =========================================
+
         found_user = None
+
         user_role = None
+
         for table in USER_TABLES:
+
             model = table["model"]
+
             role = table["role"]
-            user = model.query.filter((model.email == email) |(model.phone == phone)).first()    
+
+            if email:
+
+                user = model.query.filter_by(
+                    email=email
+                ).first()
+
+            else:
+
+                user = model.query.filter_by(
+                    phone=phone
+                ).first()
+
             if user:
+
+                # =========================================
+                # VERIFICATION MOT DE PASSE
+                # =========================================
+
                 if user.password != password:
-                    break
-                user_role = role
+
+                    return {
+                        "status": "error",
+                        "message": "Email/téléphone ou mot de passe incorrect."
+                    }, 401
+
                 found_user = user
 
+                user_role = role
+
+                break
+
+        # =========================================
+        # UTILISATEUR INTROUVABLE
+        # =========================================
+
         if not found_user:
+
             return {
-                'status': 'error',
-                'message': 'Email ou mot de passe incorrect.'
+                "status": "error",
+                "message": "Email/téléphone ou mot de passe incorrect."
             }, 401
+
+        # =========================================
+        # INFORMATIONS COMMUNES
+        # =========================================
+
         response_data = {
-            "uid": getattr(found_user, 'uid', getattr(found_user, 'id', None)),
-            "fullname": getattr(found_user, 'fullname', ''),
-            "email": found_user.email,
-            "phone": getattr(found_user, 'phone', ''),
+
+            "uid": getattr(
+                found_user,
+                "uid",
+                getattr(found_user, "id", None)
+            ),
+
+            "fullname": getattr(
+                found_user,
+                "fullname",
+                ""
+            ),
+
+            "email": getattr(
+                found_user,
+                "email",
+                ""
+            ),
+
+            "phone": getattr(
+                found_user,
+                "phone",
+                ""
+            ),
+
             "role": user_role
+
         }
+
+        # =========================================
+        # INFORMATIONS CLIENT
+        # =========================================
+
         if user_role == "Client":
-            response_data["status"] = getattr(found_user, 'status', '')
-            response_data["adresse_livraison"] = getattr(found_user, 'adresse_livraison', '')
-            response_data["created_date"] = str(getattr(found_user, 'created_date', ''))
+
+            response_data["status"] = getattr(
+                found_user,
+                "status",
+                ""
+            )
+
+            response_data["adresse_livraison"] = getattr(
+                found_user,
+                "adresse_livraison",
+                ""
+            )
+
+            response_data["created_date"] = str(
+                getattr(
+                    found_user,
+                    "created_date",
+                    ""
+                )
+            )
+
+        # =========================================
+        # INFORMATIONS TELLER
+        # =========================================
+
         if user_role == "Teller":
+
             CreateActivityLog({
+
                 "actions": "connexion",
+
                 "user": found_user.uid
+
             })
+
+        # =========================================
+        # INFORMATIONS PARTNERPUB
+        # =========================================
+
+        if user_role == "PartnerPub":
+
+            response_data["code_promo"] = getattr(
+                found_user,
+                "code_promo",
+                ""
+            )
+
+            response_data["created_date"] = str(
+                getattr(
+                    found_user,
+                    "created_date",
+                    ""
+                )
+            )
+
+            response_data["updated_date"] = str(
+                getattr(
+                    found_user,
+                    "updated_date",
+                    ""
+                )
+            )
+
+        # =========================================
+        # REPONSE
+        # =========================================
+
         return {
+
             "status": "success",
+
             "message": f"Connexion réussie en tant que {user_role}.",
+
             "user_infos": response_data,
+
         }, 200
+
     except Exception as e:
+
         return {
+
             "status": "error",
+
             "message": f"Erreur serveur: {str(e)}"
+
         }, 500
 
 
@@ -113,18 +281,14 @@ def ForgotPassword():
     response = {}
     email = request.json.get('email')
     single_client = Client.query.filter_by(email=email).first()
-
     if single_client:
-        # send_mailer_update_password(email, single_client.uid)  # envoyer mail ici
         response['status'] = 'success'
         response['message'] = 'Un email de réinitialisation a été envoyé.'
         response['email'] = email
     else:
         response['status'] = 'error'
         response['message'] = 'Utilisateur non trouvé'
-
     return response
-
 
 
 

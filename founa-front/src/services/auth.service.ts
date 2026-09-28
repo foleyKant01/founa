@@ -11,6 +11,18 @@ export const CreateClient = (data: {
   return api.post('/clients/create_client', data);
 };
 
+
+export const CreateOnePartnerPub = (data: {
+  fullname: string;
+  email: string;
+  phone: string;
+  password: string;
+  code_promo: string;
+  confirmpassword: string;
+}) => {
+  return api.post("/partner_pub/create_partnerpub", data);
+};
+
 export const LoginClient = (data: {
   email: string;
   password: string;
