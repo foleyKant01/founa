@@ -432,11 +432,29 @@ def GetAllCommandeByTeller():
 
 def GetSingleCommande():
     try:
-        commande_id = (request.json.get('commande_id'))
-        single_commande = Commande.query.filter_by(commande_id=commande_id).first()
-        single_product = Produit.query.filter_by(uid=single_commande.produit_id).first()
+        data = request.json or {}
+        commande_id = data.get("commande_id")
+        if not commande_id:
+            return {
+                "status": "error",
+                "message": "commande_id est obligatoire"
+            }, 400
+        single_commande = Commande.query.filter_by(
+            commande_id=commande_id
+        ).first()
         if not single_commande:
-            return {"status": "error", "message": "Commande introuvable"}, 404
+            return {
+                "status": "error",
+                "message": "Commande introuvable"
+            }, 404
+        single_product = Produit.query.filter_by(
+            uid=single_commande.produit_id
+        ).first()
+        if not single_product:
+            return {
+                "status": "error",
+                "message": "Produit de la commande introuvable"
+            }, 404
         single_commande.view = "0"
         db.session.commit()
         return {
@@ -462,8 +480,67 @@ def GetSingleCommande():
             }
         }, 200
     except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
-
+        db.session.rollback()
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+        
+        
+def GetSingleCommandeForSuccessPage():
+    try:
+        data = request.json or {}
+        commande_id = data.get("commande_id")
+        if not commande_id:
+            return {
+                "status": "error",
+                "message": "commande_id est obligatoire"
+            }, 400
+        single_commande = Commande.query.filter_by(
+            commande_id=commande_id
+        ).first()
+        if not single_commande:
+            return {
+                "status": "error",
+                "message": "Commande introuvable"
+            }, 404
+        single_product = Produit.query.filter_by(
+            uid=single_commande.produit_id
+        ).first()
+        if not single_product:
+            return {
+                "status": "error",
+                "message": "Produit de la commande introuvable"
+            }, 404
+        db.session.commit()
+        return {
+            "status": "success",
+            "commande": {
+                "commande_id": single_commande.commande_id,
+                "client_id": single_commande.client_id,
+                "produit_id": single_commande.produit_id,
+                "nom": single_product.nom,
+                "images": single_product.images,
+                "quantite": single_commande.quantite,
+                "prix_total": single_commande.prix_total,
+                "statut": single_commande.statut,
+                "details": single_commande.details,
+                "option_envoie": single_commande.option_envoie,
+                "cout_envoie_maritime": single_commande.cout_envoie_maritime,
+                "temps_envoie_maritime": single_commande.temps_envoie_maritime,
+                "cout_envoie_aérienne": single_commande.cout_envoie_aérienne,
+                "temps_envoie_aérienne": single_commande.temps_envoie_aérienne,
+                "view": single_commande.view,
+                "created_date": str(single_commande.created_date),
+                "updated_date": str(single_commande.updated_date),
+            }
+        }, 200
+    except Exception as e:
+        db.session.rollback()
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
 
 
 def UpdateCommande():

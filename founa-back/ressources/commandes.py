@@ -10,7 +10,10 @@ class CommandesApi(Resource):
         if route == "get_single_commande":
             return GetSingleCommande() 
         
-        if route == "update_commande":
+        if route == "get_single_commande_for_success_page":
+            return GetSingleCommandeForSuccessPage() 
+        
+        if route == "update_commande": 
             return UpdateCommande()
         
         if route == "attribuer_commandes":

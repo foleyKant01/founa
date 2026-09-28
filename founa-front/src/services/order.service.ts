@@ -22,6 +22,12 @@ export const GetSingleCommande = (data: {
   return api.post('/commandes/get_single_commande', data);
 };
 
+export const GetSingleCommandeForSuccessPage = (data: {
+  commande_id: string;
+}) => {
+  return api.post('/commandes/get_single_commande_for_success_page', data);
+};
+
 
 export const GetAllCommandeByTeller = (data: {
   teller_id: string;

@@ -194,7 +194,10 @@ def PaymentRequest():
                 "type": "redirect",
                 "data": {
                     "paymentMethod": paymentMethod,
-                    "successUrl": "https://founa.ci/payment/success",
+                    "successUrl": (
+                        f"https://founa.ci/payment/success"
+                        f"?commande_id={single_commande.commande_id}"
+                    ),                    
                     "errorUrl": "https://founa.ci/payment/error"
                 }
             }
@@ -434,7 +437,7 @@ def ReceiveJekoWebhook():
             payment_link_id=payment_link_id,
             status=status,
             payment_method=payment_method,
-            amount=amount,
+            amount = amount / 100,
             currency=currency,
             fees=fees,
             fees_currency=fees_currency,
