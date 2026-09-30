@@ -57,6 +57,7 @@ interface Produit {
   description: string;
   status: string;
   prix_vente: number;
+  moq: number;
   stock_disponible: number;
   images: string | string[];
 }
@@ -596,6 +597,15 @@ const HomePage: React.FC = () => {
           <p className="product-price">
             {formatPrice(produit.prix_vente)} FCFA
           </p>
+
+          <div className="product-moq">
+            <Package size={14} strokeWidth={2} />
+
+            <span>
+              MOQ : {formatPrice(Number(produit.moq) || 0)}{" "}
+              {Number(produit.moq) === 1 ? "unité" : "unités"}
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -1992,6 +2002,41 @@ const handleCategoryClick = async (categorie: string) => {
 
           font-size: 16px;
           font-weight: 700;
+        }
+
+        .product-moq {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+
+          margin-top: 5px;
+
+          color: #6b7280;
+
+          font-size: 11px;
+          font-weight: 600;
+
+          line-height: 1.3;
+        }
+
+        .product-moq svg {
+          color: #00a4a6;
+          flex-shrink: 0;
+        }
+
+        .product-moq span {
+          white-space: nowrap;
+        }
+        @media (max-width: 600px){
+          .product-moq {
+            font-size: 10px;
+            gap: 5px;
+          }
+
+          .product-moq svg {
+            width: 13px;
+            height: 13px;
+          }
         }
 
         /* =========================

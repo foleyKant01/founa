@@ -1,10 +1,6 @@
-// src/pages/ProductPage.tsx
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  CreateCommande,
-} from "../../services/order.service";
+import { CreateCommande } from "../../services/order.service";
 import {
   GetSingleProduit,
   AllSimilarProducts,
@@ -28,6 +24,7 @@ interface Product {
   categorie: string;
   images: string[];
   stock: number;
+  moq: number;
 }
 
 interface SimilarProduct {
@@ -43,10 +40,6 @@ interface SimilarProduct {
   teller_id: string;
   images: string | string[];
 }
-
-/* =========================================================
-   TOAST
-========================================================= */
 
 const Toast: React.FC<{
   message: string;
@@ -70,10 +63,6 @@ const Toast: React.FC<{
   );
 };
 
-/* =========================================================
-   PAGE
-========================================================= */
-
 const ProductPage: React.FC = () => {
   const { uid } = useParams<{ uid: string }>();
   const nav = useNavigate();
@@ -86,22 +75,17 @@ const ProductPage: React.FC = () => {
     categorie: "",
     images: [],
     stock: 0,
+    moq: 1,
   });
 
   const [similarProducts, setSimilarProducts] =
     useState<SimilarProduct[]>([]);
 
-  const [loadingProduct, setLoadingProduct] =
-    useState(true);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+  const [loadingSimilar, setLoadingSimilar] = useState(false);
 
-  const [loadingSimilar, setLoadingSimilar] =
-    useState(false);
-
-  const [selectedImage, setSelectedImage] =
-    useState("");
-
-  const [quantity, setQuantity] =
-    useState(1);
+  const [selectedImage, setSelectedImage] = useState("");
+  const [quantity, setQuantity] = useState(1);
 
   const [isDescriptionExpanded, setIsDescriptionExpanded] =
     useState(false);
@@ -117,10 +101,6 @@ const ProductPage: React.FC = () => {
 
   const client_id = user.uid;
 
-  /* =========================================================
-     TOAST
-  ========================================================= */
-
   const showToast = (
     message: string,
     type: "success" | "error" | "info"
@@ -134,10 +114,6 @@ const ProductPage: React.FC = () => {
       setToast(null);
     }, 2500);
   };
-
-  /* =========================================================
-     IMAGE
-  ========================================================= */
 
   const getFirstImage = (
     images?: string | string[]
@@ -169,10 +145,6 @@ const ProductPage: React.FC = () => {
       : "/default-image.png";
   };
 
-  /* =========================================================
-     CHARGEMENT PRODUIT
-  ========================================================= */
-
   useEffect(() => {
     if (!uid) {
       setLoadingProduct(false);
@@ -180,9 +152,14 @@ const ProductPage: React.FC = () => {
     }
 
     const loadProduct = async () => {
-      try {
-        setLoadingProduct(true);
+      setLoadingProduct(true);
+      setLoadingSimilar(false);
 
+      setSimilarProducts([]);
+      setSelectedImage("");
+      setQuantity(1);
+
+      try {
         const res = await GetSingleProduit({
           produit_id: uid,
         });
@@ -193,14 +170,11 @@ const ProductPage: React.FC = () => {
             res.data.message
           );
 
+          setLoadingProduct(false);
           return;
         }
 
         const data = res.data.produit;
-
-        /* -------------------------
-           Images
-        ------------------------- */
 
         let imagesArray: string[] = [];
 
@@ -223,9 +197,9 @@ const ProductPage: React.FC = () => {
           imagesArray = [];
         }
 
-        /* -------------------------
-           Produit
-        ------------------------- */
+        const productMoq = Number(data.moq) || 1;
+        const productStock =
+          Number(data.stock_disponible) || 0;
 
         const currentProduct: Product = {
           uid: data.uid,
@@ -234,23 +208,27 @@ const ProductPage: React.FC = () => {
           description: data.description || "",
           categorie: data.categorie || "",
           images: imagesArray,
-          stock:
-            Number(data.stock_disponible) || 0,
+          stock: productStock,
+          moq: productMoq,
         };
 
         setProduct(currentProduct);
+
+        if (productStock >= productMoq) {
+          setQuantity(productMoq);
+        } else {
+          setQuantity(0);
+        }
 
         if (imagesArray.length > 0) {
           setSelectedImage(imagesArray[0]);
         }
 
-        /* -------------------------
-           Produits similaires
-        ------------------------- */
+        setLoadingProduct(false);
+
+        setLoadingSimilar(true);
 
         try {
-          setLoadingSimilar(true);
-
           const similarResponse =
             await AllSimilarProducts({
               uid: data.uid,
@@ -260,8 +238,7 @@ const ProductPage: React.FC = () => {
             });
 
           if (
-            similarResponse.data.status ===
-            "success"
+            similarResponse.data.status === "success"
           ) {
             setSimilarProducts(
               similarResponse.data.products || []
@@ -284,7 +261,7 @@ const ProductPage: React.FC = () => {
           "Erreur récupération produit :",
           error
         );
-      } finally {
+
         setLoadingProduct(false);
       }
     };
@@ -292,14 +269,10 @@ const ProductPage: React.FC = () => {
     loadProduct();
   }, [uid]);
 
-  /* =========================================================
-     QUANTITE
-  ========================================================= */
-
-  const handleQtyChange = (
-    newQty: number
-  ) => {
-    if (newQty < 1) return;
+  const handleQtyChange = (newQty: number) => {
+    if (newQty < product.moq) {
+      return;
+    }
 
     if (newQty > product.stock) {
       return;
@@ -307,10 +280,6 @@ const ProductPage: React.FC = () => {
 
     setQuantity(newQty);
   };
-
-  /* =========================================================
-     COMMANDE
-  ========================================================= */
 
   const handleCreateCommande = async () => {
     if (!client_id) {
@@ -334,6 +303,33 @@ const ProductPage: React.FC = () => {
     if (product.stock <= 0) {
       showToast(
         "Ce produit est en rupture de stock",
+        "error"
+      );
+
+      return;
+    }
+
+    if (product.stock < product.moq) {
+      showToast(
+        `Stock insuffisant pour respecter le MOQ de ${product.moq} unités`,
+        "error"
+      );
+
+      return;
+    }
+
+    if (quantity < product.moq) {
+      showToast(
+        `La quantité minimale est de ${product.moq} unités`,
+        "error"
+      );
+
+      return;
+    }
+
+    if (quantity > product.stock) {
+      showToast(
+        "La quantité demandée dépasse le stock disponible",
         "error"
       );
 
@@ -382,28 +378,30 @@ const ProductPage: React.FC = () => {
     }
   };
 
-  /* =========================================================
-     LOADING
-  ========================================================= */
+  const isOrderUnavailable =
+    product.stock <= 0 ||
+    product.stock < product.moq;
 
   if (loadingProduct) {
     return (
       <div className="product-page-loading">
-        <div className="loading-spinner" />
+        <div className="product-loading-content">
+          <div className="loading-spinner" />
+
+          <div className="loading-title">
+            Chargement du produit
+          </div>
+
+          <div className="loading-subtitle">
+            Veuillez patienter...
+          </div>
+        </div>
       </div>
     );
   }
 
-  /* =========================================================
-     PAGE
-  ========================================================= */
-
   return (
     <div className="product-page">
-
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
 
       <header className="product-header">
 
@@ -426,21 +424,9 @@ const ProductPage: React.FC = () => {
 
       </header>
 
-      {/* =====================================================
-          CONTENU PRINCIPAL
-      ===================================================== */}
-
       <main className="product-container">
 
-        {/* ===================================================
-            PRODUIT PRINCIPAL
-        =================================================== */}
-
         <section className="product-main">
-
-          {/* =========================
-              GALERIE
-          ========================= */}
 
           <div className="gallery-section">
 
@@ -465,6 +451,13 @@ const ProductPage: React.FC = () => {
                   Rupture de stock
                 </span>
               )}
+
+              {product.stock > 0 &&
+                product.stock < product.moq && (
+                  <span className="stock-badge">
+                    Stock inférieur au MOQ
+                  </span>
+                )}
 
             </div>
 
@@ -497,13 +490,7 @@ const ProductPage: React.FC = () => {
 
           </div>
 
-          {/* =========================
-              DETAILS
-          ========================= */}
-
           <div className="details-section">
-
-            {/* CATEGORIE */}
 
             {product.categorie && (
               <span className="category">
@@ -511,13 +498,9 @@ const ProductPage: React.FC = () => {
               </span>
             )}
 
-            {/* NOM */}
-
             <h1 className="product-title">
               {product.name}
             </h1>
-
-            {/* PRIX */}
 
             <div className="price-section">
 
@@ -528,9 +511,25 @@ const ProductPage: React.FC = () => {
                 FCFA
               </span>
 
-            </div>
+              <div className="product-moq">
 
-            {/* STOCK */}
+                <Package size={15} />
+
+                <span>
+                  MOQ :{" "}
+                  <strong>
+                    {product.moq.toLocaleString(
+                      "fr-FR"
+                    )}
+                  </strong>{" "}
+                  {product.moq > 1
+                    ? "unités minimum"
+                    : "unité minimum"}
+                </span>
+
+              </div>
+
+            </div>
 
             <div className="stock-info">
 
@@ -553,8 +552,6 @@ const ProductPage: React.FC = () => {
             </div>
 
             <div className="separator" />
-
-            {/* DESCRIPTION */}
 
             <div className="description-section">
 
@@ -601,15 +598,25 @@ const ProductPage: React.FC = () => {
 
             </div>
 
-            {/* COMMANDE */}
-
             <div className="order-box">
 
               <div className="quantity-row">
 
-                <span className="quantity-label">
-                  Quantité
-                </span>
+                <div>
+                  <span className="quantity-label">
+                    Quantité
+                  </span>
+
+                  <span className="quantity-minimum">
+                    Minimum :{" "}
+                    {product.moq.toLocaleString(
+                      "fr-FR"
+                    )}{" "}
+                    {product.moq > 1
+                      ? "unités"
+                      : "unité"}
+                  </span>
+                </div>
 
                 <div className="quantity-controls">
 
@@ -620,7 +627,8 @@ const ProductPage: React.FC = () => {
                       )
                     }
                     disabled={
-                      quantity <= 1
+                      quantity <= product.moq ||
+                      isOrderUnavailable
                     }
                   >
                     <Minus size={16} />
@@ -637,8 +645,8 @@ const ProductPage: React.FC = () => {
                       )
                     }
                     disabled={
-                      quantity >=
-                      product.stock
+                      quantity >= product.stock ||
+                      isOrderUnavailable
                     }
                   >
                     <Plus size={16} />
@@ -647,8 +655,6 @@ const ProductPage: React.FC = () => {
                 </div>
 
               </div>
-
-              {/* INFORMATION */}
 
               <div className="order-info">
 
@@ -670,15 +676,14 @@ const ProductPage: React.FC = () => {
 
               </div>
 
-              {/* BOUTON */}
-
               <button
                 className="order-button"
                 onClick={
                   handleCreateCommande
                 }
                 disabled={
-                  product.stock === 0
+                  isOrderUnavailable ||
+                  quantity < product.moq
                 }
               >
                 <ShoppingBag
@@ -687,6 +692,8 @@ const ProductPage: React.FC = () => {
 
                 {product.stock === 0
                   ? "Rupture de stock"
+                  : product.stock < product.moq
+                  ? "Stock insuffisant pour le MOQ"
                   : "Passer commande"}
               </button>
 
@@ -695,10 +702,6 @@ const ProductPage: React.FC = () => {
           </div>
 
         </section>
-
-        {/* ===================================================
-            PRODUITS SIMILAIRES
-        =================================================== */}
 
         <section className="similar-section">
 
@@ -719,18 +722,26 @@ const ProductPage: React.FC = () => {
           {loadingSimilar ? (
 
             <div className="similar-loading">
+
               <div className="small-spinner" />
+
+              <span>
+                Chargement des produits similaires...
+              </span>
+
             </div>
 
           ) : similarProducts.length === 0 ? (
 
             <div className="similar-empty">
+
               <Package size={40} />
 
               <p>
                 Aucun produit similaire
                 trouvé.
               </p>
+
             </div>
 
           ) : (
@@ -780,6 +791,19 @@ const ProductPage: React.FC = () => {
                         FCFA
                       </p>
 
+                      <div className="similar-moq">
+
+                        <Package size={13} />
+
+                        <span>
+                          MOQ{" "}
+                          {Number(
+                            similarProduct.moq
+                          ) || 1}
+                        </span>
+
+                      </div>
+
                     </div>
 
                   </div>
@@ -794,10 +818,6 @@ const ProductPage: React.FC = () => {
 
       </main>
 
-      {/* =====================================================
-          TOAST
-      ===================================================== */}
-
       {toast && (
         <Toast
           message={toast.message}
@@ -805,19 +825,11 @@ const ProductPage: React.FC = () => {
         />
       )}
 
-      {/* =====================================================
-          CSS
-      ===================================================== */}
-
       <style>{`
 
         * {
           box-sizing: border-box;
         }
-
-        /* =====================================================
-           PAGE
-        ===================================================== */
 
         .product-page {
           min-height: 100vh;
@@ -831,10 +843,6 @@ const ProductPage: React.FC = () => {
           padding-bottom: 80px;
         }
 
-        /* =====================================================
-           LOADING
-        ===================================================== */
-
         .product-page-loading {
           width: 100%;
           min-height: 100vh;
@@ -843,12 +851,47 @@ const ProductPage: React.FC = () => {
           align-items: center;
           justify-content: center;
 
-          background: #f5f7f8;
+          background:
+            linear-gradient(
+              135deg,
+              #f5f7f8 0%,
+              #eef6f6 100%
+            );
+        }
+
+        .product-loading-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+
+          padding: 35px 40px;
+
+          min-width: 280px;
+
+          background:
+            rgba(
+              255,
+              255,
+              255,
+              0.92
+            );
+
+          border-radius: 18px;
+
+          box-shadow:
+            0 10px 35px
+            rgba(
+              0,
+              0,
+              0,
+              0.08
+            );
         }
 
         .loading-spinner {
-          width: 46px;
-          height: 46px;
+          width: 48px;
+          height: 48px;
 
           border:
             4px solid
@@ -857,11 +900,40 @@ const ProductPage: React.FC = () => {
           border-top-color:
             #00a4a6;
 
+          border-right-color:
+            #00a4a6;
+
           border-radius: 50%;
 
           animation:
-            productSpin 0.8s
-            linear infinite;
+            productSpin
+            0.8s
+            linear
+            infinite;
+
+          margin-bottom: 18px;
+        }
+
+        .loading-title {
+          color:
+            #1f2937;
+
+          font-size: 15px;
+
+          font-weight: 600;
+
+          text-align: center;
+        }
+
+        .loading-subtitle {
+          margin-top: 6px;
+
+          color:
+            #7b8787;
+
+          font-size: 12px;
+
+          text-align: center;
         }
 
         @keyframes productSpin {
@@ -870,10 +942,6 @@ const ProductPage: React.FC = () => {
               rotate(360deg);
           }
         }
-
-        /* =====================================================
-           HEADER
-        ===================================================== */
 
         .product-header {
           position: sticky;
@@ -894,7 +962,12 @@ const ProductPage: React.FC = () => {
 
           box-shadow:
             0 2px 12px
-            rgba(0, 0, 0, 0.10);
+            rgba(
+              0,
+              0,
+              0,
+              0.10
+            );
         }
 
         .back-button {
@@ -902,17 +975,21 @@ const ProductPage: React.FC = () => {
           align-items: center;
           gap: 5px;
 
-          background: transparent;
+          background:
+            transparent;
+
           border: none;
 
           color: white;
 
           font-size: 14px;
+
           font-weight: 500;
 
           cursor: pointer;
 
-          padding: 8px 4px;
+          padding:
+            8px 4px;
         }
 
         .back-button:hover {
@@ -933,10 +1010,6 @@ const ProductPage: React.FC = () => {
           object-fit: contain;
         }
 
-        /* =====================================================
-           CONTAINER
-        ===================================================== */
-
         .product-container {
           width: 100%;
           max-width: 1600px;
@@ -948,22 +1021,25 @@ const ProductPage: React.FC = () => {
             25px 30px;
         }
 
-        /* =====================================================
-           PRODUIT PRINCIPAL
-        ===================================================== */
-
         .product-main {
           width: 100%;
 
           display: grid;
 
           grid-template-columns:
-            minmax(0, 1.1fr)
-            minmax(400px, 0.9fr);
+            minmax(
+              0,
+              1.1fr
+            )
+            minmax(
+              400px,
+              0.9fr
+            );
 
           gap: 35px;
 
-          background: #ffffff;
+          background:
+            #ffffff;
 
           border-radius: 18px;
 
@@ -971,12 +1047,13 @@ const ProductPage: React.FC = () => {
 
           box-shadow:
             0 5px 25px
-            rgba(0, 0, 0, 0.05);
+            rgba(
+              0,
+              0,
+              0,
+              0.05
+            );
         }
-
-        /* =====================================================
-           GALERIE
-        ===================================================== */
 
         .gallery-section {
           width: 100%;
@@ -989,7 +1066,10 @@ const ProductPage: React.FC = () => {
           width: 100%;
 
           height:
-            min(600px, 55vw);
+            min(
+              600px,
+              55vw
+            );
 
           min-height: 420px;
 
@@ -1001,7 +1081,9 @@ const ProductPage: React.FC = () => {
           overflow: hidden;
 
           display: flex;
+
           align-items: center;
+
           justify-content: center;
         }
 
@@ -1031,12 +1113,9 @@ const ProductPage: React.FC = () => {
           border-radius: 7px;
 
           font-size: 12px;
+
           font-weight: 600;
         }
-
-        /* =====================================================
-           THUMBNAILS
-        ===================================================== */
 
         .thumbnail-wrapper {
           display: flex;
@@ -1056,14 +1135,16 @@ const ProductPage: React.FC = () => {
         }
 
         .thumbnail {
-          flex: 0 0 76px;
+          flex:
+            0 0 76px;
 
           width: 76px;
           height: 76px;
 
           padding: 0;
 
-          background: #ffffff;
+          background:
+            #ffffff;
 
           border:
             2px solid
@@ -1076,8 +1157,10 @@ const ProductPage: React.FC = () => {
           cursor: pointer;
 
           transition:
-            border-color 0.2s ease,
-            transform 0.2s ease;
+            border-color
+            0.2s ease,
+            transform
+            0.2s ease;
         }
 
         .thumbnail:hover {
@@ -1099,19 +1182,15 @@ const ProductPage: React.FC = () => {
           display: block;
         }
 
-        /* =====================================================
-           DETAILS
-        ===================================================== */
-
         .details-section {
           width: 100%;
 
           display: flex;
+
           flex-direction: column;
 
           padding:
-            5px
-            10px;
+            5px 10px;
         }
 
         .category {
@@ -1131,6 +1210,7 @@ const ProductPage: React.FC = () => {
           border-radius: 6px;
 
           font-size: 11px;
+
           font-weight: 700;
 
           text-transform:
@@ -1145,12 +1225,24 @@ const ProductPage: React.FC = () => {
         .product-title {
           margin: 0;
 
-          color: #111827;
-          font-size:clamp(22px, 2.2vw, 32px);
+          color:
+            #111827;
+
+          font-size:
+            clamp(
+              22px,
+              2.2vw,
+              32px
+            );
+
           line-height: 1.25;
+
           font-weight: 550;
+
           white-space: nowrap;
+
           overflow: hidden;
+
           text-overflow: ellipsis;
         }
 
@@ -1163,15 +1255,96 @@ const ProductPage: React.FC = () => {
             #00a4a6;
 
           font-size:
-            clamp(23px, 2.5vw, 31px);
+            clamp(
+              23px,
+              2.5vw,
+              31px
+            );
 
           font-weight: 700;
 
           margin: 0;
         }
 
+        .product-moq {
+          display: inline-flex;
+
+          align-items: center;
+
+          gap: 6px;
+
+          margin-top: 8px;
+
+          padding:
+            5px 9px;
+
+          width: fit-content;
+
+          background:
+            #eefafa;
+
+          border:
+            1px solid
+            rgba(
+              0,
+              164,
+              166,
+              0.15
+            );
+
+          border-radius: 7px;
+
+          color:
+            #007f81;
+
+          font-size: 11px;
+
+          font-weight: 600;
+
+          line-height: 1.3;
+
+          transition:
+            background
+            0.2s ease,
+            border-color
+            0.2s ease,
+            transform
+            0.2s ease;
+        }
+
+        .product-moq svg {
+          color:
+            #00a4a6;
+
+          flex-shrink: 0;
+        }
+
+        .product-moq strong {
+          font-weight: 800;
+
+          color:
+            #006f71;
+        }
+
+        .product-moq:hover {
+          background:
+            #e4f7f7;
+
+          border-color:
+            rgba(
+              0,
+              164,
+              166,
+              0.28
+            );
+
+          transform:
+            translateY(-1px);
+        }
+
         .stock-info {
           display: flex;
+
           align-items: center;
 
           gap: 8px;
@@ -1199,10 +1372,6 @@ const ProductPage: React.FC = () => {
           margin:
             22px 0;
         }
-
-        /* =====================================================
-           DESCRIPTION
-        ===================================================== */
 
         .description-section h2 {
           font-size: 17px;
@@ -1244,7 +1413,9 @@ const ProductPage: React.FC = () => {
 
         .description-button {
           display: flex;
+
           align-items: center;
+
           justify-content: center;
 
           gap: 5px;
@@ -1260,6 +1431,7 @@ const ProductPage: React.FC = () => {
             #00a4a6;
 
           font-size: 13px;
+
           font-weight: 600;
 
           cursor: pointer;
@@ -1271,17 +1443,14 @@ const ProductPage: React.FC = () => {
 
         .description-button svg {
           transition:
-            transform 0.2s ease;
+            transform
+            0.2s ease;
         }
 
         .description-button .rotate {
           transform:
             rotate(180deg);
         }
-
-        /* =====================================================
-           COMMANDE
-        ===================================================== */
 
         .order-box {
           margin-top: 25px;
@@ -1302,6 +1471,7 @@ const ProductPage: React.FC = () => {
           display: flex;
 
           align-items: center;
+
           justify-content: space-between;
 
           gap: 15px;
@@ -1316,6 +1486,19 @@ const ProductPage: React.FC = () => {
 
           color:
             #333;
+        }
+
+        .quantity-minimum {
+          display: block;
+
+          margin-top: 4px;
+
+          color:
+            #7b8787;
+
+          font-size: 10px;
+
+          font-weight: 500;
         }
 
         .quantity-controls {
@@ -1342,7 +1525,9 @@ const ProductPage: React.FC = () => {
           height: 40px;
 
           display: flex;
+
           align-items: center;
+
           justify-content: center;
 
           border: none;
@@ -1376,12 +1561,9 @@ const ProductPage: React.FC = () => {
           text-align: center;
 
           font-size: 15px;
+
           font-weight: 600;
         }
-
-        /* =====================================================
-           INFO COMMANDE
-        ===================================================== */
 
         .order-info {
           display: flex;
@@ -1421,10 +1603,6 @@ const ProductPage: React.FC = () => {
           line-height: 1.55;
         }
 
-        /* =====================================================
-           BOUTON
-        ===================================================== */
-
         .order-button {
           width: 100%;
 
@@ -1433,6 +1611,7 @@ const ProductPage: React.FC = () => {
           display: flex;
 
           align-items: center;
+
           justify-content: center;
 
           gap: 8px;
@@ -1453,8 +1632,10 @@ const ProductPage: React.FC = () => {
           cursor: pointer;
 
           transition:
-            background 0.2s ease,
-            transform 0.2s ease;
+            background
+            0.2s ease,
+            transform
+            0.2s ease;
         }
 
         .order-button:hover:not(:disabled) {
@@ -1472,10 +1653,6 @@ const ProductPage: React.FC = () => {
           cursor: not-allowed;
         }
 
-        /* =====================================================
-           PRODUITS SIMILAIRES
-        ===================================================== */
-
         .similar-section {
           margin-top: 40px;
         }
@@ -1484,6 +1661,7 @@ const ProductPage: React.FC = () => {
           display: flex;
 
           align-items: flex-end;
+
           justify-content: space-between;
 
           margin-bottom: 18px;
@@ -1545,11 +1723,18 @@ const ProductPage: React.FC = () => {
 
           box-shadow:
             0 3px 15px
-            rgba(0, 0, 0, 0.05);
+            rgba(
+              0,
+              0,
+              0,
+              0.05
+            );
 
           transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+            transform
+            0.2s ease,
+            box-shadow
+            0.2s ease;
         }
 
         .similar-card:hover {
@@ -1558,7 +1743,12 @@ const ProductPage: React.FC = () => {
 
           box-shadow:
             0 9px 25px
-            rgba(0, 0, 0, 0.10);
+            rgba(
+              0,
+              0,
+              0,
+              0.10
+            );
         }
 
         .similar-image-wrapper {
@@ -1581,7 +1771,8 @@ const ProductPage: React.FC = () => {
           display: block;
 
           transition:
-            transform 0.3s ease;
+            transform
+            0.3s ease;
         }
 
         .similar-card:hover
@@ -1631,17 +1822,47 @@ const ProductPage: React.FC = () => {
           font-weight: 700;
         }
 
-        /* =====================================================
-           LOADING SIMILAIRES
-        ===================================================== */
+        .similar-moq {
+          display: inline-flex;
+
+          align-items: center;
+
+          gap: 4px;
+
+          margin-top: 5px;
+
+          color:
+            #718080;
+
+          font-size: 10px;
+
+          font-weight: 600;
+        }
+
+        .similar-moq svg {
+          color:
+            #00a4a6;
+
+          flex-shrink: 0;
+        }
 
         .similar-loading {
           min-height: 160px;
 
           display: flex;
 
+          flex-direction: column;
+
           align-items: center;
+
           justify-content: center;
+
+          gap: 10px;
+
+          color:
+            #7b8787;
+
+          font-size: 13px;
         }
 
         .small-spinner {
@@ -1658,17 +1879,21 @@ const ProductPage: React.FC = () => {
           border-radius: 50%;
 
           animation:
-            productSpin 0.8s
-            linear infinite;
+            productSpin
+            0.8s
+            linear
+            infinite;
         }
 
         .similar-empty {
           min-height: 160px;
 
           display: flex;
+
           flex-direction: column;
 
           align-items: center;
+
           justify-content: center;
 
           color:
@@ -1690,10 +1915,6 @@ const ProductPage: React.FC = () => {
 
           font-size: 14px;
         }
-
-        /* =====================================================
-           TOAST
-        ===================================================== */
 
         .product-toast {
           position: fixed;
@@ -1726,12 +1947,13 @@ const ProductPage: React.FC = () => {
 
           box-shadow:
             0 5px 20px
-            rgba(0, 0, 0, 0.18);
+            rgba(
+              0,
+              0,
+              0,
+              0.18
+            );
         }
-
-        /* =====================================================
-           TABLETTE
-        ===================================================== */
 
         @media (max-width: 1000px) {
 
@@ -1742,7 +1964,10 @@ const ProductPage: React.FC = () => {
 
           .product-main {
             grid-template-columns:
-              minmax(0, 1fr)
+              minmax(
+                0,
+                1fr
+              )
               minmax(
                 340px,
                 0.9fr
@@ -1764,14 +1989,14 @@ const ProductPage: React.FC = () => {
             grid-template-columns:
               repeat(
                 4,
-                minmax(0, 1fr)
+                minmax(
+                  0,
+                  1fr
+                )
               );
           }
-        }
 
-        /* =====================================================
-           MOBILE
-        ===================================================== */
+        }
 
         @media (max-width: 700px) {
 
@@ -1852,6 +2077,20 @@ const ProductPage: React.FC = () => {
             font-size: 23px;
           }
 
+          .product-moq {
+            margin-top: 7px;
+
+            padding:
+              5px 8px;
+
+            font-size: 10px;
+          }
+
+          .product-moq svg {
+            width: 14px;
+            height: 14px;
+          }
+
           .separator {
             margin:
               18px 0;
@@ -1875,7 +2114,10 @@ const ProductPage: React.FC = () => {
             grid-template-columns:
               repeat(
                 2,
-                minmax(0, 1fr)
+                minmax(
+                  0,
+                  1fr
+                )
               );
 
             gap: 9px;
@@ -1897,10 +2139,6 @@ const ProductPage: React.FC = () => {
           }
 
         }
-
-        /* =====================================================
-           PETIT TELEPHONE
-        ===================================================== */
 
         @media (max-width: 380px) {
 

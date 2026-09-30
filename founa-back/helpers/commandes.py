@@ -455,6 +455,15 @@ def GetSingleCommande():
                 "status": "error",
                 "message": "Produit de la commande introuvable"
             }, 404
+        single_client = Client.query.filter_by(
+            uid=single_commande.client_id
+        ).first()
+        if not single_client:
+            return {
+                "status": "error",
+                "message": "Client de la commande introuvable"
+            }, 404
+            
         single_commande.view = "0"
         db.session.commit()
         return {
@@ -469,6 +478,7 @@ def GetSingleCommande():
                 "prix_total": single_commande.prix_total,
                 "statut": single_commande.statut,
                 "details": single_commande.details,
+                "code_promo": single_client.code_promo,
                 "option_envoie": single_commande.option_envoie,
                 "cout_envoie_maritime": single_commande.cout_envoie_maritime,
                 "temps_envoie_maritime": single_commande.temps_envoie_maritime,

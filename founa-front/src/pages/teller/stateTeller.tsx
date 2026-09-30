@@ -1,8 +1,9 @@
-// src/pages/StatistiquesTellerPage.tsx
-
 import React, { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
-import { StatistiquesTeller } from "../../services/order.service";
+import {
+  StatistiquesTeller,
+  RevenuTellerPeriode,
+} from "../../services/order.service";
 import {
   BarChart,
   Bar,
@@ -11,41 +12,53 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   BarChart3,
-  CheckCircle2,
+  CalendarDays,
   RefreshCw,
   TrendingUp,
-  PackageCheck,
-  CalendarDays,
+  Wallet,
+  CalendarRange,
+  Clock3,
 } from "lucide-react";
 
-interface RevenuMois {
-  year: number;
-  month: number;
-  revenu: number;
+interface StatistiquesData {
+  revenu_total: number;
 }
 
-interface StatistiquesData {
-  nombre_commandes_livrees: number;
-  revenu_total: number;
-  revenu_par_mois: RevenuMois[];
+interface PeriodeData {
+  revenu: number;
+  date_debut: string;
+  date_fin: string;
+}
+
+interface ChartData {
+  name: string;
+  value: number;
 }
 
 const StatistiquesTellerPage: React.FC = () => {
-  const [data, setData] = useState<StatistiquesData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
   const navigate = useNavigate();
 
-  /* =========================================================
-     TELLER
-  ========================================================= */
+  const [statistics, setStatistics] =
+    useState<StatistiquesData | null>(null);
+
+  const [periode, setPeriode] =
+    useState<PeriodeData | null>(null);
+
+  const [dateDebut, setDateDebut] = useState("");
+  const [dateFin, setDateFin] = useState("");
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadingPeriode, setLoadingPeriode] = useState(false);
+
+  const [errorMsg, setErrorMsg] =
+    useState<string | null>(null);
 
   const getTeller = () => {
     try {
@@ -64,11 +77,49 @@ const StatistiquesTellerPage: React.FC = () => {
 
   const teller = getTeller();
 
-  /* =========================================================
-     CHARGEMENT DES STATISTIQUES
-  ========================================================= */
+  const formatDateInput = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
 
-  const loadStatistiques = async (isRefresh = false) => {
+    return `${year}-${month}-${day}`;
+  };
+
+  const getToday = () => {
+    return formatDateInput(new Date());
+  };
+
+  const getDateBefore = (days: number) => {
+    const date = new Date();
+
+    date.setDate(date.getDate() - days);
+
+    return formatDateInput(date);
+  };
+
+  const getStartOfMonth = () => {
+    const date = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
+    );
+
+    return formatDateInput(date);
+  };
+
+  const getEndOfMonth = () => {
+    const date = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      0
+    );
+
+    return formatDateInput(date);
+  };
+
+  const loadStatistiques = async (
+    isRefresh = false
+  ) => {
     if (!teller?.uid) {
       setErrorMsg("Teller introuvable.");
       setLoading(false);
@@ -84,26 +135,19 @@ const StatistiquesTellerPage: React.FC = () => {
     setErrorMsg(null);
 
     try {
-      const res = await StatistiquesTeller({
+      const response = await StatistiquesTeller({
         teller_id: teller.uid,
       });
 
-      if (res.data.status === "success") {
-        setData({
-          nombre_commandes_livrees:
-            Number(res.data.nombre_commandes_livrees) || 0,
-
+      if (response.data.status === "success") {
+        setStatistics({
           revenu_total:
-            Number(res.data.revenu_total) || 0,
-
-          revenu_par_mois:
-            Array.isArray(res.data.revenu_par_mois)
-              ? res.data.revenu_par_mois
-              : [],
+            Number(response.data.revenu_total) || 0,
         });
       } else {
         const message =
-          res.data.message || "Impossible de récupérer les statistiques.";
+          response.data.message ||
+          "Impossible de récupérer les statistiques.";
 
         setErrorMsg(message);
 
@@ -111,13 +155,17 @@ const StatistiquesTellerPage: React.FC = () => {
           icon: "error",
           title: "Erreur",
           text: message,
+          confirmButtonColor: "#00A4A6",
         });
       }
-    } catch (err: any) {
-      console.error(err);
+    } catch (error: any) {
+      console.error(
+        "Erreur chargement statistiques teller :",
+        error
+      );
 
       const message =
-        err?.response?.data?.message ||
+        error?.response?.data?.message ||
         "Erreur serveur lors du chargement des statistiques.";
 
       setErrorMsg(message);
@@ -126,6 +174,7 @@ const StatistiquesTellerPage: React.FC = () => {
         icon: "error",
         title: "Erreur",
         text: message,
+        confirmButtonColor: "#00A4A6",
       });
     } finally {
       setLoading(false);
@@ -133,110 +182,262 @@ const StatistiquesTellerPage: React.FC = () => {
     }
   };
 
+  const loadRevenuPeriode = async (
+    startDate = dateDebut,
+    endDate = dateFin
+  ) => {
+    if (!teller?.uid) {
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      return;
+    }
+
+    if (startDate > endDate) {
+      Swal.fire({
+        icon: "warning",
+        title: "Période invalide",
+        text: "La date de début doit être antérieure ou égale à la date de fin.",
+        confirmButtonColor: "#00A4A6",
+      });
+
+      return;
+    }
+
+    setLoadingPeriode(true);
+
+    try {
+      const response = await RevenuTellerPeriode({
+        teller_id: teller.uid,
+        date_debut: startDate,
+        date_fin: endDate,
+      });
+
+      if (response.data.status === "success") {
+        setPeriode({
+          revenu: Number(response.data.revenu) || 0,
+          date_debut: response.data.date_debut,
+          date_fin: response.data.date_fin,
+        });
+      } else {
+        const message =
+          response.data.message ||
+          "Impossible de récupérer le revenu de cette période.";
+
+        Swal.fire({
+          icon: "error",
+          title: "Erreur",
+          text: message,
+          confirmButtonColor: "#00A4A6",
+        });
+      }
+    } catch (error: any) {
+      console.error(
+        "Erreur revenu période :",
+        error
+      );
+
+      const message =
+        error?.response?.data?.message ||
+        "Erreur serveur lors du calcul du revenu de la période.";
+
+      Swal.fire({
+        icon: "error",
+        title: "Erreur",
+        text: message,
+        confirmButtonColor: "#00A4A6",
+      });
+    } finally {
+      setLoadingPeriode(false);
+    }
+  };
+
   useEffect(() => {
+    const today = getToday();
+
+    setDateDebut(getStartOfMonth());
+    setDateFin(today);
+
     loadStatistiques();
   }, []);
 
-  /* =========================================================
-     FORMATAGE
-  ========================================================= */
+  useEffect(() => {
+    if (!teller?.uid) {
+      return;
+    }
 
-  const formatPrice = (value: number | string) => {
-    return Number(value || 0).toLocaleString("fr-FR");
-  };
+    if (!dateDebut || !dateFin) {
+      return;
+    }
 
-  const formatMonth = (year: number, month: number) => {
-    const date = new Date(year, month - 1);
+    loadRevenuPeriode(dateDebut, dateFin);
+  }, [dateDebut, dateFin]);
 
-    return date.toLocaleString("fr-FR", {
-      month: "short",
-      year: "numeric",
+  const handleRefresh = async () => {
+    await loadStatistiques(true);
+
+    if (dateDebut && dateFin) {
+      await loadRevenuPeriode(dateDebut, dateFin);
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Actualisé",
+      text: "Les statistiques ont été actualisées.",
+      timer: 1400,
+      showConfirmButton: false,
     });
   };
 
-  const formatMonthLong = (year: number, month: number) => {
-    const date = new Date(year, month - 1);
+  const handleApplyPeriod = () => {
+    if (!dateDebut || !dateFin) {
+      Swal.fire({
+        icon: "warning",
+        title: "Dates requises",
+        text: "Veuillez sélectionner une date de début et une date de fin.",
+        confirmButtonColor: "#00A4A6",
+      });
 
-    return date.toLocaleString("fr-FR", {
+      return;
+    }
+
+    if (dateDebut > dateFin) {
+      Swal.fire({
+        icon: "warning",
+        title: "Période invalide",
+        text: "La date de début doit être antérieure ou égale à la date de fin.",
+        confirmButtonColor: "#00A4A6",
+      });
+
+      return;
+    }
+
+    loadRevenuPeriode(dateDebut, dateFin);
+  };
+
+  const handleToday = () => {
+    const today = getToday();
+
+    setDateDebut(today);
+    setDateFin(today);
+  };
+
+  const handleLast7Days = () => {
+    setDateDebut(getDateBefore(6));
+    setDateFin(getToday());
+  };
+
+  const handleLast30Days = () => {
+    setDateDebut(getDateBefore(29));
+    setDateFin(getToday());
+  };
+
+  const handleCurrentMonth = () => {
+    setDateDebut(getStartOfMonth());
+    setDateFin(getEndOfMonth());
+  };
+
+  const formatPrice = (
+    value: number | string
+  ) => {
+    return Number(value || 0).toLocaleString("fr-FR", {
+      maximumFractionDigits: 0,
+    });
+  };
+
+  const formatDisplayDate = (
+    value: string
+  ) => {
+    if (!value) {
+      return "";
+    }
+
+    const date = new Date(`${value}T00:00:00`);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
       month: "long",
       year: "numeric",
     });
   };
 
-  /* =========================================================
-     DONNÉES GRAPHIQUE
-  ========================================================= */
+  const nombreJoursPeriode = useMemo(() => {
+    if (!dateDebut || !dateFin) {
+      return 0;
+    }
 
-  const chartData = useMemo(() => {
-    if (!data?.revenu_par_mois) return [];
+    const debut = new Date(`${dateDebut}T00:00:00`);
+    const fin = new Date(`${dateFin}T00:00:00`);
 
-    return data.revenu_par_mois.map((item) => ({
-      month: formatMonth(item.year, item.month),
-      monthLong: formatMonthLong(item.year, item.month),
-      revenu: Number(item.revenu) || 0,
-    }));
-  }, [data]);
+    const difference =
+      fin.getTime() - debut.getTime();
 
-  /* =========================================================
-     MOYENNE MENSUELLE
-  ========================================================= */
+    return Math.floor(
+      difference / (1000 * 60 * 60 * 24)
+    ) + 1;
+  }, [dateDebut, dateFin]);
 
-  const revenuMoyen = useMemo(() => {
-    if (!data?.revenu_par_mois?.length) return 0;
+  const pourcentagePeriode = useMemo(() => {
+    if (
+      !statistics ||
+      statistics.revenu_total <= 0 ||
+      !periode
+    ) {
+      return 0;
+    }
 
-    const total = data.revenu_par_mois.reduce(
-      (sum, item) => sum + (Number(item.revenu) || 0),
-      0
+    return Math.min(
+      (periode.revenu /
+        statistics.revenu_total) *
+        100,
+      100
     );
+  }, [statistics, periode]);
 
-    return total / data.revenu_par_mois.length;
-  }, [data]);
-
-  /* =========================================================
-     MEILLEUR MOIS
-  ========================================================= */
-
-  const meilleurMois = useMemo(() => {
-    if (!data?.revenu_par_mois?.length) return null;
-
-    return data.revenu_par_mois.reduce((max, current) => {
-      return Number(current.revenu) > Number(max.revenu)
-        ? current
-        : max;
-    });
-  }, [data]);
-
-  /* =========================================================
-     LOADER PLEIN ÉCRAN
-  ========================================================= */
+  const chartData = useMemo<ChartData[]>(() => {
+    return [
+      {
+        name: "Revenu total",
+        value: statistics?.revenu_total || 0,
+      },
+      {
+        name: "Période sélectionnée",
+        value: periode?.revenu || 0,
+      },
+    ];
+  }, [statistics, periode]);
 
   if (loading) {
     return (
       <div className="fullscreen-loader">
-        <div className="spinner"></div>
+        <div className="loader-content">
+          <div className="spinner"></div>
+          <span>Chargement des statistiques...</span>
+        </div>
       </div>
     );
   }
 
-  /* =========================================================
-     ERREUR
-  ========================================================= */
-
-  if (errorMsg && !data) {
+  if (errorMsg && !statistics) {
     return (
       <>
         <div className="error-page">
-
           <div className="error-icon">
             <BarChart3 size={42} />
           </div>
 
-          <h2>Impossible de charger les statistiques</h2>
+          <h2>
+            Impossible de charger les statistiques
+          </h2>
 
           <p>{errorMsg}</p>
 
           <div className="error-actions">
-
             <button
               className="secondary-button"
               onClick={() => navigate(-1)}
@@ -252,9 +453,7 @@ const StatistiquesTellerPage: React.FC = () => {
               <RefreshCw size={18} />
               Réessayer
             </button>
-
           </div>
-
         </div>
 
         <style>{`
@@ -299,6 +498,7 @@ const StatistiquesTellerPage: React.FC = () => {
           .error-page p {
             color: #6B7280;
             margin: 0 0 24px;
+            max-width: 500px;
           }
 
           .error-actions {
@@ -316,6 +516,7 @@ const StatistiquesTellerPage: React.FC = () => {
             gap: 8px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 13px;
           }
 
           .primary-button {
@@ -334,19 +535,14 @@ const StatistiquesTellerPage: React.FC = () => {
     );
   }
 
-  if (!data) return null;
+  if (!statistics) {
+    return null;
+  }
 
   return (
     <div className="statistics-page">
-
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
-
       <header className="page-header">
-
         <div className="header-left">
-
           <button
             className="back-button"
             onClick={() => navigate(-1)}
@@ -355,7 +551,6 @@ const StatistiquesTellerPage: React.FC = () => {
           </button>
 
           <div>
-
             <div className="breadcrumb">
               Teller
               <span>/</span>
@@ -365,438 +560,526 @@ const StatistiquesTellerPage: React.FC = () => {
             <h1>Statistiques</h1>
 
             <p>
-              Analysez les performances de vos commandes et vos revenus.
+              Suivez vos revenus et analysez votre activité.
             </p>
-
           </div>
-
         </div>
 
         <button
           className="refresh-button"
-          onClick={() => loadStatistiques(true)}
+          onClick={handleRefresh}
           disabled={refreshing}
         >
           <RefreshCw
             size={17}
-            className={refreshing ? "rotating" : ""}
+            className={
+              refreshing ? "rotating" : ""
+            }
           />
 
           <span>
-            {refreshing ? "Actualisation..." : "Actualiser"}
+            {refreshing
+              ? "Actualisation..."
+              : "Actualiser"}
           </span>
         </button>
-
       </header>
 
-      {/* =====================================================
-          MAIN
-      ===================================================== */}
-
       <main className="main-content">
-
-        {/* ===================================================
-            WELCOME BANNER
-        =================================================== */}
-
         <section className="welcome-card">
-
           <div className="welcome-icon">
-            <BarChart3 size={28} />
+            <BarChart3 size={29} />
           </div>
 
           <div className="welcome-content">
-
             <span>TABLEAU DE BORD</span>
 
             <h2>
-              Vue d'ensemble de votre activité
+              Vue d'ensemble de vos revenus
             </h2>
 
             <p>
-              Suivez vos commandes livrées et l'évolution
-              de vos revenus mois après mois.
+              Consultez votre revenu total et analysez
+              les revenus générés sur une période précise.
             </p>
-
           </div>
-
         </section>
 
-        {/* ===================================================
-            KPI
-        =================================================== */}
-
         <section className="stats-grid">
-
-          {/* COMMANDES */}
-
-          <div className="stat-card">
-
+          <div className="stat-card total-card">
             <div className="stat-top">
-
-              <div className="stat-icon orders">
-                <PackageCheck size={22} />
-              </div>
-
-              <span className="stat-label">
-                COMMANDES
-              </span>
-
-            </div>
-
-            <div className="stat-value">
-              {data.nombre_commandes_livrees.toLocaleString("fr-FR")}
-            </div>
-
-            <div className="stat-footer">
-              <CheckCircle2 size={15} />
-              <span>Commandes livrées</span>
-            </div>
-
-          </div>
-
-          {/* REVENU TOTAL */}
-
-          <div className="stat-card">
-
-            <div className="stat-top">
-
               <div className="stat-icon revenue">
-                <TrendingUp size={22} />
+                <Wallet size={22} />
               </div>
 
               <span className="stat-label">
                 REVENU TOTAL
               </span>
-
             </div>
 
             <div className="stat-value">
-              {formatPrice(data.revenu_total)}
+              {formatPrice(
+                statistics.revenu_total
+              )}
+
               <small> FCFA</small>
             </div>
 
             <div className="stat-footer">
               <TrendingUp size={15} />
-              <span>Revenus générés</span>
+              <span>
+                Total généré depuis le début
+              </span>
             </div>
-
           </div>
 
-          {/* MOYENNE */}
-
-          <div className="stat-card">
-
+          <div className="stat-card period-card">
             <div className="stat-top">
-
-              <div className="stat-icon average">
-                <BarChart3 size={22} />
+              <div className="stat-icon period">
+                <CalendarRange size={22} />
               </div>
 
               <span className="stat-label">
-                MOYENNE
+                PÉRIODE
               </span>
-
             </div>
 
             <div className="stat-value">
-              {formatPrice(revenuMoyen)}
-              <small> FCFA</small>
+              {loadingPeriode ? (
+                <span className="mini-loader"></span>
+              ) : (
+                <>
+                  {formatPrice(
+                    periode?.revenu || 0
+                  )}
+
+                  <small> FCFA</small>
+                </>
+              )}
             </div>
 
             <div className="stat-footer">
               <CalendarDays size={15} />
-              <span>Revenu mensuel moyen</span>
-            </div>
 
+              <span>
+                {nombreJoursPeriode > 0
+                  ? `${nombreJoursPeriode} ${
+                      nombreJoursPeriode > 1
+                        ? "jours"
+                        : "jour"
+                    } sélectionné${
+                      nombreJoursPeriode > 1
+                        ? "s"
+                        : ""
+                    }`
+                  : "Aucune période"}
+              </span>
+            </div>
           </div>
 
-          {/* MEILLEUR MOIS */}
-
-          <div className="stat-card">
-
+          <div className="stat-card share-card">
             <div className="stat-top">
-
-              <div className="stat-icon best">
-                <CalendarDays size={22} />
+              <div className="stat-icon share">
+                <BarChart3 size={22} />
               </div>
 
               <span className="stat-label">
-                MEILLEUR MOIS
+                PART DE LA PÉRIODE
               </span>
-
             </div>
 
-            <div className="stat-value best-value">
-
-              {meilleurMois
-                ? formatPrice(meilleurMois.revenu)
-                : "0"}
-
-              <small> FCFA</small>
-
+            <div className="stat-value">
+              {pourcentagePeriode.toFixed(1)}
+              <small> %</small>
             </div>
 
             <div className="stat-footer">
-
+              <TrendingUp size={15} />
               <span>
-                {meilleurMois
-                  ? formatMonthLong(
-                      meilleurMois.year,
-                      meilleurMois.month
-                    )
-                  : "Aucune donnée"}
+                Du revenu total
               </span>
-
             </div>
-
           </div>
 
+          <div className="stat-card date-card">
+            <div className="stat-top">
+              <div className="stat-icon date">
+                <Clock3 size={22} />
+              </div>
+
+              <span className="stat-label">
+                PÉRIODE ACTIVE
+              </span>
+            </div>
+
+            <div className="date-value">
+              {dateDebut && dateFin ? (
+                <>
+                  <strong>
+                    {formatDisplayDate(dateDebut)}
+                  </strong>
+
+                  <span>
+                    au
+                  </span>
+
+                  <strong>
+                    {formatDisplayDate(dateFin)}
+                  </strong>
+                </>
+              ) : (
+                "Aucune période"
+              )}
+            </div>
+
+            <div className="stat-footer">
+              <CalendarDays size={15} />
+              <span>
+                Analyse en cours
+              </span>
+            </div>
+          </div>
         </section>
 
-        {/* ===================================================
-            GRAPH CARD
-        =================================================== */}
+        <section className="period-card-main">
+          <div className="period-header">
+            <div>
+              <div className="section-title-row">
+                <div className="section-icon">
+                  <CalendarRange size={19} />
+                </div>
+
+                <h2>
+                  Analyser une période
+                </h2>
+              </div>
+
+              <p>
+                Sélectionnez les dates pour calculer
+                le revenu généré.
+              </p>
+            </div>
+
+            <div className="period-status">
+              {loadingPeriode ? (
+                <>
+                  <span className="status-dot loading"></span>
+                  Calcul en cours...
+                </>
+              ) : (
+                <>
+                  <span className="status-dot"></span>
+                  Données à jour
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="quick-periods">
+            <button
+              type="button"
+              onClick={handleToday}
+            >
+              Aujourd'hui
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLast7Days}
+            >
+              7 derniers jours
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLast30Days}
+            >
+              30 derniers jours
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCurrentMonth}
+            >
+              Ce mois
+            </button>
+          </div>
+
+          <div className="date-form">
+            <div className="date-field">
+              <label htmlFor="dateDebut">
+                Date de début
+              </label>
+
+              <div className="input-wrapper">
+                <CalendarDays size={18} />
+
+                <input
+                  id="dateDebut"
+                  type="date"
+                  value={dateDebut}
+                  max={dateFin || undefined}
+                  onChange={(event) =>
+                    setDateDebut(
+                      event.target.value
+                    )
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="date-separator">
+              →
+            </div>
+
+            <div className="date-field">
+              <label htmlFor="dateFin">
+                Date de fin
+              </label>
+
+              <div className="input-wrapper">
+                <CalendarDays size={18} />
+
+                <input
+                  id="dateFin"
+                  type="date"
+                  value={dateFin}
+                  min={dateDebut || undefined}
+                  onChange={(event) =>
+                    setDateFin(
+                      event.target.value
+                    )
+                  }
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="apply-period-button"
+              onClick={handleApplyPeriod}
+              disabled={loadingPeriode}
+            >
+              <BarChart3 size={17} />
+
+              {loadingPeriode
+                ? "Calcul..."
+                : "Analyser"}
+            </button>
+          </div>
+
+          {periode && (
+            <div className="period-result">
+              <div className="period-result-icon">
+                <TrendingUp size={22} />
+              </div>
+
+              <div className="period-result-content">
+                <span>
+                  REVENU GÉNÉRÉ SUR LA PÉRIODE
+                </span>
+
+                <strong>
+                  {formatPrice(periode.revenu)}
+                  <small> FCFA</small>
+                </strong>
+
+                <p>
+                  Du{" "}
+                  <b>
+                    {formatDisplayDate(
+                      periode.date_debut
+                    )}
+                  </b>{" "}
+                  au{" "}
+                  <b>
+                    {formatDisplayDate(
+                      periode.date_fin
+                    )}
+                  </b>
+                </p>
+              </div>
+
+              <div className="period-progress">
+                <div className="progress-header">
+                  <span>
+                    Part du revenu total
+                  </span>
+
+                  <strong>
+                    {pourcentagePeriode.toFixed(1)}%
+                  </strong>
+                </div>
+
+                <div className="progress-track">
+                  <div
+                    className="progress-fill"
+                    style={{
+                      width: `${pourcentagePeriode}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
 
         <section className="chart-card">
-
           <div className="chart-header">
-
             <div>
-
               <div className="section-title-row">
-
                 <div className="section-icon">
                   <BarChart3 size={19} />
                 </div>
 
-                <h2>Évolution des revenus</h2>
-
+                <h2>
+                  Comparaison des revenus
+                </h2>
               </div>
 
               <p>
-                Revenus générés par mois
+                Comparaison entre le revenu total
+                et la période sélectionnée.
               </p>
-
             </div>
 
-            {chartData.length > 0 && (
-              <div className="chart-total">
-
-                <span>Total affiché</span>
-
-                <strong>
-                  {formatPrice(
-                    chartData.reduce(
-                      (sum, item) => sum + item.revenu,
-                      0
-                    )
-                  )} FCFA
-                </strong>
-
-              </div>
-            )}
-
-          </div>
-
-          {chartData.length === 0 ? (
-
-            <div className="empty-chart">
-
-              <div className="empty-chart-icon">
-                <BarChart3 size={35} />
-              </div>
-
-              <h3>Aucun revenu disponible</h3>
-
-              <p>
-                Les revenus mensuels apparaîtront ici
-                lorsque des commandes seront livrées.
-              </p>
-
-            </div>
-
-          ) : (
-
-            <div className="chart-wrapper">
-
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-              >
-
-                <BarChart
-                  data={chartData}
-                  margin={{
-                    top: 15,
-                    right: 20,
-                    left: 10,
-                    bottom: 5,
-                  }}
-                >
-
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                  />
-
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{
-                      fontSize: 12,
-                      fill: "#6B7280",
-                    }}
-                  />
-
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{
-                      fontSize: 11,
-                      fill: "#6B7280",
-                    }}
-                    tickFormatter={(value) =>
-                      `${Number(value).toLocaleString("fr-FR")}`
-                    }
-                  />
-
-                  <Tooltip
-                    cursor={{
-                      fill: "rgba(0,164,166,0.06)",
-                    }}
-                    contentStyle={{
-                      borderRadius: "10px",
-                      border: "1px solid #E5E7EB",
-                      boxShadow:
-                        "0 8px 25px rgba(0,0,0,0.08)",
-                    }}
-                    labelStyle={{
-                      color: "#111827",
-                      fontWeight: 700,
-                    }}
-                    formatter={(value) =>
-                      `${Number(value ?? 0).toLocaleString("fr-FR")} FCFA`
-                    }
-                  />
-
-                  <Bar
-                    dataKey="revenu"
-                    fill="#00A4A6"
-                    radius={[7, 7, 0, 0]}
-                    maxBarSize={55}
-                  />
-
-                </BarChart>
-
-              </ResponsiveContainer>
-
-            </div>
-
-          )}
-
-        </section>
-
-        {/* ===================================================
-            MONTHLY DETAILS
-        =================================================== */}
-
-        {chartData.length > 0 && (
-
-          <section className="monthly-card">
-
-            <div className="monthly-header">
-
-              <div>
-
-                <h2>Détail des revenus</h2>
-
-                <p>
-                  Historique mensuel de vos revenus
-                </p>
-
-              </div>
-
-              <span className="months-count">
-                {chartData.length} mois
+            <div className="chart-total">
+              <span>
+                Revenu total
               </span>
 
+              <strong>
+                {formatPrice(
+                  statistics.revenu_total
+                )}{" "}
+                FCFA
+              </strong>
             </div>
+          </div>
 
-            <div className="monthly-list">
+          <div className="chart-wrapper">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <BarChart
+                data={chartData}
+                margin={{
+                  top: 20,
+                  right: 20,
+                  left: 10,
+                  bottom: 10,
+                }}
+                barCategoryGap="28%"
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#E5E7EB"
+                />
 
-              {chartData.map((item, index) => (
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fontSize: 12,
+                    fill: "#6B7280",
+                  }}
+                />
 
-                <div
-                  className="monthly-row"
-                  key={`${item.month}-${index}`}
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fontSize: 11,
+                    fill: "#6B7280",
+                  }}
+                  tickFormatter={(value) =>
+                    Number(value).toLocaleString(
+                      "fr-FR"
+                    )
+                  }
+                />
+
+                <Tooltip
+                  cursor={{
+                    fill: "rgba(0,164,166,0.05)",
+                  }}
+                  contentStyle={{
+                    borderRadius: "10px",
+                    border: "1px solid #E5E7EB",
+                    boxShadow:
+                      "0 8px 25px rgba(0,0,0,0.08)",
+                  }}
+                  labelStyle={{
+                    color: "#111827",
+                    fontWeight: 700,
+                    marginBottom: "5px",
+                  }}
+                  formatter={(value) =>
+                    `${Number(
+                      value ?? 0
+                    ).toLocaleString(
+                      "fr-FR"
+                    )} FCFA`
+                  }
+                />
+
+                <Bar
+                  dataKey="value"
+                  radius={[8, 8, 0, 0]}
+                  maxBarSize={90}
                 >
-
-                  <div className="monthly-date">
-
-                    <div className="calendar-icon">
-                      <CalendarDays size={17} />
-                    </div>
-
-                    <div>
-                      <strong>
-                        {item.monthLong}
-                      </strong>
-
-                      <span>
-                        Revenu mensuel
-                      </span>
-                    </div>
-
-                  </div>
-
-                  <div className="monthly-revenue">
-
-                    <strong>
-                      {formatPrice(item.revenu)} FCFA
-                    </strong>
-
-                    <div className="revenue-bar">
-
-                      <div
-                        className="revenue-bar-fill"
-                        style={{
-                          width: `${
-                            data.revenu_total > 0
-                              ? Math.min(
-                                  (item.revenu /
-                                    data.revenu_total) *
-                                    100,
-                                  100
-                                )
-                              : 0
-                          }%`,
-                        }}
+                  {chartData.map(
+                    (_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={
+                          index === 0
+                            ? "#00A4A6"
+                            : "#2563EB"
+                        }
                       />
+                    )
+                  )}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
 
-                    </div>
+        <section className="information-card">
+          <div className="information-icon">
+            <Wallet size={21} />
+          </div>
 
-                  </div>
+          <div className="information-content">
+            <h3>
+              Comprendre vos revenus
+            </h3>
 
-                </div>
+            <p>
+              Le revenu du teller correspond à
+              <strong> 3% </strong>
+              du montant total des commandes livrées
+              qui lui sont associées.
+            </p>
+          </div>
 
-              ))}
+          <div className="information-value">
+            <span>
+              TAUX
+            </span>
 
-            </div>
-
-          </section>
-
-        )}
-
+            <strong>
+              3%
+            </strong>
+          </div>
+        </section>
       </main>
 
-      {/* =====================================================
-          STYLES
-      ===================================================== */}
-
       <style>{`
-
         * {
           box-sizing: border-box;
         }
@@ -807,20 +1090,12 @@ const StatistiquesTellerPage: React.FC = () => {
           background: #F5F7F8;
         }
 
-        /* =========================================
-           PAGE
-        ========================================= */
-
         .statistics-page {
           min-height: 100vh;
           width: 100%;
           background: #F5F7F8;
           color: #111827;
         }
-
-        /* =========================================
-           HEADER
-        ========================================= */
 
         .page-header {
           width: 100%;
@@ -852,10 +1127,12 @@ const StatistiquesTellerPage: React.FC = () => {
           justify-content: center;
           cursor: pointer;
           transition: all .2s ease;
+          flex-shrink: 0;
         }
 
         .back-button:hover {
           background: #F3F4F6;
+          transform: translateX(-2px);
         }
 
         .breadcrumb {
@@ -896,6 +1173,7 @@ const StatistiquesTellerPage: React.FC = () => {
           font-weight: 600;
           cursor: pointer;
           transition: all .2s ease;
+          flex-shrink: 0;
         }
 
         .refresh-button:hover {
@@ -912,20 +1190,12 @@ const StatistiquesTellerPage: React.FC = () => {
           animation: spin .8s linear infinite;
         }
 
-        /* =========================================
-           MAIN
-        ========================================= */
-
         .main-content {
           width: 100%;
           max-width: 1550px;
           margin: auto;
           padding: 28px 32px 60px;
         }
-
-        /* =========================================
-           WELCOME
-        ========================================= */
 
         .welcome-card {
           width: 100%;
@@ -974,10 +1244,6 @@ const StatistiquesTellerPage: React.FC = () => {
           opacity: .85;
         }
 
-        /* =========================================
-           STATS
-        ========================================= */
-
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
@@ -992,12 +1258,15 @@ const StatistiquesTellerPage: React.FC = () => {
           padding: 18px;
           min-width: 0;
           box-shadow: 0 2px 9px rgba(0,0,0,.025);
-          transition: transform .2s ease, box-shadow .2s ease;
+          transition:
+            transform .2s ease,
+            box-shadow .2s ease;
         }
 
         .stat-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 7px 20px rgba(0,0,0,.06);
+          box-shadow:
+            0 7px 20px rgba(0,0,0,.06);
         }
 
         .stat-top {
@@ -1014,11 +1283,7 @@ const StatistiquesTellerPage: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-        }
-
-        .stat-icon.orders {
-          background: #ECFDF5;
-          color: #16A34A;
+          flex-shrink: 0;
         }
 
         .stat-icon.revenue {
@@ -1026,14 +1291,19 @@ const StatistiquesTellerPage: React.FC = () => {
           color: #00A4A6;
         }
 
-        .stat-icon.average {
+        .stat-icon.period {
           background: #EFF6FF;
           color: #2563EB;
         }
 
-        .stat-icon.best {
+        .stat-icon.share {
           background: #FFF7ED;
           color: #EA580C;
+        }
+
+        .stat-icon.date {
+          background: #F5F3FF;
+          color: #7C3AED;
         }
 
         .stat-label {
@@ -1041,6 +1311,7 @@ const StatistiquesTellerPage: React.FC = () => {
           font-size: 10px;
           font-weight: 700;
           letter-spacing: .5px;
+          text-align: right;
         }
 
         .stat-value {
@@ -1057,8 +1328,24 @@ const StatistiquesTellerPage: React.FC = () => {
           color: #6B7280;
         }
 
-        .best-value {
-          font-size: 20px;
+        .date-value {
+          min-height: 58px;
+          margin-top: 14px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 2px;
+        }
+
+        .date-value strong {
+          color: #111827;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .date-value span {
+          color: #9CA3AF;
+          font-size: 10px;
         }
 
         .stat-footer {
@@ -1072,13 +1359,20 @@ const StatistiquesTellerPage: React.FC = () => {
 
         .stat-footer svg {
           color: #00A4A6;
+          flex-shrink: 0;
         }
 
-        /* =========================================
-           CHART
-        ========================================= */
+        .mini-loader {
+          width: 23px;
+          height: 23px;
+          display: inline-block;
+          border: 3px solid #E5E7EB;
+          border-top-color: #00A4A6;
+          border-radius: 50%;
+          animation: spin .8s linear infinite;
+        }
 
-        .chart-card {
+        .period-card-main {
           background: #FFFFFF;
           border: 1px solid #E5E7EB;
           border-radius: 15px;
@@ -1087,9 +1381,9 @@ const StatistiquesTellerPage: React.FC = () => {
           margin-bottom: 20px;
         }
 
-        .chart-header {
+        .period-header {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
           gap: 20px;
           margin-bottom: 18px;
@@ -1110,6 +1404,268 @@ const StatistiquesTellerPage: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .period-header h2 {
+          margin: 0;
+          color: #1F2937;
+          font-size: 17px;
+        }
+
+        .period-header p {
+          margin: 7px 0 0;
+          color: #9CA3AF;
+          font-size: 12px;
+        }
+
+        .period-status {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          color: #6B7280;
+          font-size: 11px;
+          white-space: nowrap;
+        }
+
+        .status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #16A34A;
+          box-shadow: 0 0 0 4px #DCFCE7;
+        }
+
+        .status-dot.loading {
+          background: #F59E0B;
+          box-shadow: 0 0 0 4px #FEF3C7;
+        }
+
+        .quick-periods {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 18px;
+        }
+
+        .quick-periods button {
+          height: 34px;
+          padding: 0 12px;
+          border: 1px solid #D1D5DB;
+          background: #FFFFFF;
+          border-radius: 8px;
+          color: #4B5563;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all .2s ease;
+        }
+
+        .quick-periods button:hover {
+          border-color: #00A4A6;
+          color: #008B8D;
+          background: #F0FDFA;
+        }
+
+        .date-form {
+          display: grid;
+          grid-template-columns: minmax(180px, 1fr) 35px minmax(180px, 1fr) auto;
+          align-items: end;
+          gap: 12px;
+        }
+
+        .date-field label {
+          display: block;
+          color: #4B5563;
+          font-size: 11px;
+          font-weight: 700;
+          margin-bottom: 7px;
+        }
+
+        .input-wrapper {
+          height: 44px;
+          border: 1px solid #D1D5DB;
+          border-radius: 9px;
+          background: #FFFFFF;
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          padding: 0 12px;
+          transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .input-wrapper:focus-within {
+          border-color: #00A4A6;
+          box-shadow:
+            0 0 0 3px rgba(0,164,166,.08);
+        }
+
+        .input-wrapper svg {
+          color: #00A4A6;
+          flex-shrink: 0;
+        }
+
+        .input-wrapper input {
+          width: 100%;
+          height: 100%;
+          border: none;
+          outline: none;
+          background: transparent;
+          color: #374151;
+          font-size: 12px;
+          font-family: Arial, sans-serif;
+        }
+
+        .date-separator {
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #9CA3AF;
+          font-size: 18px;
+        }
+
+        .apply-period-button {
+          height: 44px;
+          padding: 0 17px;
+          border: none;
+          border-radius: 9px;
+          background: #00A4A6;
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all .2s ease;
+          white-space: nowrap;
+        }
+
+        .apply-period-button:hover {
+          background: #008B8D;
+          transform: translateY(-1px);
+        }
+
+        .apply-period-button:disabled {
+          opacity: .6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .period-result {
+          margin-top: 20px;
+          padding: 18px;
+          border-radius: 12px;
+          background:
+            linear-gradient(
+              135deg,
+              #F0FDFA 0%,
+              #F8FAFC 100%
+            );
+          border: 1px solid #CCFBF1;
+          display: grid;
+          grid-template-columns: auto 1fr minmax(230px, 320px);
+          align-items: center;
+          gap: 15px;
+        }
+
+        .period-result-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
+          background: #00A4A6;
+          color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .period-result-content span {
+          display: block;
+          color: #6B7280;
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: .7px;
+          margin-bottom: 5px;
+        }
+
+        .period-result-content strong {
+          display: block;
+          color: #111827;
+          font-size: 22px;
+          font-weight: 800;
+        }
+
+        .period-result-content strong small {
+          color: #6B7280;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .period-result-content p {
+          margin: 5px 0 0;
+          color: #9CA3AF;
+          font-size: 11px;
+        }
+
+        .period-result-content b {
+          color: #6B7280;
+        }
+
+        .period-progress {
+          width: 100%;
+        }
+
+        .progress-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 7px;
+        }
+
+        .progress-header span {
+          color: #6B7280;
+          font-size: 10px;
+        }
+
+        .progress-header strong {
+          color: #008B8D;
+          font-size: 11px;
+        }
+
+        .progress-track {
+          width: 100%;
+          height: 7px;
+          border-radius: 999px;
+          background: #D1FAE5;
+          overflow: hidden;
+        }
+
+        .progress-fill {
+          height: 100%;
+          border-radius: 999px;
+          background: #00A4A6;
+          transition: width .5s ease;
+        }
+
+        .chart-card {
+          background: #FFFFFF;
+          border: 1px solid #E5E7EB;
+          border-radius: 15px;
+          padding: 22px;
+          box-shadow: 0 2px 10px rgba(0,0,0,.025);
+          margin-bottom: 20px;
+        }
+
+        .chart-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          margin-bottom: 18px;
         }
 
         .chart-header h2 {
@@ -1131,175 +1687,83 @@ const StatistiquesTellerPage: React.FC = () => {
         .chart-total span {
           display: block;
           color: #9CA3AF;
-          font-size: 11px;
+          font-size: 10px;
           margin-bottom: 4px;
         }
 
         .chart-total strong {
           color: #00A4A6;
-          font-size: 16px;
+          font-size: 15px;
         }
 
         .chart-wrapper {
           width: 100%;
-          height: 430px;
+          height: 380px;
         }
 
-        .empty-chart {
-          min-height: 330px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-        }
-
-        .empty-chart-icon {
-          width: 72px;
-          height: 72px;
-          border-radius: 50%;
-          background: #F0FDFA;
-          color: #00A4A6;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 15px;
-        }
-
-        .empty-chart h3 {
-          margin: 0 0 7px;
-          color: #374151;
-          font-size: 16px;
-        }
-
-        .empty-chart p {
-          margin: 0;
-          max-width: 400px;
-          color: #9CA3AF;
-          font-size: 12px;
-          line-height: 1.6;
-        }
-
-        /* =========================================
-           MONTHLY DETAILS
-        ========================================= */
-
-        .monthly-card {
+        .information-card {
           background: #FFFFFF;
           border: 1px solid #E5E7EB;
           border-radius: 15px;
-          padding: 22px;
+          padding: 18px 20px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
           box-shadow: 0 2px 10px rgba(0,0,0,.025);
         }
 
-        .monthly-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 15px;
-          margin-bottom: 15px;
-        }
-
-        .monthly-header h2 {
-          margin: 0 0 5px;
-          color: #1F2937;
-          font-size: 17px;
-        }
-
-        .monthly-header p {
-          margin: 0;
-          color: #9CA3AF;
-          font-size: 12px;
-        }
-
-        .months-count {
-          padding: 6px 10px;
-          border-radius: 999px;
-          background: #F0FDFA;
-          color: #008B8D;
-          font-size: 11px;
-          font-weight: 700;
-        }
-
-        .monthly-list {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .monthly-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 20px;
-          padding: 14px 4px;
-          border-bottom: 1px solid #F1F5F9;
-        }
-
-        .monthly-row:last-child {
-          border-bottom: none;
-        }
-
-        .monthly-date {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-          min-width: 220px;
-        }
-
-        .calendar-icon {
-          width: 38px;
-          height: 38px;
-          border-radius: 9px;
+        .information-icon {
+          width: 45px;
+          height: 45px;
+          border-radius: 11px;
           background: #F0FDFA;
           color: #00A4A6;
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
         }
 
-        .monthly-date strong {
-          display: block;
+        .information-content {
+          flex: 1;
+        }
+
+        .information-content h3 {
+          margin: 0 0 5px;
           color: #374151;
-          font-size: 13px;
+          font-size: 14px;
+        }
+
+        .information-content p {
+          margin: 0;
+          color: #9CA3AF;
+          font-size: 11px;
+          line-height: 1.6;
+        }
+
+        .information-content strong {
+          color: #008B8D;
+        }
+
+        .information-value {
+          min-width: 70px;
+          text-align: center;
+          padding-left: 15px;
+          border-left: 1px solid #E5E7EB;
+        }
+
+        .information-value span {
+          display: block;
+          color: #9CA3AF;
+          font-size: 9px;
+          font-weight: 700;
           margin-bottom: 3px;
         }
 
-        .monthly-date span {
-          display: block;
-          color: #9CA3AF;
-          font-size: 11px;
+        .information-value strong {
+          color: #00A4A6;
+          font-size: 22px;
         }
-
-        .monthly-revenue {
-          width: 48%;
-          text-align: right;
-        }
-
-        .monthly-revenue strong {
-          display: block;
-          color: #111827;
-          font-size: 13px;
-          margin-bottom: 7px;
-        }
-
-        .revenue-bar {
-          width: 100%;
-          height: 5px;
-          border-radius: 999px;
-          background: #E5E7EB;
-          overflow: hidden;
-        }
-
-        .revenue-bar-fill {
-          height: 100%;
-          background: #00A4A6;
-          border-radius: 999px;
-          transition: width .4s ease;
-        }
-
-        /* =========================================
-           LOADER
-        ========================================= */
 
         .fullscreen-loader {
           position: fixed;
@@ -1311,6 +1775,15 @@ const StatistiquesTellerPage: React.FC = () => {
           align-items: center;
           justify-content: center;
           z-index: 99999;
+        }
+
+        .loader-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          color: #6B7280;
+          font-size: 12px;
         }
 
         .spinner {
@@ -1328,12 +1801,7 @@ const StatistiquesTellerPage: React.FC = () => {
           }
         }
 
-        /* =========================================
-           TABLET
-        ========================================= */
-
         @media (max-width: 1150px) {
-
           .main-content {
             padding: 24px;
           }
@@ -1346,14 +1814,25 @@ const StatistiquesTellerPage: React.FC = () => {
             grid-template-columns: repeat(2, 1fr);
           }
 
+          .date-form {
+            grid-template-columns: 1fr 25px 1fr;
+          }
+
+          .apply-period-button {
+            grid-column: 1 / -1;
+            width: 100%;
+          }
+
+          .period-result {
+            grid-template-columns: auto 1fr;
+          }
+
+          .period-progress {
+            grid-column: 1 / -1;
+          }
         }
 
-        /* =========================================
-           MOBILE
-        ========================================= */
-
         @media (max-width: 700px) {
-
           .page-header {
             padding: 14px 16px;
             min-height: auto;
@@ -1367,10 +1846,7 @@ const StatistiquesTellerPage: React.FC = () => {
             font-size: 18px;
           }
 
-          .page-header p {
-            display: none;
-          }
-
+          .page-header p,
           .breadcrumb {
             display: none;
           }
@@ -1406,6 +1882,7 @@ const StatistiquesTellerPage: React.FC = () => {
 
           .welcome-content p {
             font-size: 11px;
+            line-height: 1.5;
           }
 
           .stats-grid {
@@ -1413,15 +1890,56 @@ const StatistiquesTellerPage: React.FC = () => {
             gap: 10px;
           }
 
-          .chart-card,
-          .monthly-card {
+          .period-card-main,
+          .chart-card {
             padding: 15px;
             border-radius: 12px;
           }
 
-          .chart-header {
-            align-items: flex-start;
+          .period-header {
             flex-direction: column;
+            gap: 12px;
+          }
+
+          .period-status {
+            align-self: flex-start;
+          }
+
+          .quick-periods {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .quick-periods button {
+            width: 100%;
+          }
+
+          .date-form {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .date-separator {
+            display: none;
+          }
+
+          .apply-period-button {
+            grid-column: auto;
+          }
+
+          .period-result {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+
+          .period-result-icon {
+            width: 43px;
+            height: 43px;
+          }
+
+          .chart-header {
+            flex-direction: column;
+            align-items: flex-start;
           }
 
           .chart-total {
@@ -1429,28 +1947,28 @@ const StatistiquesTellerPage: React.FC = () => {
           }
 
           .chart-wrapper {
-            height: 330px;
+            height: 320px;
           }
 
-          .monthly-row {
+          .information-card {
             align-items: flex-start;
-            flex-direction: column;
-            gap: 12px;
+            flex-wrap: wrap;
           }
 
-          .monthly-date {
+          .information-content {
             min-width: 0;
+            width: calc(100% - 60px);
           }
 
-          .monthly-revenue {
+          .information-value {
             width: 100%;
-            text-align: left;
+            border-left: none;
+            border-top: 1px solid #E5E7EB;
+            padding: 12px 0 0;
           }
-
         }
 
         @media (max-width: 430px) {
-
           .page-header {
             padding: 12px;
           }
@@ -1480,12 +1998,14 @@ const StatistiquesTellerPage: React.FC = () => {
             font-size: 22px;
           }
 
+          .quick-periods {
+            grid-template-columns: 1fr 1fr;
+          }
+
           .chart-wrapper {
             height: 290px;
           }
-
         }
-
       `}</style>
     </div>
   );

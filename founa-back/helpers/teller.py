@@ -131,33 +131,117 @@ def UpdateTeller():
 
 
 def StatistiquesTeller():
+    
     try:
-        teller_id = request.json.get("teller_id")
+
+        data = request.get_json() or {}
+
+        teller_id = data.get("teller_id")
+
         if not teller_id:
-            return {"status": "error", "message": "teller_id requis"}, 400
-        nb_livrees = Commande.query.filter_by(teller_id=teller_id, statut="Livrer").count()
-        total_revenu = db.session.query(func.sum(Commande.prix_total * 0.3)) \
-            .filter_by(teller_id=teller_id, statut="Livrer").scalar() or 0
-        revenu_par_mois = (
+            return {
+                "status": "error",
+                "message": "teller_id requis"
+            }, 400
+
+        total_revenu = (
             db.session.query(
-                extract('year', Commande.created_date).label('year'),
-                extract('month', Commande.created_date).label('month'),
-                func.sum(Commande.prix_total * 0.03).label('revenu')
+                func.sum(Commande.prix_total * 0.03)
             )
-            .filter_by(teller_id=teller_id, statut="Livrer")
-            .group_by('year', 'month')
-            .order_by('year', 'month')
-            .all()
+            .filter(
+                Commande.teller_id == teller_id,
+                Commande.statut == "Livrer"
+            )
+            .scalar()
+            or 0
         )
-        revenu_mois_dict = [
-            {"year": int(r.year), "month": int(r.month), "revenu": float(r.revenu)}
-            for r in revenu_par_mois
-        ]
+
         return {
             "status": "success",
-            "nombre_commandes_livrees": nb_livrees,
-            "revenu_total": float(total_revenu),
-            "revenu_par_mois": revenu_mois_dict
-        }
+            "teller_id": teller_id,
+            "revenu_total": float(total_revenu)
+        }, 200
+
     except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+        
+        
+def RevenuTellerPeriode():
+    
+    try:
+
+        data = request.get_json() or {}
+
+        teller_id = data.get("teller_id")
+        date_debut = data.get("date_debut")
+        date_fin = data.get("date_fin")
+
+        if not teller_id:
+            return {
+                "status": "error",
+                "message": "teller_id requis"
+            }, 400
+
+        if not date_debut:
+            return {
+                "status": "error",
+                "message": "date_debut requise"
+            }, 400
+
+        if not date_fin:
+            return {
+                "status": "error",
+                "message": "date_fin requise"
+            }, 400
+
+        try:
+            date_debut_obj = datetime.datetime.strptime(
+                date_debut,
+                "%Y-%m-%d"
+            )
+
+            date_fin_obj = datetime.datetime.strptime(
+                date_fin,
+                "%Y-%m-%d"
+            )
+
+            date_fin_obj = date_fin_obj + datetime.timedelta(days=1)
+
+        except ValueError:
+            return {
+                "status": "error",
+                "message": "Format de date invalide. Utilisez YYYY-MM-DD."
+            }, 400
+
+        revenu = (
+            db.session.query(
+                func.sum(Commande.prix_total * 0.03)
+            )
+            .filter(
+                Commande.teller_id == teller_id,
+                Commande.statut == "Livrer",
+                Commande.created_date >= date_debut_obj,
+                Commande.created_date < date_fin_obj
+            )
+            .scalar()
+            or 0
+        )
+
+        return {
+            "status": "success",
+            "teller_id": teller_id,
+            "date_debut": date_debut,
+            "date_fin": date_fin,
+            "revenu": float(revenu)
+        }, 200
+
+    except Exception as e:
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500

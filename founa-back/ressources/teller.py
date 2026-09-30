@@ -11,10 +11,13 @@ class TellerApi(Resource):
             return ReadSingleTeller()
         
         if route == "update_teller":
-            return UpdateTeller()
+            return UpdateTeller() 
         
         if route == "statistiques_teller":
             return StatistiquesTeller()
+        
+        if route == "revenu_teller_periode":
+            return RevenuTellerPeriode()
         
     
     def get(self, route):

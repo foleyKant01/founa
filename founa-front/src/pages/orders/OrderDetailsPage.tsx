@@ -22,6 +22,7 @@ interface Order {
   details: string;
   created_date: string;
   updated_date?: string;
+  code_promo?: string | null;
   images?: string;
   cout_envoie_maritime: number;
   temps_envoie_maritime: string;
@@ -309,6 +310,17 @@ const OrderDetailsPage: React.FC = () => {
   const prixArticles =
     Number(order.prix_total) || 0;
 
+  const hasCodePromo =
+    Boolean(order.code_promo?.trim());
+
+  const reduction =
+    hasCodePromo
+      ? prixArticles * 0.10
+      : 0;
+
+  const prixArticlesApresReduction =
+    prixArticles - reduction;
+
   const coutMaritime =
     Number(order.cout_envoie_maritime) || 0;
 
@@ -323,7 +335,7 @@ const OrderDetailsPage: React.FC = () => {
       : 0;
 
   const totalAPayer =
-    prixArticles + coutExpedition;
+    prixArticlesApresReduction + coutExpedition;
 
   const handleOptionEnvoie = async (
     option: ModeExpedition
@@ -1043,15 +1055,73 @@ const handlePayment = async () => {
                     </p>
                   </div>
                 </div>
-
-                <div className="payment-summary-row" style={styles.paymentRow}>
+                <div
+                  className="payment-summary-row"
+                  style={styles.paymentRow}
+                >
                   <span>Prix des articles</span>
 
                   <strong>
-                    {prixArticles.toLocaleString()} FCFA
+                    {prixArticles.toLocaleString("fr-FR")} FCFA
                   </strong>
                 </div>
 
+                {hasCodePromo && (
+                  <>
+                    <div
+                      className="payment-summary-row"
+                      style={styles.discountRow}
+                    >
+                      <span>
+                        Réduction 10 %
+                      </span>
+
+                      <strong>
+                        -{reduction.toLocaleString("fr-FR")} FCFA
+                      </strong>
+                    </div>
+
+                    <div
+                      className="payment-summary-row"
+                      style={styles.paymentRow}
+                    >
+                      <span>Prix après réduction</span>
+
+                      <strong>
+                        {prixArticlesApresReduction.toLocaleString("fr-FR")} FCFA
+                      </strong>
+                    </div>
+                  </>
+                )}
+
+                <div
+                  className="payment-summary-row"
+                  style={styles.paymentRow}
+                >
+                  <span>
+                    Expédition{" "}
+                    {modeExpedition === "maritime"
+                      ? "maritime"
+                      : "aérienne"}
+                  </span>
+
+                  <strong>
+                    {coutExpedition.toLocaleString("fr-FR")} FCFA
+                  </strong>
+                </div>
+
+                <div style={styles.paymentSeparator} />
+
+                <div
+                  className="payment-summary-row"
+                  style={styles.finalPaymentRow}
+                >
+                  <span>Total à payer</span>
+
+                  <strong>
+                    {totalAPayer.toLocaleString("fr-FR")} FCFA
+                  </strong>
+                </div>
                 <div
                   className="payment-summary-row"
                   style={styles.paymentRow}
@@ -1430,6 +1500,13 @@ const styles: {
     backgroundColor: "#F5F7F8",
     fontFamily:
       "Arial, Helvetica, sans-serif",
+  },
+
+  discountRow: {
+    fontSize: 13,
+    color: "#16A34A",
+    marginBottom: 13,
+    fontWeight: 700,
   },
 
   shippingTime: {

@@ -68,3 +68,11 @@ export const StatistiquesTeller = (data: {
 }) => {
   return api.post('/teller/statistiques_teller', data);
 };
+
+export const RevenuTellerPeriode = (data: {
+  teller_id: string;
+  date_debut: string;
+  date_fin: string;
+}) => {
+  return api.post('/teller/revenu_teller_periode', data);
+};

@@ -1,77 +1,43 @@
 from config.db import db
 from model.founa import *
 from flask import request
-from flask import request, jsonify
 from helpers.clients import *
 from helpers.send_mailer import *
 
 
 USER_TABLES = [
-
     {"model": Admin, "role": "Admin"},
-
     {"model": Teller, "role": "Teller"},
-
     {"model": Client, "role": "Client"},
-
     {"model": PartnerPub, "role": "PartnerPub"},
-
 ]
 
 
 def LoginClient():
-
-    """
-    Login universel pour Admin, Teller, Client et PartnerPub.
-
-    Connexion possible avec :
-
-    - email + mot de passe
-    - téléphone + mot de passe
-    """
-
     try:
-
         data = request.get_json() or {}
-
         email = (data.get("email") or "").strip().lower()
-
         phone = (data.get("phone") or "").strip()
-
         password = data.get("password")
-
-        # =========================================
+        
         # VALIDATION
-        # =========================================
-
         if not email and not phone:
-
             return {
                 "status": "error",
                 "message": "Veuillez renseigner votre email ou votre numéro de téléphone."
             }, 400
-
         if not password:
-
             return {
                 "status": "error",
                 "message": "Le mot de passe est requis."
             }, 400
-
-        # =========================================
+            
         # RECHERCHE DE L'UTILISATEUR
-        # =========================================
-
         found_user = None
-
         user_role = None
-
         for table in USER_TABLES:
-
             model = table["model"]
-
             role = table["role"]
-
             if email:
 
                 user = model.query.filter_by(
