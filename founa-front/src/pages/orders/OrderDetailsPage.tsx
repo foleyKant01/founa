@@ -1112,7 +1112,7 @@ const handlePayment = async () => {
 
                 <div style={styles.paymentSeparator} />
 
-                <div
+                {/* <div
                   className="payment-summary-row"
                   style={styles.finalPaymentRow}
                 >
@@ -1121,8 +1121,8 @@ const handlePayment = async () => {
                   <strong>
                     {totalAPayer.toLocaleString("fr-FR")} FCFA
                   </strong>
-                </div>
-                <div
+                </div> */}
+                {/* <div
                   className="payment-summary-row"
                   style={styles.paymentRow}
                 >
@@ -1136,7 +1136,7 @@ const handlePayment = async () => {
                   <strong>
                     {coutExpedition.toLocaleString()} FCFA
                   </strong>
-                </div>
+                </div> */}
 
                 <div style={styles.paymentSeparator} />
 
