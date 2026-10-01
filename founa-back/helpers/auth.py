@@ -39,34 +39,23 @@ def LoginClient():
             model = table["model"]
             role = table["role"]
             if email:
-
                 user = model.query.filter_by(
                     email=email
                 ).first()
-
             else:
-
                 user = model.query.filter_by(
                     phone=phone
                 ).first()
-
             if user:
-
-                # =========================================
+                
                 # VERIFICATION MOT DE PASSE
-                # =========================================
-
                 if user.password != password:
-
                     return {
                         "status": "error",
                         "message": "Email/téléphone ou mot de passe incorrect."
                     }, 401
-
                 found_user = user
-
                 user_role = role
-
                 break
 
         # =========================================

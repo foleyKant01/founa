@@ -1057,18 +1057,21 @@ const handlePayment = async () => {
 
                 {hasCodePromo && (
                   <>
-                    <div
-                      className="payment-summary-row"
-                      style={styles.discountRow}
-                    >
-                      <span>
-                        Réduction 10 %
-                      </span>
+                    {codePromoDisponible && (
+                      <div
+                        className="payment-summary-row"
+                        style={styles.discountRow}
+                      >
+                        <span>
+                          Réduction 10 %
+                        </span>
 
-                      <strong>
-                        -{reduction.toLocaleString("fr-FR")} FCFA
-                      </strong>
-                    </div>
+                        <strong>
+                          -{reduction.toLocaleString("fr-FR")} FCFA
+                        </strong>
+                      </div>
+                    )}
+
 
                     <div
                       className="payment-summary-row"

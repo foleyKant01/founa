@@ -63,6 +63,7 @@ def CreateClient():
         # ==========================================================
 
         if code_promo:
+            status_code_promo = "non-utiliser"
             existing_code_promo = PartnerPub.query.filter_by(
                 code_promo=code_promo
             ).first()
@@ -86,6 +87,7 @@ def CreateClient():
         # Si aucun code promo n'est fourni,
         # on enregistre None
         new_client.code_promo = code_promo if code_promo else None
+        new_client.status_code_promo = status_code_promo if status_code_promo else None
 
         new_client.adresse_livraison = adresse_livraison
         new_client.password = password
