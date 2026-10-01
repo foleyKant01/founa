@@ -23,6 +23,7 @@ interface Order {
   created_date: string;
   updated_date?: string;
   code_promo?: string | null;
+  status_code_promo?: string | null;
   images?: string;
   cout_envoie_maritime: number;
   temps_envoie_maritime: string;
@@ -313,8 +314,12 @@ const OrderDetailsPage: React.FC = () => {
   const hasCodePromo =
     Boolean(order.code_promo?.trim());
 
+  const codePromoDisponible =
+    hasCodePromo &&
+    order.status_code_promo === "non-utiliser";
+
   const reduction =
-    hasCodePromo
+    codePromoDisponible
       ? prixArticles * 0.10
       : 0;
 
@@ -386,26 +391,19 @@ const handlePayment = async () => {
     console.error("Veuillez sélectionner un mode de paiement.");
     return;
   }
-
   try {
     setPaymentLoading(true);
-
     const response = await PaymentRequest({
       commande_id,
       paymentMethod: modePaiement,
+      totalAPayer: totalAPayer,
     });
-
     console.log("Réponse paiement :", response.data);
 
-    // ==========================================
     // PAIEMENT CRÉÉ AVEC SUCCÈS
-    // ==========================================
-
     if (response.data.status === "success") {
       const paymentUrl = response.data.payment?.redirectUrl;
-
       console.log("URL de paiement Jeko :", paymentUrl);
-
       if (!paymentUrl) {
         console.error(
           "Aucune URL de paiement Jeko retournée par le backend."
@@ -413,24 +411,16 @@ const handlePayment = async () => {
         return;
       }
 
-      // ==========================================
       // REDIRECTION VERS JEKO
-      // ==========================================
-
       window.location.href = paymentUrl;
-
       return;
     }
 
-    // ==========================================
     // ERREUR BACKEND
-    // ==========================================
-
     console.error(
       response.data.message ||
         "Impossible de créer la demande de paiement."
     );
-
   } catch (error) {
     console.error(
       "Erreur lors de la demande de paiement :",
@@ -440,7 +430,6 @@ const handlePayment = async () => {
     setPaymentLoading(false);
   }
 };
-
   return (
     <div style={styles.page}>
       <style>
@@ -1138,7 +1127,7 @@ const handlePayment = async () => {
                   </strong>
                 </div> */}
 
-                <div style={styles.paymentSeparator} />
+                {/* <div style={styles.paymentSeparator} /> */}
 
                 <div
                   className="payment-summary-row"

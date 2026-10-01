@@ -137,6 +137,15 @@ def PaymentRequest():
         data = request.json or {}
         commande_id = data.get("commande_id")
         paymentMethod = data.get("paymentMethod")
+        totalAPayer = request.json.get("totalAPayer")
+
+        if totalAPayer is None:
+            return {
+                "status": "error",
+                "message": "totalAPayer est requis"
+            }, 400
+
+        amountCents = int(round(float(totalAPayer) * 100))
         if not commande_id:
             return {
                 "status": "error",
@@ -163,6 +172,15 @@ def PaymentRequest():
                 "status": "error",
                 "message": "Commande introuvable"
             }, 404
+            
+        single_client = Client.query.filter_by(
+            uid=single_commande.client_id
+        ).first()
+        if not single_client:
+            return {
+                "status": "error",
+                "message": "Client de la commande introuvable"
+            }, 404
         # Déterminer le coût d'expédition
         if single_commande.option_envoie == "maritime":
             cout_envoie = single_commande.cout_envoie_maritime or 0
@@ -173,18 +191,8 @@ def PaymentRequest():
                 "status": "error",
                 "message": "Option d'envoi invalide ou non définie"
             }, 400
+            
         # Calcul du montant total
-        prix_total = single_commande.prix_total or 0
-        amountCents = (prix_total + cout_envoie) * 100
-        # Récupérer automatiquement le store Founa CI
-        # store_id, store_error = GetJekoStoreIdByName("Founa CI")
-        # if not store_id:
-        #     return {
-        #         "status": "error",
-        #         "message": "Le store Jeko 'Founa CI' est introuvable.",
-        #         "details": store_error
-        #     }, 500
-        # Payload Jeko
         payload = {
             "amountCents": amountCents,
             "currency": "XOF",
@@ -300,36 +308,20 @@ def CreateJekoPaymentRequest(payload):
         }, 500
         
         
-
-
-
-
-
 def VerifyJekoWebhookSignature(raw_body, signature):
-    """
-    Vérifie que le webhook provient bien de Jeko.
-
-    La signature est calculée sur le body brut avec
-    HMAC-SHA256 et le secret partagé avec Jeko.
-    """
-
     if not SECRET_WEBHOOK:
         return False
-
     if not signature:
         return False
-
     expected_signature = hmac.new(
         SECRET_WEBHOOK.encode("utf-8"),
         raw_body,
         hashlib.sha256
     ).hexdigest()
-
     return hmac.compare_digest(
         expected_signature,
         signature
     )
-    
     
     
 def ReceiveJekoWebhook():
@@ -340,15 +332,12 @@ def ReceiveJekoWebhook():
                 "status": "error",
                 "message": "Payload webhook vide."
             }, 400
-
         signature = request.headers.get("Jeko-Signature", "")
-
         if not VerifyJekoWebhookSignature(raw_body, signature):
             return {
                 "status": "error",
                 "message": "Signature webhook Jeko invalide."
             }, 401
-
         try:
             data = json.loads(raw_body)
         except json.JSONDecodeError:
@@ -356,49 +345,43 @@ def ReceiveJekoWebhook():
                 "status": "error",
                 "message": "Le payload webhook contient un JSON invalide."
             }, 400
-
         if not isinstance(data, dict):
             return {
                 "status": "error",
                 "message": "Le payload webhook doit être un objet JSON."
             }, 400
-
         transaction_id = data.get("id")
         status = data.get("status")
         transaction_type = data.get("transactionType")
         payment_method = data.get("paymentMethod")
-
         amount_data = data.get("amount") or {}
-
         amount = amount_data.get("amount")
+        if amount is None:
+            return {
+            "status": "error",
+            "message": "Le montant de la transaction Jeko est absent."
+        }, 400
+        amount = float(amount) / 100
         currency = amount_data.get("currency")
-
         fees_data = data.get("fees") or {}
-
         fees = fees_data.get("amount")
         fees_currency = fees_data.get("currency")
-
         transaction_details = data.get("transactionDetails") or {}
-
         reference = transaction_details.get("reference")
         payment_link_id = transaction_details.get("paymentLinkId")
-
         if not transaction_id:
             return {
                 "status": "error",
                 "message": "L'identifiant de transaction Jeko est obligatoire."
             }, 400
-
         if not reference:
             return {
                 "status": "error",
                 "message": "La référence de commande est absente."
             }, 400
-
         webhook_existant = Webhook.query.filter_by(
             transaction_id=transaction_id
         ).first()
-
         if webhook_existant:
             return {
                 "status": "success",
@@ -406,21 +389,16 @@ def ReceiveJekoWebhook():
                 "duplicate": True,
                 "webhook_uid": webhook_existant.uid
             }, 200
-
         commande = Commande.query.filter_by(
             commande_id=reference
         ).first()
-
         if not commande:
             return {
                 "status": "error",
                 "message": f"Commande introuvable : {reference}"
             }, 404
-
         executed_at = None
-
         executed_at_raw = data.get("executedAt")
-
         if executed_at_raw:
             try:
                 executed_at = datetime.datetime.strptime(
@@ -429,7 +407,6 @@ def ReceiveJekoWebhook():
                 )
             except ValueError:
                 executed_at = None
-
         webhook = Webhook(
             transaction_id=transaction_id,
             transaction_type=transaction_type,
@@ -437,7 +414,7 @@ def ReceiveJekoWebhook():
             payment_link_id=payment_link_id,
             status=status,
             payment_method=payment_method,
-            amount = amount / 100,
+            amount = amount,
             currency=currency,
             fees=fees,
             fees_currency=fees_currency,
@@ -450,24 +427,26 @@ def ReceiveJekoWebhook():
             payload=data,
             processed=False
         )
-
         db.session.add(webhook)
-
         if status == "success":
-
             if commande.statut != "Payer":
-
                 ancien_statut = commande.statut
-
                 commande.statut = "Payer"
                 commande.updated_date = datetime.datetime.utcnow()
-
                 log_result = CreateCommandeStatusLog({
                     "commande_id": commande.commande_id,
                     "statut": "Payer",
                     "teller_id": commande.teller_id
                 })
-                
+                single_client = Client.query.filter_by(
+                    uid=commande.client_id
+                ).first()
+                if not single_client:
+                    return {
+                        "status": "error",
+                        "message": "Client de la commande introuvable"
+                    }, 404
+                single_client.status_code_promo = "utiliser"
                 send_push_notification(
                     user_uid=commande.client_id,
                     user_type="user",
@@ -480,40 +459,31 @@ def ReceiveJekoWebhook():
                         "url": "https://founa.ci/orders"
                     }
                 )
-
                 if isinstance(log_result, tuple):
                     log_data, log_status = log_result
-
                     if log_status != 200:
                         db.session.rollback()
-
                         return {
                             "status": "error",
                             "message": "Le statut de la commande n'a pas pu être enregistré dans les logs.",
                             "log_error": log_data
                         }, 500
-
                 elif not log_result.get("success"):
                     db.session.rollback()
-
                     return {
                         "status": "error",
                         "message": "Le statut de la commande n'a pas pu être enregistré dans les logs.",
                         "log_error": log_result
                     }, 500
-
                 print(
                     f"[JEKO] Commande {commande.commande_id} "
                     f"passée de '{ancien_statut}' à 'Payer'."
                 )
-
             else:
-
                 print(
                     f"[JEKO] Commande {commande.commande_id} "
                     f"est déjà au statut 'Payer'."
                 )
-
         elif status in [
             "failed",
             "error",

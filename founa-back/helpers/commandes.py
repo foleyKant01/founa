@@ -479,6 +479,7 @@ def GetSingleCommande():
                 "statut": single_commande.statut,
                 "details": single_commande.details,
                 "code_promo": single_client.code_promo,
+                "status_code_promo": single_client.status_code_promo,
                 "option_envoie": single_commande.option_envoie,
                 "cout_envoie_maritime": single_commande.cout_envoie_maritime,
                 "temps_envoie_maritime": single_commande.temps_envoie_maritime,

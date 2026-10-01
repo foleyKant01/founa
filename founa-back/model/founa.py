@@ -44,6 +44,7 @@ class Client(db.Model):
     email = db.Column(db.String(128), unique=True, nullable=False)
     phone = db.Column(db.String(128), nullable=False)
     code_promo = db.Column(db.String(128), nullable=True)
+    status_code_promo = db.Column(db.String(128), nullable=True, default="non-utiliser") #utiliser, non-utiliser
     status = db.Column(db.String(128), nullable=False, default="non-verifier") # verifier, non-verifier
     adresse_livraison = db.Column(db.Text)
     password = db.Column(db.String(128), nullable=False)
