@@ -365,6 +365,12 @@ def ReceiveJekoWebhook():
         currency = amount_data.get("currency")
         fees_data = data.get("fees") or {}
         fees = fees_data.get("amount")
+        if fees is None:
+            return {
+            "status": "error",
+            "message": "Les frais de la transaction Jeko sont absent."
+        }, 400
+        fees = float(fees) / 100
         fees_currency = fees_data.get("currency")
         transaction_details = data.get("transactionDetails") or {}
         reference = transaction_details.get("reference")
