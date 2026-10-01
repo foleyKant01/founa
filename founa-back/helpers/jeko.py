@@ -465,6 +465,17 @@ def ReceiveJekoWebhook():
                         "url": "https://founa.ci/orders"
                     }
                 )
+                send_push_notification(
+                    user_uid=commande.teller_id,
+                    user_type="teller",
+                    title="Nouvelle commande",
+                    body=f"Une commande {commande.commande_id} vient d'être payé.",
+                    data={
+                        "type": "new_order",
+                        "commande_id": commande.commande_id,
+                        "url": "https://founa.ci/teller/orders"
+                    }
+                )
                 if isinstance(log_result, tuple):
                     log_data, log_status = log_result
                     if log_status != 200:
