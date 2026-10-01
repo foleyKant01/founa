@@ -449,7 +449,7 @@ const OrderDetailsPage: React.FC = () => {
             justify-content: space-between;
             align-items: center;
             gap: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 10px;
           }
 
           .order-layout {
@@ -1496,7 +1496,7 @@ const styles: {
   discountRow: {
     fontSize: 13,
     color: "#16A34A",
-    marginBottom: 13,
+    marginBottom: 10,
     fontWeight: 700,
   },
 
@@ -1516,7 +1516,7 @@ const styles: {
   breadcrumb: {
     fontSize: 13,
     color: "#8A9299",
-    marginBottom: 7,
+    marginBottom: 5,
     fontWeight: 600,
   },
 
@@ -1562,7 +1562,7 @@ const styles: {
     borderRadius: 16,
     padding:
       "17px 20px",
-    marginBottom: 18,
+    marginBottom: 10,
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
@@ -1609,7 +1609,7 @@ const styles: {
       "1px solid #E5E9EB",
     borderRadius: 17,
     padding: 22,
-    marginBottom: 20,
+    marginBottom: 10,
     boxShadow:
       "0 5px 20px rgba(0,0,0,0.035)",
   },
@@ -1618,7 +1618,7 @@ const styles: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 18,
+    marginBottom: 10,
   },
 
   cardTitle: {
@@ -1741,7 +1741,7 @@ const styles: {
     border:
       "1px solid #FFE082",
     borderRadius: 13,
-    marginBottom: 20,
+    marginBottom: 0,
   },
 
   noticeIcon: {
@@ -1858,7 +1858,7 @@ const styles: {
       "1px solid rgba(0,164,166,0.18)",
     borderRadius: 17,
     padding: 22,
-    marginBottom: 20,
+    marginBottom: 10,
     boxShadow:
       "0 6px 25px rgba(0,164,166,0.06)",
   },
@@ -1866,7 +1866,7 @@ const styles: {
   paymentRow: {
     fontSize: 13,
     color: "#616A71",
-    marginBottom: 13,
+    marginBottom: 10,
   },
 
   paymentSeparator: {
@@ -1902,7 +1902,7 @@ const styles: {
 
   selectShippingMessage: {
     padding: 11,
-    marginBottom: 12,
+    marginBottom: 10,
     backgroundColor: "#F8F9FA",
     borderRadius: 9,
     color: "#7B8389",
@@ -1981,7 +1981,7 @@ const styles: {
     alignItems: "center",
     justifyContent: "center",
     fontSize: 32,
-    marginBottom: 18,
+    marginBottom: 15,
   },
 
   notFoundTitle: {
