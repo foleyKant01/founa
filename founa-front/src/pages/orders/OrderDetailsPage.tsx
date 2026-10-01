@@ -336,8 +336,8 @@ const OrderDetailsPage: React.FC = () => {
     modeExpedition === "maritime"
       ? coutMaritime
       : modeExpedition === "aérienne"
-      ? coutAerienne
-      : 0;
+        ? coutAerienne
+        : 0;
 
   const totalAPayer =
     prixArticlesApresReduction + coutExpedition;
@@ -363,7 +363,7 @@ const OrderDetailsPage: React.FC = () => {
       } else {
         console.error(
           response.data.message ||
-            "Erreur lors de la mise à jour"
+          "Erreur lors de la mise à jour"
         );
       }
     } catch (error) {
@@ -376,60 +376,60 @@ const OrderDetailsPage: React.FC = () => {
     }
   };
 
-const handlePayment = async () => {
-  if (clientStatus !== "verifier") {
-    setShowVerificationModal(true);
-    return;
-  }
-
-  if (!commande_id) {
-    console.error("Commande introuvable.");
-    return;
-  }
-
-  if (!modePaiement) {
-    console.error("Veuillez sélectionner un mode de paiement.");
-    return;
-  }
-  try {
-    setPaymentLoading(true);
-    const response = await PaymentRequest({
-      commande_id,
-      paymentMethod: modePaiement,
-      totalAPayer: totalAPayer,
-    });
-    console.log("Réponse paiement :", response.data);
-
-    // PAIEMENT CRÉÉ AVEC SUCCÈS
-    if (response.data.status === "success") {
-      const paymentUrl = response.data.payment?.redirectUrl;
-      console.log("URL de paiement Jeko :", paymentUrl);
-      if (!paymentUrl) {
-        console.error(
-          "Aucune URL de paiement Jeko retournée par le backend."
-        );
-        return;
-      }
-
-      // REDIRECTION VERS JEKO
-      window.location.href = paymentUrl;
+  const handlePayment = async () => {
+    if (clientStatus !== "verifier") {
+      setShowVerificationModal(true);
       return;
     }
 
-    // ERREUR BACKEND
-    console.error(
-      response.data.message ||
+    if (!commande_id) {
+      console.error("Commande introuvable.");
+      return;
+    }
+
+    if (!modePaiement) {
+      console.error("Veuillez sélectionner un mode de paiement.");
+      return;
+    }
+    try {
+      setPaymentLoading(true);
+      const response = await PaymentRequest({
+        commande_id,
+        paymentMethod: modePaiement,
+        totalAPayer: totalAPayer,
+      });
+      console.log("Réponse paiement :", response.data);
+
+      // PAIEMENT CRÉÉ AVEC SUCCÈS
+      if (response.data.status === "success") {
+        const paymentUrl = response.data.payment?.redirectUrl;
+        console.log("URL de paiement Jeko :", paymentUrl);
+        if (!paymentUrl) {
+          console.error(
+            "Aucune URL de paiement Jeko retournée par le backend."
+          );
+          return;
+        }
+
+        // REDIRECTION VERS JEKO
+        window.location.href = paymentUrl;
+        return;
+      }
+
+      // ERREUR BACKEND
+      console.error(
+        response.data.message ||
         "Impossible de créer la demande de paiement."
-    );
-  } catch (error) {
-    console.error(
-      "Erreur lors de la demande de paiement :",
-      error
-    );
-  } finally {
-    setPaymentLoading(false);
-  }
-};
+      );
+    } catch (error) {
+      console.error(
+        "Erreur lors de la demande de paiement :",
+        error
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
   return (
     <div style={styles.page}>
       <style>
@@ -1058,31 +1058,33 @@ const handlePayment = async () => {
                 {hasCodePromo && (
                   <>
                     {codePromoDisponible && (
-                      <div
-                        className="payment-summary-row"
-                        style={styles.discountRow}
-                      >
-                        <span>
-                          Réduction 10 %
-                        </span>
+                      <>
+                        <div
+                          className="payment-summary-row"
+                          style={styles.discountRow}
+                        >
+                          <span>
+                            Réduction 10 %
+                          </span>
 
-                        <strong>
-                          -{reduction.toLocaleString("fr-FR")} FCFA
-                        </strong>
-                      </div>
+                          <strong>
+                            -{reduction.toLocaleString("fr-FR")} FCFA
+                          </strong>
+                        </div>
+
+                        <div
+                          className="payment-summary-row"
+                          style={styles.paymentRow}
+                        >
+                          <span>Prix après réduction</span>
+
+                          <strong>
+                            {prixArticlesApresReduction.toLocaleString("fr-FR")} FCFA
+                          </strong>
+                        </div>
+                      </>
                     )}
 
-
-                    <div
-                      className="payment-summary-row"
-                      style={styles.paymentRow}
-                    >
-                      <span>Prix après réduction</span>
-
-                      <strong>
-                        {prixArticlesApresReduction.toLocaleString("fr-FR")} FCFA
-                      </strong>
-                    </div>
                   </>
                 )}
 
@@ -1154,11 +1156,10 @@ const handlePayment = async () => {
                         {/* ORANGE */}
                         <button
                           type="button"
-                          className={`payment-method-logo ${
-                            modePaiement === "orange"
+                          className={`payment-method-logo ${modePaiement === "orange"
                               ? "payment-method-logo-selected"
                               : ""
-                          }`}
+                            }`}
                           onClick={() => setModePaiement("orange")}
                           aria-label="Payer avec Orange Money"
                         >
@@ -1175,11 +1176,10 @@ const handlePayment = async () => {
                         {/* WAVE */}
                         <button
                           type="button"
-                          className={`payment-method-logo ${
-                            modePaiement === "wave"
+                          className={`payment-method-logo ${modePaiement === "wave"
                               ? "payment-method-logo-selected"
                               : ""
-                          }`}
+                            }`}
                           onClick={() => setModePaiement("wave")}
                           aria-label="Payer avec Wave"
                         >
@@ -1196,11 +1196,10 @@ const handlePayment = async () => {
                         {/* MTN */}
                         <button
                           type="button"
-                          className={`payment-method-logo ${
-                            modePaiement === "mtn"
+                          className={`payment-method-logo ${modePaiement === "mtn"
                               ? "payment-method-logo-selected"
                               : ""
-                          }`}
+                            }`}
                           onClick={() => setModePaiement("mtn")}
                           aria-label="Payer avec MTN Mobile Money"
                         >
@@ -1267,7 +1266,7 @@ const handlePayment = async () => {
                   }}
                 >
                   <span>💳</span>
-                   {paymentLoading
+                  {paymentLoading
                     ? "Préparation du paiement..."
                     : "Payer maintenant"}
                 </button>
