@@ -213,6 +213,10 @@ def PaymentRequest():
         result, status_code = CreateJekoPaymentRequest(
             payload
         )
+        print ("status_code: ", status_code),
+        print ("result: ", result),
+        single_commande.paiement_infos = ("result: ",result + "status_code: ", status_code)
+        db.session.commit()
         return result, status_code
     except Exception as e:
         return {

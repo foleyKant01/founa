@@ -136,6 +136,7 @@ class Commande(db.Model):
     option_envoie = db.Column(db.String(128), nullable=True) # maritime, aerien
     temps_envoie_maritime = db.Column(db.Text, nullable=True)
     temps_envoie_aérienne = db.Column(db.Text, nullable=True)
+    paiement_infos = db.Column(db.Text, nullable=True)
     view = db.Column(db.String(1), nullable=False, default='0')
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
