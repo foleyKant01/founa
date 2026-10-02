@@ -215,7 +215,7 @@ def PaymentRequest():
         )
         print ("status_code: ", status_code),
         print ("result: ", result),
-        single_commande.paiement_infos = ("result: ",result + "status_code: ", status_code)
+        single_commande.paiement_infos = json.dumps({ "result": result, "status_code": status_code }, ensure_ascii=False) 
         db.session.commit()
         return result, status_code
     except Exception as e:
