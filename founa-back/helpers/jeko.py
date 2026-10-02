@@ -130,9 +130,14 @@ def GetJekoStoreBalance():
             "message": "La réponse de Jeko n'est pas un JSON valide."
         }, 500
         
+        
+def GenerateJekoReference(commande_id):
+    return f"{commande_id}-{uuid.uuid4().hex[:8]}"
+        
 
 def PaymentRequest():
     try:
+        create_new_payment = False
         data = request.json or {}
         commande_id = (data.get("commande_id") or "").strip()
         payment_method = (data.get("paymentMethod") or "").strip().lower()
@@ -264,11 +269,7 @@ def PaymentRequest():
 
                 # Vérifier que les informations sauvegardées
                 # correspondent bien à cette commande.
-                if (
-                    payment_request_id
-                    and saved_reference == single_commande.commande_id
-                    and saved_payment_method == payment_method
-                ):
+                if payment_request_id:
                     check_result, check_status = (GetJekoPaymentRequest(payment_request_id))
                     if check_status == 200:
                         current_payment = (
@@ -314,6 +315,7 @@ def PaymentRequest():
 
                         # PAIEMENT ÉCHOUÉ / LIEN EXPIRÉ
                         if current_status == "error":
+                            create_new_payment = True
                             print(
                                 "[JEKO] Ancienne demande de paiement "
                                 f"expirée/échouée : "
@@ -322,11 +324,13 @@ def PaymentRequest():
 
                             # On continue plus bas pour créer une nouvelle Payment Request.
                     elif check_status == 404:
+                        create_new_payment = True
                         print(
                             "[JEKO] Ancienne Payment Request "
                             "introuvable. Création d'une nouvelle."
                         )
                     else:
+                        create_new_payment = True
                         return {
                             "status": "error",
                             "message": (
@@ -335,12 +339,22 @@ def PaymentRequest():
                             ),
                             "response": check_result
                         }, check_status
+                        
+        # reference = single_commande.commande_id
+        # Si une nouvelle tentative est nécessaire,
+        # on génère une référence Jeko unique.
+        if create_new_payment:
+            reference = GenerateJekoReference(
+                single_commande.commande_id
+            )
+        else:
+            reference = single_commande.commande_id
 
         # CRÉATION D'UNE NOUVELLE PAYMENT REQUEST
         payload = {
             "amountCents": amount_cents,
             "currency": "XOF",
-            "reference": single_commande.commande_id,
+            "reference": reference,
             "storeId": (
                 "eb765f96-3eb0-413a-9f65-dd573f5eaf94"
             ),
@@ -885,9 +899,10 @@ def ReceiveJekoWebhook():
         # ==========================================================
         # COMMANDE
         # ==========================================================
+        commande_id = reference.rsplit("-", 1)[0]
 
         commande = Commande.query.filter_by(
-            commande_id=reference
+            commande_id=commande_id
         ).first()
 
         if not commande:
