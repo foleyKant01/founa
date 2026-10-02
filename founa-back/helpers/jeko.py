@@ -214,12 +214,12 @@ def PaymentRequest():
         prix_articles = float(single_commande.prix_total or 0)
 
         # CODE PROMO
-        code_promo_disponible = (
-            bool(single_client.code_promo)
-            and single_client.status_code_promo == "non-utiliser"
-        )
+        # code_promo_disponible = (
+        #     bool(single_client.code_promo)
+        #     and single_client.status_code_promo == "non-utiliser"
+        # )
 
-        if code_promo_disponible:
+        if single_client.code_promo and single_client.status_code_promo == "non-utiliser":
             reduction = prix_articles * 0.10
         else:
             reduction = 0
