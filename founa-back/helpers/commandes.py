@@ -557,46 +557,63 @@ def GetSingleCommandeForSuccessPage():
 def UpdateCommande():
     try:
         data = request.json or {}
+
         commande_id = data.get("commande_id")
         statut = data.get("statut")
         details = data.get("details")
+
         cout_envoie_maritime = data.get(
             "cout_envoie_maritime", 0
         )
+
         temps_envoie_maritime = data.get(
             "temps_envoie_maritime", ""
         )
+
         cout_envoie_aerienne = data.get(
             "cout_envoie_aérienne", 0
         )
+
         temps_envoie_aérienne = data.get(
             "temps_envoie_aérienne", ""
         )
+
         update_commande = Commande.query.filter_by(
             commande_id=commande_id
         ).first()
+
         if not update_commande:
             return {
                 "status": "error",
                 "message": "Commande introuvable"
             }, 404
+
+        # Mise à jour de la commande
         update_commande.statut = statut
         update_commande.details = details
+
         update_commande.cout_envoie_maritime = float(
             cout_envoie_maritime or 0
         )
+
         update_commande.cout_envoie_aérienne = float(
             cout_envoie_aerienne or 0
         )
+
         update_commande.temps_envoie_maritime = str(
             temps_envoie_maritime or ""
         ).strip()
+
         update_commande.temps_envoie_aérienne = str(
             temps_envoie_aérienne or ""
         ).strip()
+
         update_commande.view = "1"
         update_commande.updated_date = datetime.datetime.now()
+
         db.session.commit()
+
+        # Notification
         send_push_notification(
             user_uid=update_commande.client_id,
             user_type="user",
@@ -612,22 +629,57 @@ def UpdateCommande():
                 "url": "https://founa.ci/orders"
             }
         )
-        CreateCommandeStatusLog({
+
+        # Création du log de statut
+        log_response = CreateCommandeStatusLog({
             "commande_id": update_commande.commande_id,
             "statut": update_commande.statut,
             "teller_id": update_commande.teller_id
         })
+
+        # Récupération de la réponse du log
+        if isinstance(log_response, tuple):
+            log_data, log_status = log_response
+        else:
+            log_data = log_response
+            log_status = 200
+
+        # Si la création du log échoue
+        if log_status >= 400:
+            return {
+                "status": "error",
+                "message": "Commande mise à jour, mais erreur lors de la création du log.",
+                "commande": {
+                    "commande_id": update_commande.commande_id,
+                    "statut": update_commande.statut
+                },
+                "commande_status_log": log_data
+            }, 500
+
         return {
             "status": "success",
-            "message": "Commande mise à jour"
+            "message": "Commande mise à jour",
+            "commande": {
+                "commande_id": update_commande.commande_id,
+                "statut": update_commande.statut,
+                "details": update_commande.details,
+                "cout_envoie_maritime": update_commande.cout_envoie_maritime,
+                "cout_envoie_aérienne": update_commande.cout_envoie_aérienne,
+                "temps_envoie_maritime": update_commande.temps_envoie_maritime,
+                "temps_envoie_aérienne": update_commande.temps_envoie_aérienne,
+                "view": update_commande.view
+            },
+            "commande_status_log": log_data
         }, 200
+
     except Exception as e:
         db.session.rollback()
+
         return {
             "status": "error",
             "message": str(e)
         }, 500
-    
+
     
     
 def OptionEnvoie():
