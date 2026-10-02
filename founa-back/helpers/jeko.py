@@ -219,7 +219,7 @@ def PaymentRequest():
         #     and single_client.status_code_promo == "non-utiliser"
         # )
 
-        if single_client.code_promo and single_client.status_code_promo == "non-utiliser":
+        if single_client.status_code_promo == "non-utiliser":
             reduction = prix_articles * 0.10
         else:
             reduction = 0
