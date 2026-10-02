@@ -396,7 +396,6 @@ const OrderDetailsPage: React.FC = () => {
       const response = await PaymentRequest({
         commande_id,
         paymentMethod: modePaiement,
-        totalAPayer: totalAPayer,
       });
       console.log("Réponse paiement :", response.data);
 
