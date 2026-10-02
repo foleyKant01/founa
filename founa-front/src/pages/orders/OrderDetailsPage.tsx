@@ -58,11 +58,26 @@ const OrderDetailsPage: React.FC = () => {
 
   const [shippingLoading, setShippingLoading] = useState(false);
 
-  const client = JSON.parse(
-    localStorage.getItem("user") || "null"
-  );
+  const getClientStatus = () => {
+    try {
+      const storedUser = localStorage.getItem("user");
 
-  const clientStatus = client?.status;
+      if (!storedUser) {
+        return null;
+      }
+
+      const user = JSON.parse(storedUser);
+
+      return user?.status || null;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la lecture du client :",
+        error
+      );
+
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (!commande_id) {
@@ -377,6 +392,13 @@ const OrderDetailsPage: React.FC = () => {
   };
 
   const handlePayment = async () => {
+
+    const clientStatus = getClientStatus();
+    console.log(
+      "Statut actuel du compte :",
+      clientStatus
+    );
+
     if (clientStatus !== "verifier") {
       setShowVerificationModal(true);
       return;
