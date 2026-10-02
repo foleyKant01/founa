@@ -3,9 +3,7 @@ from model.founa import *
 from flask import request
 
 
-
 def CreateCommandeStatusLog(data):
-    
     try:
 
         status_log = CommandeStatusLog(
@@ -15,6 +13,13 @@ def CreateCommandeStatusLog(data):
         )
 
         db.session.add(status_log)
+
+        # Génère les valeurs automatiques
+        # (uid, created_date, updated_date, etc.)
+        db.session.flush()
+
+        # Enregistre définitivement le log en base
+        db.session.commit()
 
         return {
             "success": True,
@@ -30,6 +35,8 @@ def CreateCommandeStatusLog(data):
         }
 
     except Exception as e:
+
+        db.session.rollback()
 
         return {
             "success": False,
