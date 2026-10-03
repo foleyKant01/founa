@@ -193,7 +193,8 @@ def send_OTP():
 
     return {
         "status": "success",
-        "message": "Code de vérification envoyé avec succès."
+        "message": "Code de vérification envoyé avec succès.",
+        "sms_response": sms_response
     }
 
 
