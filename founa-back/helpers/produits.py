@@ -1361,7 +1361,7 @@ def GetProduitsByCategorie():
 
         produits = Produit.query.filter_by(
             categorie=categorie.strip()
-        ).all()
+        ).order_by( func.rand() ).all()
 
         produits_data = []
 
