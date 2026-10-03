@@ -112,6 +112,10 @@ interface CategoryItem {
 
 const CATEGORIES: CategoryItem[] = [
   {
+    name: "Vêtements & Accessoires",
+    icon: Shirt,
+  },
+  {
     name: "Machines & Industrie",
     icon: Factory,
   },
@@ -130,10 +134,6 @@ const CATEGORIES: CategoryItem[] = [
   {
     name: "Informatique & Accessoires",
     icon: Laptop,
-  },
-  {
-    name: "Vêtements & Accessoires",
-    icon: Shirt,
   },
   {
     name: "Maison & Jardin",
