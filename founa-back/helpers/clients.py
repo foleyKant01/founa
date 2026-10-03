@@ -188,7 +188,8 @@ def send_OTP():
     if not sms_response.get("success", True):
         return {
             "status": "error",
-            "message": "Impossible d'envoyer le code de vérification."
+            "message": "Impossible d'envoyer le code de vérification.",
+            "sms_response": sms_response
         }, 500
 
     return {
