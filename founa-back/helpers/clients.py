@@ -120,7 +120,7 @@ def send_OTP():
     new_otp.phone = phone
     db.session.add(new_otp)
     db.session.commit()
-    sms_response = send_whatsapp_by_sendexa(
+    sms_response = send_sms_by_sendexa(
         phone,
         f"Votre code de verification Founa CI est : {otp_code}. "
         "Ce code est valable pendant 5 minutes."
