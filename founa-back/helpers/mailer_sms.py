@@ -23,7 +23,7 @@ def send_sms_by_sendexa(phone, message):
 
 def send_whatsapp_by_sendexa(phone, message):
     try:
-        token = SENDEXA_BASE64_TOKEN
+        token = SENDEXA_BASE64_TOKEN_WHAT
         phone_number = "+225" + phone.lstrip("+")
         response = requests.post(
             "https://api.sendexa.co/v1/whatsapp/send",
