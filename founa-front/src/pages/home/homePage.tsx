@@ -10,7 +10,7 @@ import { useApp } from "../../context/appContext";
 import {
   Search,
   PackageOpen,
-  ChevronRight,
+  ChevronDown,
   ChevronLeft,
   Factory,
   Zap,
@@ -276,7 +276,15 @@ const HomePage: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [searchResults, setSearchResults] = useState<Produit[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingMoreProducts, setLoadingMoreProducts] = useState(false);
+
+  const [currentProductsPage, setCurrentProductsPage] = useState(1);
+  const [hasMoreProducts, setHasMoreProducts] = useState(false);
+
+  const PRODUCTS_PER_PAGE = 20;
+
 
   const [topProducts, setTopProducts] = useState<Produit[]>([]);
   const [loadingTopProducts, setLoadingTopProducts] = useState(true);
@@ -288,6 +296,14 @@ const HomePage: React.FC = () => {
   const [categoryProducts, setCategoryProducts] = useState<Produit[]>([]);
   const [categoryLoading, setCategoryLoading] = useState(false);
 
+  const [currentCategoryPage, setCurrentCategoryPage] = useState(1);
+  const [hasMoreCategoryProducts, setHasMoreCategoryProducts] = useState(false);
+  const [loadingMoreCategoryProducts, setLoadingMoreCategoryProducts] = useState(false);
+
+  const [currentSearchPage, setCurrentSearchPage] = useState(1);
+  const [hasMoreSearchResults, setHasMoreSearchResults] = useState(false);
+  const [loadingMoreSearchResults, setLoadingMoreSearchResults] = useState(false);
+
 
   const refreshHomePage = async () => {
     try {
@@ -298,35 +314,58 @@ const HomePage: React.FC = () => {
       setSearchResults([]);
 
       // Réinitialiser la catégorie sélectionnée
-      setSelectedCategory("");
+      setSelectedCategory(null);
       setCategoryProducts([]);
 
-      // Recharger tous les produits
-      const productsResponse = await GetAllProduits();
+      // Revenir à la première page
+      setCurrentProductsPage(1);
+
+      // Recharger les 20 premiers produits
+      const productsResponse = await GetAllProduits(
+        1,
+        PRODUCTS_PER_PAGE
+      );
 
       if (productsResponse?.data?.status === "success") {
-        setAllProducts(productsResponse.data.produits || []);
+        setAllProducts(
+          productsResponse.data.produits || []
+        );
+
+        setHasMoreProducts(
+          Boolean(
+            productsResponse.data.pagination?.has_next
+          )
+        );
       } else {
         setAllProducts([]);
+        setHasMoreProducts(false);
       }
 
-      // Recharger les produits populaires / top produits
+      // Recharger les produits populaires
       const topResponse = await TopProducts();
 
       if (topResponse?.data?.status === "success") {
-        setTopProducts(topResponse.data.produits || []);
+        setTopProducts(
+          (topResponse.data.produits || []).slice(0, 10)
+        );
       } else {
         setTopProducts([]);
       }
+
     } catch (error) {
       console.error(
         "Erreur lors du rafraîchissement de la page d'accueil :",
         error
       );
+
+      setAllProducts([]);
+      setHasMoreProducts(false);
+
     } finally {
       setLoadingProducts(false);
     }
   };
+
 
   /*
    * =========================
@@ -366,88 +405,105 @@ const HomePage: React.FC = () => {
     };
   }, [isHeroPaused]);
 
-  // const handleHeroAction = () => {
-  //   if (currentSlide === 2) {
-  //     searchInputRef.current?.focus();
-  //     return;
-  //   }
-
-  //   document.getElementById("popular-products")?.scrollIntoView({
-  //     behavior: "smooth",
-  //     block: "start",
-  //   });
-  // };
-
-  /*
-   * =========================
-   * TOP PRODUITS
-   * =========================
-   */
-
   useEffect(() => {
-    const loadTopProducts = async () => {
+    const loadHomeProducts = async () => {
       try {
+        setLoadingProducts(true);
         setLoadingTopProducts(true);
 
-        const response = await TopProducts();
+        const [productsResponse, topResponse] =
+          await Promise.all([
+            GetAllProduits(1, PRODUCTS_PER_PAGE),
+            TopProducts(),
+          ]);
 
-        if (response.data.status === "success") {
-          setTopProducts(response.data.produits || []);
+        if (productsResponse.data.status === "success") {
+          setAllProducts(
+            productsResponse.data.produits || []
+          );
+
+          setCurrentProductsPage(1);
+
+          setHasMoreProducts(
+            Boolean(
+              productsResponse.data.pagination?.has_next
+            )
+          );
+        } else {
+          setAllProducts([]);
+          setHasMoreProducts(false);
+        }
+
+        if (topResponse.data.status === "success") {
+          setTopProducts(
+            (topResponse.data.produits || []).slice(0, 10)
+          );
         } else {
           setTopProducts([]);
-
-          console.error(
-            response.data.message || "Erreur récupération top produits"
-          );
         }
+
       } catch (error) {
-        console.error("Erreur récupération top produits :", error);
+        console.error(
+          "Erreur lors du chargement de la page d'accueil :",
+          error
+        );
+
+        setAllProducts([]);
         setTopProducts([]);
+        setHasMoreProducts(false);
+
       } finally {
+        setLoadingProducts(false);
         setLoadingTopProducts(false);
       }
     };
 
-    loadTopProducts();
+    loadHomeProducts();
   }, []);
 
-  /*
-   * =========================
-   * RECUPERATION PRODUITS
-   * =========================
-   */
+  const handleLoadMoreProducts = async () => {
+    if (loadingMoreProducts || !hasMoreProducts) {
+      return;
+    }
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        setLoadingProducts(true);
+    try {
+      setLoadingMoreProducts(true);
 
-        const response = await GetAllProduits();
+      const nextPage = currentProductsPage + 1;
 
-        if (response.data.status === "success") {
-          setAllProducts(response.data.produits || []);
-        } else {
-          setAllProducts([]);
-          console.error(
-            response.data.message || "Erreur récupération produits"
-          );
-        }
-      } catch (error) {
-        console.error("Erreur récupération produits :", error);
-        setAllProducts([]);
-      } finally {
-        setLoadingProducts(false);
+      const response = await GetAllProduits(
+        nextPage,
+        PRODUCTS_PER_PAGE
+      );
+
+      if (response.data.status === "success") {
+        const newProducts = response.data.produits || [];
+
+        setAllProducts((previousProducts) => [
+          ...previousProducts,
+          ...newProducts,
+        ]);
+
+        setCurrentProductsPage(nextPage);
+
+        setHasMoreProducts(
+          Boolean(
+            response.data.pagination?.has_next
+          )
+        );
       }
-    };
 
-    loadProducts();
-  }, []);
+    } catch (error) {
+      console.error(
+        "Erreur lors du chargement des produits supplémentaires :",
+        error
+      );
+    } finally {
+      setLoadingMoreProducts(false);
+    }
+  };
 
-  /*
-   * =========================
-   * REFRESH COMMANDES
-   * =========================
-   */
+
 
   useEffect(() => {
     refreshCommandeCount();
@@ -471,33 +527,88 @@ const HomePage: React.FC = () => {
    */
 
   const handleSearch = async (text: string) => {
-    setSearchText(text);
+  setSearchText(text);
 
-    if (!text || text.trim().length < 2) {
+  if (!text || text.trim().length < 2) {
+    setSearchResults([]);
+    setSearchLoading(false);
+    setCurrentSearchPage(1);
+    setHasMoreSearchResults(false);
+    return;
+  }
+
+  try {
+    setSearchLoading(true);
+
+    setCurrentSearchPage(1);
+    setHasMoreSearchResults(false);
+
+    const response = await SearchProduct({
+      textSearch: text,
+      page: 1,
+      limit: PRODUCTS_PER_PAGE,
+    });
+
+    if (response.data.status === "success") {
+      setSearchResults(response.data.products || []);
+
+      setHasMoreSearchResults(
+        Boolean(response.data.pagination?.has_next)
+      );
+    } else {
       setSearchResults([]);
-      setSearchLoading(false);
-      return;
     }
+  } catch (error) {
+    console.error("Erreur recherche produits :", error);
+    setSearchResults([]);
+  } finally {
+    setSearchLoading(false);
+  }
+};
 
-    try {
-      setSearchLoading(true);
+const handleLoadMoreSearchResults = async () => {
+  if (
+    loadingMoreSearchResults ||
+    !hasMoreSearchResults ||
+    !searchText.trim()
+  ) {
+    return;
+  }
 
-      const response = await SearchProduct({
-        textSearch: text,
-      });
+  try {
+    setLoadingMoreSearchResults(true);
 
-      if (response.data.status === "success") {
-        setSearchResults(response.data.products || []);
-      } else {
-        setSearchResults([]);
-      }
-    } catch (error) {
-      console.error("Erreur recherche produits :", error);
-      setSearchResults([]);
-    } finally {
-      setSearchLoading(false);
+    const nextPage = currentSearchPage + 1;
+
+    const response = await SearchProduct({
+      textSearch: searchText,
+      page: nextPage,
+      limit: PRODUCTS_PER_PAGE,
+    });
+
+    if (response.data.status === "success") {
+      const newProducts = response.data.products || [];
+
+      setSearchResults((previousProducts) => [
+        ...previousProducts,
+        ...newProducts,
+      ]);
+
+      setCurrentSearchPage(nextPage);
+
+      setHasMoreSearchResults(
+        Boolean(response.data.pagination?.has_next)
+      );
     }
-  };
+  } catch (error) {
+    console.error(
+      "Erreur lors du chargement des résultats supplémentaires :",
+      error
+    );
+  } finally {
+    setLoadingMoreSearchResults(false);
+  }
+};
 
   /*
    * =========================
@@ -615,23 +726,26 @@ const handleCategoryClick = async (categorie: string) => {
   try {
     setSelectedCategory(categorie);
     setCategoryLoading(true);
+
     setCategoryProducts([]);
+    setCurrentCategoryPage(1);
+    setHasMoreCategoryProducts(false);
 
     const response = await GetProduitsByCategorie({
-      categorie: categorie,
+      categorie,
+      page: 1,
+      limit: PRODUCTS_PER_PAGE,
     });
 
     if (response.data.status === "success") {
       setCategoryProducts(response.data.produits || []);
+
+      setHasMoreCategoryProducts(
+        Boolean(response.data.pagination?.has_next)
+      );
     } else {
       setCategoryProducts([]);
-
-      console.error(
-        response.data.message ||
-          "Erreur récupération produits par catégorie"
-      );
     }
-
   } catch (error) {
     console.error(
       "Erreur lors de la recherche des produits par catégorie :",
@@ -643,6 +757,51 @@ const handleCategoryClick = async (categorie: string) => {
     setCategoryLoading(false);
   }
 };
+
+const handleLoadMoreCategoryProducts = async () => {
+  if (
+    loadingMoreCategoryProducts ||
+    !hasMoreCategoryProducts ||
+    !selectedCategory
+  ) {
+    return;
+  }
+
+  try {
+    setLoadingMoreCategoryProducts(true);
+
+    const nextPage = currentCategoryPage + 1;
+
+    const response = await GetProduitsByCategorie({
+      categorie: selectedCategory,
+      page: nextPage,
+      limit: PRODUCTS_PER_PAGE,
+    });
+
+    if (response.data.status === "success") {
+      const newProducts = response.data.produits || [];
+
+      setCategoryProducts((previousProducts) => [
+        ...previousProducts,
+        ...newProducts,
+      ]);
+
+      setCurrentCategoryPage(nextPage);
+
+      setHasMoreCategoryProducts(
+        Boolean(response.data.pagination?.has_next)
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Erreur lors du chargement des produits de la catégorie :",
+      error
+    );
+  } finally {
+    setLoadingMoreCategoryProducts(false);
+  }
+};
+
 
   return (
     <div className="home-page">
@@ -756,7 +915,7 @@ const handleCategoryClick = async (categorie: string) => {
               onClick={nextSlide}
               aria-label="Slide suivant"
             >
-              <ChevronRight size={22} />
+              <ChevronDown size={22} />
             </button>
 
             {/* Indicateurs */}
@@ -913,14 +1072,39 @@ const handleCategoryClick = async (categorie: string) => {
                     </p>
                   </div>
                 ) : (
-                  <div className="product-grid">
-                    {searchResults.map((produit) => (
-                      <ProductCard
-                        key={produit.uid}
-                        produit={produit}
-                      />
-                    ))}
-                  </div>
+                  <>
+                    <div className="product-grid">
+                      {searchResults.map((produit) => (
+                        <ProductCard
+                          key={produit.uid}
+                          produit={produit}
+                        />
+                      ))}
+                    </div>
+
+                    {hasMoreSearchResults && (
+                      <div className="load-more-container">
+                        <button
+                          type="button"
+                          className="load-more-button"
+                          onClick={handleLoadMoreSearchResults}
+                          disabled={loadingMoreSearchResults}
+                        >
+                          {loadingMoreSearchResults ? (
+                            <>
+                              <span className="load-more-spinner" />
+                              Chargement...
+                            </>
+                          ) : (
+                            <>
+                              Voir plus
+                              <ChevronDown size={18} />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </section>
             ) : (
@@ -959,7 +1143,7 @@ const handleCategoryClick = async (categorie: string) => {
                           }
                         >
                           Voir tous
-                          <ChevronRight size={18} />
+                          <ChevronDown size={18} />
                         </button>
                       </div>
 
@@ -1048,14 +1232,39 @@ const handleCategoryClick = async (categorie: string) => {
                         </p>
                       </div>
                     ) : (
-                      <div className="product-grid">
-                        {categoryProducts.map((produit) => (
-                          <ProductCard
-                            key={produit.uid}
-                            produit={produit}
-                          />
-                        ))}
-                      </div>
+                      <>
+                        <div className="product-grid">
+                          {categoryProducts.map((produit) => (
+                            <ProductCard
+                              key={produit.uid}
+                              produit={produit}
+                            />
+                          ))}
+                        </div>
+
+                        {hasMoreCategoryProducts && (
+                          <div className="load-more-container">
+                            <button
+                              type="button"
+                              className="load-more-button"
+                              onClick={handleLoadMoreCategoryProducts}
+                              disabled={loadingMoreCategoryProducts}
+                            >
+                              {loadingMoreCategoryProducts ? (
+                                <>
+                                  <span className="load-more-spinner" />
+                                  Chargement...
+                                </>
+                              ) : (
+                                <>
+                                  Voir plus
+                                  <ChevronDown size={18} />
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )
                   ) : allProducts.length === 0 ? (
                     <div className="empty-state">
@@ -1070,14 +1279,39 @@ const handleCategoryClick = async (categorie: string) => {
                       </p>
                     </div>
                   ) : (
-                    <div className="product-grid">
-                      {allProducts.map((produit) => (
-                        <ProductCard
-                          key={produit.uid}
-                          produit={produit}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      <div className="product-grid">
+                        {allProducts.map((produit) => (
+                          <ProductCard
+                            key={produit.uid}
+                            produit={produit}
+                          />
+                        ))}
+                      </div>
+
+                      {hasMoreProducts && (
+                        <div className="load-more-container">
+                          <button
+                            type="button"
+                            className="load-more-button"
+                            onClick={handleLoadMoreProducts}
+                            disabled={loadingMoreProducts}
+                          >
+                            {loadingMoreProducts ? (
+                              <>
+                                <span className="load-more-spinner" />
+                                Chargement...
+                              </>
+                            ) : (
+                              <>
+                                Voir plus
+                                <ChevronDown size={18} />
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </section>
               </>
@@ -1213,7 +1447,6 @@ const handleCategoryClick = async (categorie: string) => {
           position: relative;
           width: 100%;
           height: 420px;
-          // overflow: hidden;
         }
 
         .hero-slide {
@@ -1224,7 +1457,6 @@ const handleCategoryClick = async (categorie: string) => {
           background-size: cover;
           background-repeat: no-repeat;
 
-          // opacity: 0;
           visibility: hidden;
 
           transition:
@@ -2093,6 +2325,73 @@ const handleCategoryClick = async (categorie: string) => {
         /* =========================
            TABLETTE
         ========================= */
+
+        .load-more-container {
+          width: 100%;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          margin-top: 30px;
+        }
+
+        .load-more-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          gap: 8px;
+
+          min-width: 150px;
+
+          padding: 12px 22px;
+
+          border: 1px solid #00a4a6;
+          border-radius: 10px;
+
+          background: #ffffff;
+          color: #00a4a6;
+
+          font-size: 14px;
+          font-weight: 700;
+
+          cursor: pointer;
+
+          transition:
+            background 0.2s ease,
+            color 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .load-more-button:hover:not(:disabled) {
+          background: #ffffff;
+          color: #00a4a6;
+
+          transform: translateY(-2px);
+
+          box-shadow:
+            0 8px 20px rgba(0, 164, 166, 0.18);
+        }
+
+        .load-more-button:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .load-more-spinner {
+          width: 16px;
+          height: 16px;
+
+          border: 2px solid rgba(0, 164, 166, 0.25);
+          border-top-color: #00a4a6;
+
+          border-radius: 50%;
+
+          animation:
+            searchSpin 0.7s linear infinite;
+        }
 
         @media (max-width: 900px) {
           .header-inner {

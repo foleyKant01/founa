@@ -745,26 +745,60 @@ def CreateProduit():
 
 
 def GetAllProduits():
-    produits = Produit.query.order_by(func.rand()).all()
-    result = []
-    for p in produits:
-        result.append({
-            "uid": p.uid,
-            "nom": p.nom,
-            "description": p.description,
-            "lien_1": p.lien_1,
-            "prix_vente": p.prix_vente,
-            "images": p.images,
-            "stock_disponible": p.stock_disponible,
-            "moq": p.moq,
-            "status": p.status,
-            "fournisseur": p.fournisseur,
-            "creation_date": str(p.creation_date),
-        })
-    return jsonify({
-        "status": "success",
-        "produits": result
-    })
+
+    try:
+
+        page = request.args.get("page", 1, type=int)
+        limit = request.args.get("limit", 20, type=int)
+
+        page = max(page, 1)
+        limit = min(max(limit, 1), 50)
+
+        pagination = (
+            Produit.query
+            .order_by(Produit.creation_date.desc())
+            .paginate(
+                page=page,
+                per_page=limit,
+                error_out=False
+            )
+        )
+
+        result = []
+
+        for p in pagination.items:
+
+            result.append({
+                "uid": p.uid,
+                "nom": p.nom,
+                "prix_vente": p.prix_vente,
+                "images": p.images,
+                "stock_disponible": p.stock_disponible,
+                "moq": p.moq,
+                "status": p.status,
+                "creation_date": str(p.creation_date),
+            })
+
+        return {
+            "status": "success",
+            "produits": result,
+            "pagination": {
+                "page": pagination.page,
+                "limit": pagination.per_page,
+                "total": pagination.total,
+                "pages": pagination.pages,
+                "has_next": pagination.has_next,
+                "has_previous": pagination.has_prev
+            }
+        }, 200
+
+    except Exception as e:
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+
     
     
 def GetAllUnavaibleProduct():
@@ -1131,95 +1165,176 @@ def normalize_text(text):
     text = re.sub(r'[^a-zA-Z0-9\s]', '', text).lower()
     return text.split()   
      
-
+     
 
 def SearchProduct():
     """
-    Recherche des produits selon un texte.
+    Recherche les produits selon un texte.
+
     Recherche dans :
         - nom
         - categorie
         - description
 
-    Si aucun produit n'est trouvé, la recherche est enregistrée
-    dans UnavaibleProduct pour pouvoir être traitée ultérieurement.
+    Pagination :
+        - page
+        - limit
     """
 
     response = {}
+
     try:
+
         data = request.json or {}
-        text = data.get("textSearch", "").strip()
-        page = max(int(data.get("page", 1)), 1)
-        per_page = max(int(data.get("per_page", 10)), 1)
-        client_id = data.get("client_id")
+
+        text = (
+            data.get("textSearch") or ""
+        ).strip()
+
+        page = data.get(
+            "page",
+            1
+        )
+
+        limit = data.get(
+            "limit",
+            20
+        )
+
+        client_id = data.get(
+            "client_id"
+        )
+
+        try:
+            page = int(page)
+        except (
+            TypeError,
+            ValueError
+        ):
+            page = 1
+
+        try:
+            limit = int(limit)
+        except (
+            TypeError,
+            ValueError
+        ):
+            limit = 20
+
+        page = max(page, 1)
+
+        limit = min(
+            max(limit, 1),
+            50
+        )
 
         if not text:
+
             return {
                 "status": "error",
-                "error_description": "textSearch is required"
+                "error_description": (
+                    "textSearch is required"
+                )
             }, 400
 
         text = text[:128]
-        text_search = remove_accents(text.lower())
+
+        text_search = remove_accents(
+            text.lower()
+        )
+
         words = [
             w
-            for w in normalize_text(text_search)
+            for w in normalize_text(
+                text_search
+            )
             if len(w) > 2
         ]
+
         if not words:
+
             return {
                 "status": "error",
-                "error_description": "textSearch too short"
+                "error_description": (
+                    "textSearch too short"
+                )
             }, 400
 
         filters = []
+
         for word in words:
+
             pattern = f"%{word}%"
+
             filters.append(
                 Produit.nom.ilike(pattern)
             )
+
             filters.append(
                 Produit.categorie.ilike(pattern)
             )
+
             filters.append(
                 Produit.description.ilike(pattern)
             )
 
-        query = Produit.query.filter(or_(*filters))
+        query = Produit.query.filter(
+            or_(*filters)
+        )
+
         all_results = query.all()
+
         products_scored = []
+
         for product in all_results:
+
             score = 0
+
             nom = remove_accents(
                 (product.nom or "").lower()
             )
+
             categorie = remove_accents(
                 (product.categorie or "").lower()
             )
+
             description = remove_accents(
                 (product.description or "").lower()
             )
 
             for word in words:
+
                 if word in nom:
                     score += 50
+
                 if word in categorie:
                     score += 30
+
                 if word in description:
                     score += 20
 
             if score > 0:
+
                 products_scored.append({
                     "product": product,
                     "score": score
                 })
+
         products_scored.sort(
             key=lambda item: item["score"],
             reverse=True
         )
-        total = len(products_scored)
+
+        total = len(
+            products_scored
+        )
+
+        # ==========================================
+        # AUCUN RÉSULTAT
+        # ==========================================
 
         if total == 0:
+
             recherche_existante = (
                 UnavaibleProduct.query
                 .filter(
@@ -1228,71 +1343,169 @@ def SearchProduct():
                     ) == text.lower()
                 )
                 .filter(
-                    UnavaibleProduct.client_id == client_id
+                    UnavaibleProduct.client_id
+                    == client_id
                 )
                 .first()
             )
+
             if not recherche_existante:
+
                 recherche = UnavaibleProduct(
                     text_search=text,
                     client_id=client_id
                 )
-                db.session.add(recherche)
+
+                db.session.add(
+                    recherche
+                )
+
                 db.session.commit()
+
             return {
                 "status": "success",
                 "total": 0,
                 "pages": 0,
                 "current_page": page,
                 "products": [],
-                "message": "Aucun produit disponible pour cette recherche."
+                "pagination": {
+                    "page": page,
+                    "limit": limit,
+                    "total": 0,
+                    "pages": 0,
+                    "has_next": False,
+                    "has_previous": False,
+                },
+                "message": (
+                    "Aucun produit disponible "
+                    "pour cette recherche."
+                )
             }, 200
 
-        start = (page - 1) * per_page
-        end = start + per_page
-        results = products_scored[start:end]
+        # ==========================================
+        # PAGINATION
+        # ==========================================
+
+        start = (
+            (page - 1) * limit
+        )
+
+        end = (
+            start + limit
+        )
+
+        results = products_scored[
+            start:end
+        ]
+
         products_list = []
-        
+
         for item in results:
+
             product = item["product"]
+
             products_list.append({
+
                 "uid": product.uid,
-                "nom": product.nom or "",
-                "categorie": product.categorie or "",
+
+                "nom": (
+                    product.nom or ""
+                ),
+
+                "categorie": (
+                    product.categorie or ""
+                ),
+
                 "description": (
-                    product.description[:150] + "..."
+                    product.description[:150]
+                    + "..."
                     if product.description
                     and len(product.description) > 150
                     else product.description or ""
                 ),
-                "lien_1": product.lien_1 or "",
-                "prix_vente": product.prix_vente or 0,
-                "images": product.images or [],
-                "stock_disponible": (product.stock_disponible or 0),
-                "moq": product.moq or 0,
-                "status": product.status or "",
-                "fournisseur": product.fournisseur or "",
-                "creation_date": str(product.creation_date),
-                "search_score": item["score"]
+
+                "lien_1": (
+                    product.lien_1 or ""
+                ),
+
+                "prix_vente": (
+                    product.prix_vente or 0
+                ),
+
+                "images": (
+                    product.images or []
+                ),
+
+                "stock_disponible": (
+                    product.stock_disponible or 0
+                ),
+
+                "moq": (
+                    product.moq or 0
+                ),
+
+                "status": (
+                    product.status or ""
+                ),
+
+                "fournisseur": (
+                    product.fournisseur or ""
+                ),
+
+                "creation_date": (
+                    str(product.creation_date)
+                ),
+
+                "search_score": (
+                    item["score"]
+                )
             })
-        response = {
+
+        total_pages = (
+            (total + limit - 1)
+            // limit
+        )
+
+        return {
             "status": "success",
+
             "total": total,
-            "pages": (
-                (total + per_page - 1)
-                // per_page
-            ),
+
+            "pages": total_pages,
+
             "current_page": page,
-            "products": products_list
-        }
+
+            "products": products_list,
+
+            "pagination": {
+
+                "page": page,
+
+                "limit": limit,
+
+                "total": total,
+
+                "pages": total_pages,
+
+                "has_next": (
+                    page < total_pages
+                ),
+
+                "has_previous": (
+                    page > 1
+                ),
+            }
+        }, 200
+
     except Exception as e:
+
         db.session.rollback()
-        response = {
+
+        return {
             "status": "error",
             "error_description": str(e)
-        }
-    return response
-
+        }, 500
+        
 
 def TopProducts():
     try:
@@ -1348,52 +1561,77 @@ def TopProducts():
         }, 500
         
         
+
 def GetProduitsByCategorie():
     try:
-        categorie = request.json.get("categorie")
+        data = request.get_json(silent=True) or {}
 
-        if not categorie or not categorie.strip():
+        categorie = data.get("categorie")
+        page = data.get("page", 1)
+        limit = data.get("limit", 20)
+
+        # Conversion sécurisée
+        try:
+            page = int(page)
+        except (TypeError, ValueError):
+            page = 1
+
+        try:
+            limit = int(limit)
+        except (TypeError, ValueError):
+            limit = 20
+
+        page = max(page, 1)
+        limit = min(max(limit, 1), 50)
+
+        if not categorie:
             return {
                 "status": "error",
-                "message": "La catégorie est obligatoire",
-                "produits": []
+                "message": "La catégorie est requise"
             }, 400
 
-        produits = Produit.query.filter_by(
-            categorie=categorie.strip()
-        ).order_by( func.rand() ).all()
+        query = (
+            Produit.query
+            .filter(Produit.categorie == categorie)
+            .order_by(Produit.creation_date.desc())
+        )
 
-        produits_data = []
+        pagination = query.paginate(
+            page=page,
+            per_page=limit,
+            error_out=False
+        )
 
-        for produit in produits:
-            produits_data.append({
+        produits = []
+
+        for produit in pagination.items:
+            produits.append({
                 "uid": produit.uid,
                 "nom": produit.nom,
-                "status": produit.status,
-                "categorie": produit.categorie,
                 "description": produit.description,
-                "lien_1": produit.lien_1,
-                "prix_fournisseur": produit.prix_fournisseur,
                 "prix_vente": produit.prix_vente,
-                "images": produit.images,
                 "stock_disponible": produit.stock_disponible,
+                "images": produit.images,
                 "moq": produit.moq,
-                "fournisseur": produit.fournisseur,
+                "status": produit.status,
                 "creation_date": str(produit.creation_date),
-                "update_date": str(produit.update_date)
             })
 
         return {
             "status": "success",
-            "nombre": len(produits_data),
-            "produits": produits_data
+            "produits": produits,
+            "pagination": {
+                "page": pagination.page,
+                "limit": pagination.per_page,
+                "total": pagination.total,
+                "pages": pagination.pages,
+                "has_next": pagination.has_next,
+                "has_previous": pagination.has_prev
+            }
         }, 200
 
     except Exception as e:
-        print(f"Erreur recherche par catégorie : {e}")
-
         return {
             "status": "error",
-            "message": str(e),
-            "produits": []
+            "message": str(e)
         }, 500
