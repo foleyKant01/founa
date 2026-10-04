@@ -5,22 +5,14 @@ from flask import request
 
 def CreateCommandeStatusLog(data):
     try:
-
         status_log = CommandeStatusLog(
             commande_id=data.get("commande_id"),
             status_commande=data.get("statut"),
             teller_id=data.get("teller_id")
         )
-
         db.session.add(status_log)
-
-        # Génère les valeurs automatiques
-        # (uid, created_date, updated_date, etc.)
         db.session.flush()
-
-        # Enregistre définitivement le log en base
         db.session.commit()
-
         return {
             "success": True,
             "message": "Historique du statut de la commande enregistré avec succès",
@@ -33,11 +25,8 @@ def CreateCommandeStatusLog(data):
                 "updated_date": str(status_log.updated_date)
             }
         }
-
     except Exception as e:
-
         db.session.rollback()
-
         return {
             "success": False,
             "message": "Erreur lors de l'enregistrement du statut de la commande",
@@ -45,26 +34,17 @@ def CreateCommandeStatusLog(data):
         }
         
         
-        
 def GetSingleCommandeStatusLog():
     try:
         data = request.json or {}
-
         commande_id = data.get("commande_id")
-
         if not commande_id:
             return {
                 "success": False,
                 "message": "commande_id est obligatoire",
                 "data": None
             }, 400
-
-        status_log = CommandeStatusLog.query.filter_by(
-            commande_id=commande_id
-        ).order_by(
-            CommandeStatusLog.created_date.desc()
-        ).first()
-
+        status_log = CommandeStatusLog.query.filter_by(commande_id=commande_id).order_by(CommandeStatusLog.created_date.desc()).first()
         if not status_log:
             return {
                 "success": False,
@@ -74,7 +54,6 @@ def GetSingleCommandeStatusLog():
                 ),
                 "data": None
             }, 404
-
         return {
             "success": True,
             "message": "Statut de la commande récupéré avec succès",
@@ -87,7 +66,6 @@ def GetSingleCommandeStatusLog():
                 "updated_date": str(status_log.updated_date)
             }
         }, 200
-
     except Exception as e:
         return {
             "success": False,
@@ -95,39 +73,5 @@ def GetSingleCommandeStatusLog():
                 "Erreur lors de la récupération "
                 "du statut de la commande"
             ),
-            "error": str(e)
-        }, 500
-    try:
-        data = request.json
-        commande_id = data.get('commande_id')
-        status_log = CommandeStatusLog.query.filter_by(
-            commande_id=commande_id
-        ).order_by(
-            CommandeStatusLog.created_date.desc()
-        ).first()
-
-        if not status_log:
-            return {
-                "success": False,
-                "message": "Aucun historique de statut trouvé pour cette commande",
-                "data": None
-            }, 404
-        return {
-            "success": True,
-            "message": "Statut de la commande récupéré avec succès",
-            "data": {
-                "uid": status_log.uid,
-                "commande_id": status_log.commande_id,
-                "status_commande": status_log.status_commande,
-                "teller_id": status_log.teller_id,
-                "created_date": str(status_log.created_date),
-                "updated_date": str(status_log.updated_date)
-            }
-        }, 200
-
-    except Exception as e:
-        return {
-            "success": False,
-            "message": "Erreur lors de la récupération du statut de la commande",
             "error": str(e)
         }, 500

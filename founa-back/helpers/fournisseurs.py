@@ -5,7 +5,6 @@ from flask import request
 
 def CreateFournisseur():
     data = request.json
-
     fournisseur = Fournisseur(
         nom=data.get('nom'),
         email=data.get('email'),
@@ -13,10 +12,8 @@ def CreateFournisseur():
         boutique=data.get('boutique'),
         teller_id=data.get('teller_id')
     )
-
     db.session.add(fournisseur)
     db.session.commit()
-
     return {
         "status": "success",
         "message": "Fournisseur créé",
@@ -24,10 +21,7 @@ def CreateFournisseur():
     }, 201
 
 
-
-
 def GetAllFournisseurs():
-    
     fournisseurs = Fournisseur.query.all()
     result = [
         {
@@ -42,29 +36,22 @@ def GetAllFournisseurs():
     return result
 
 
-
 def UpdateFournisseur():
-    
     fournisseur_id = (request.json.get('uid'))
     update_commande = Fournisseur.query.filter_by(uid=fournisseur_id).first()
     data = request.json
-
     update_commande.nom = data.get('nom', update_commande.nom)
     update_commande.contact = data.get('contact', update_commande.contact)
     update_commande.mode = data.get('mode', update_commande.mode)
     update_commande.update_date = datetime.datetime.utcnow()
-
     db.session.commit()
     return {"message": "Fournisseur mis à jour"}
-
 
 
 def DeleteFournisseur():
     fournisseur_id = (request.json.get('uid'))
     delete_fournisseur = Fournisseur.query.filter_by(uid=fournisseur_id).first()
-
     db.session.delete(delete_fournisseur)
     db.session.commit()
-
     return {"message": "Fournisseur supprimé"}
 

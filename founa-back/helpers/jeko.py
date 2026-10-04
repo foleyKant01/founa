@@ -7,7 +7,6 @@ from helpers.commandestatuslog import CreateCommandeStatusLog
 import hmac
 import hashlib
 import json
-import os
 import datetime
 
 
@@ -76,29 +75,23 @@ def GetAllJekoStores():
         
 def GetJekoStoreIdByName(store_name):
     result, status_code = GetAllJekoStores()
-
     if status_code != 200:
         return None, result
-
     stores = result.get("stores", [])
-
     if not isinstance(stores, list):
         return None, {
             "status": "error",
             "message": "La liste des stores Jeko est invalide."
         }
-
     for store in stores:
         if store.get("name") == store_name:
             return store.get("id"), None
-
     return None, {
         "status": "error",
         "message": f"Store Jeko '{store_name}' introuvable."
     }
         
             
-        
 def GetJekoStoreBalance():
     storeId = request.form.get('storeId')
     url = f"https://api.jeko.africa/partner_api/stores/{storeId}/balance"
@@ -141,8 +134,6 @@ def PaymentRequest():
         data = request.json or {}
         commande_id = (data.get("commande_id") or "").strip()
         payment_method = (data.get("paymentMethod") or "").strip().lower()
-
-        # VALIDATION DES DONNÉES
         if not commande_id:
             return {
                 "status": "error",
@@ -165,8 +156,6 @@ def PaymentRequest():
                 "status": "error",
                 "message": "Moyen de paiement invalide"
             }, 400
-
-        # RECHERCHE DE LA COMMANDE
         single_commande = Commande.query.filter_by(
             commande_id=commande_id
         ).first()
@@ -175,27 +164,19 @@ def PaymentRequest():
                 "status": "error",
                 "message": "Commande introuvable"
             }, 404
-            
-        # Une commande déjà payée ne doit pas créer
-        # un nouveau paiement.
         if single_commande.statut == "Payer":
             return {
                 "status": "error",
                 "message": "Cette commande est déjà payée."
             }, 409
-
-        # RECHERCHE DU CLIENT
         single_client = Client.query.filter_by(
             uid=single_commande.client_id
         ).first()
-
         if not single_client:
             return {
                 "status": "error",
                 "message": "Client de la commande introuvable"
             }, 404
-
-        # COÛT D'EXPÉDITION
         if single_commande.option_envoie == "maritime":
             cout_envoie = (
                 single_commande.cout_envoie_maritime or 0
@@ -209,16 +190,7 @@ def PaymentRequest():
                 "status": "error",
                 "message": "Option d'envoi invalide ou non définie"
             }, 400
-
-        # CALCUL DU MONTANT RÉEL
         prix_articles = float(single_commande.prix_total or 0)
-
-        # CODE PROMO
-        # code_promo_disponible = (
-        #     bool(single_client.code_promo)
-        #     and single_client.status_code_promo == "non-utiliser"
-        # )
-
         if single_client.status_code_promo == "non-utiliser":
             reduction = prix_articles * 0.10
         else:

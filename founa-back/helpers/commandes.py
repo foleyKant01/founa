@@ -7,15 +7,9 @@ import random
 from services.fcm_service import send_push_notification
 
 
-
 def GetTellerForNewCommande():
     try:
-        login_activities = (
-            ActivityLog.query
-            .filter(ActivityLog.actions == "connexion")
-            .order_by(ActivityLog.created_date.desc())
-            .all()
-        )
+        login_activities = (ActivityLog.query.filter(ActivityLog.actions == "connexion").order_by(ActivityLog.created_date.desc()).all())
         if not login_activities:
             return None
         teller_uids = []
@@ -24,11 +18,7 @@ def GetTellerForNewCommande():
                 teller_uids.append(activity.user)
         if not teller_uids:
             return None
-        tellers = (
-            Teller.query
-            .filter(Teller.uid.in_(teller_uids))
-            .all()
-        )
+        tellers = (Teller.query.filter(Teller.uid.in_(teller_uids)).all())
         if not tellers:
             return None
         teller_data = []
@@ -36,15 +26,7 @@ def GetTellerForNewCommande():
             nombre_commandes = Commande.query.filter_by(
                 teller_id=teller.uid
             ).count()
-            derniere_connexion = (
-                ActivityLog.query
-                .filter(
-                    ActivityLog.user == teller.uid,
-                    ActivityLog.actions == "connexion"
-                )
-                .order_by(ActivityLog.created_date.desc())
-                .first()
-            )
+            derniere_connexion = (ActivityLog.query.filter(ActivityLog.user == teller.uid,ActivityLog.actions == "connexion").order_by(ActivityLog.created_date.desc()).first())
             if derniere_connexion:
                 teller_data.append({
                     "teller": teller,
@@ -68,7 +50,6 @@ def GetTellerForNewCommande():
     
 def AttribuerUneCommande():
     try:
-
         data = request.json
         commande_id = data.get('commande_id')
         if not commande_id:
@@ -133,28 +114,24 @@ def AttribuerCommandes():
                 "nombre_attribuees": 0,
                 "commandes": []
             }, 200
-
         commandes_attribuees = []
         for commande in commandes_sans_teller:
             teller_uid = GetTellerForNewCommande()
             if not teller_uid:
                 break
             commande.teller_id = teller_uid
-
             status_log = CommandeStatusLog(
                 commande_id=commande.commande_id,
                 status_commande=commande.statut,
                 teller_id=teller_uid
             )
             db.session.add(status_log)
-
             commandes_attribuees.append({
                 "commande_id": commande.commande_id,
                 "teller_id": teller_uid,
                 "statut": commande.statut
             })
         db.session.commit()
-
         return {
             "status": "success",
             "message": "Commandes attribuées avec succès",
@@ -169,10 +146,9 @@ def AttribuerCommandes():
         }, 500
 
 
-
 def generate_order_id():
-    date_part = datetime.datetime.now().strftime("%Y%m%d")  # ex: 20260104
-    random_part = random.randint(100, 999)       # 3chiffres
+    date_part = datetime.datetime.now().strftime("%Y%m%d")
+    random_part = random.randint(100, 999)
     return f"COM{date_part}{random_part}"
 
 
@@ -185,14 +161,12 @@ def CreateCommande():
         details = data.get('details')
         if not client_id or not produit_id or not quantite:
             return {"status": "error", "message": "client_id, produit_id et quantite sont requis"}, 400
-        # Vérifier que client ➕ produit existent
         client = Client.query.filter_by(uid=client_id).first()
         produit = Produit.query.filter_by(uid=produit_id).first()
         if not client:
             return {"status": "error", "message": "Client introuvable"}, 404
         if not produit:
             return {"status": "error", "message": "Produit introuvable"}, 404
-        # Calcul du prix total
         prix_total = float(produit.prix_vente) * int(quantite)
         teller_id = GetTellerForNewCommande()
         commande = Commande(
@@ -236,7 +210,6 @@ def CreateCommande():
         }, 201
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
-    
 
 
 def GetAllCommandes():
@@ -290,7 +263,6 @@ def GetAllCommandes():
         }, 500
         
     
-    
 def GetAllCommandeByClient():
     try:
         data = request.json or {}
@@ -303,12 +275,7 @@ def GetAllCommandeByClient():
                 "message": "client_id manquant",
                 "commandes": []
             }, 400
-        all_commande = (
-            Commande.query
-            .filter_by(client_id=client_id)
-            .order_by(Commande.created_date.desc())
-            .all()
-        )
+        all_commande = (Commande.query.filter_by(client_id=client_id).order_by(Commande.created_date.desc()).all())
         result = []
         for c in all_commande:
             single_product = (
@@ -316,8 +283,6 @@ def GetAllCommandeByClient():
                 .filter_by(uid=c.produit_id)
                 .first()
             )
-            # Si le produit n'existe plus,
-            # on ne bloque pas toutes les commandes.
             if not single_product:
                 result.append({
                     "commande_id": c.commande_id,
@@ -429,7 +394,6 @@ def GetAllCommandeByTeller():
         }, 500
 
 
-
 def GetSingleCommande():
     try:
         data = request.json or {}
@@ -439,31 +403,24 @@ def GetSingleCommande():
                 "status": "error",
                 "message": "commande_id est obligatoire"
             }, 400
-        single_commande = Commande.query.filter_by(
-            commande_id=commande_id
-        ).first()
+        single_commande = Commande.query.filter_by(commande_id=commande_id).first()
         if not single_commande:
             return {
                 "status": "error",
                 "message": "Commande introuvable"
             }, 404
-        single_product = Produit.query.filter_by(
-            uid=single_commande.produit_id
-        ).first()
+        single_product = Produit.query.filter_by(uid=single_commande.produit_id).first()
         if not single_product:
             return {
                 "status": "error",
                 "message": "Produit de la commande introuvable"
             }, 404
-        single_client = Client.query.filter_by(
-            uid=single_commande.client_id
-        ).first()
+        single_client = Client.query.filter_by(uid=single_commande.client_id).first()
         if not single_client:
             return {
                 "status": "error",
                 "message": "Client de la commande introuvable"
             }, 404
-            
         single_commande.view = "0"
         db.session.commit()
         return {
@@ -507,17 +464,13 @@ def GetSingleCommandeForSuccessPage():
                 "status": "error",
                 "message": "commande_id est obligatoire"
             }, 400
-        single_commande = Commande.query.filter_by(
-            commande_id=commande_id
-        ).first()
+        single_commande = Commande.query.filter_by(commande_id=commande_id).first()
         if not single_commande:
             return {
                 "status": "error",
                 "message": "Commande introuvable"
             }, 404
-        single_product = Produit.query.filter_by(
-            uid=single_commande.produit_id
-        ).first()
+        single_product = Produit.query.filter_by(uid=single_commande.produit_id).first()
         if not single_product:
             return {
                 "status": "error",
@@ -557,63 +510,29 @@ def GetSingleCommandeForSuccessPage():
 def UpdateCommande():
     try:
         data = request.json or {}
-
         commande_id = data.get("commande_id")
         statut = data.get("statut")
         details = data.get("details")
 
-        cout_envoie_maritime = data.get(
-            "cout_envoie_maritime", 0
-        )
-
-        temps_envoie_maritime = data.get(
-            "temps_envoie_maritime", ""
-        )
-
-        cout_envoie_aerienne = data.get(
-            "cout_envoie_aérienne", 0
-        )
-
-        temps_envoie_aérienne = data.get(
-            "temps_envoie_aérienne", ""
-        )
-
-        update_commande = Commande.query.filter_by(
-            commande_id=commande_id
-        ).first()
-
+        cout_envoie_maritime = data.get("cout_envoie_maritime", 0)
+        temps_envoie_maritime = data.get("temps_envoie_maritime", "")
+        cout_envoie_aerienne = data.get("cout_envoie_aérienne", 0)
+        temps_envoie_aérienne = data.get("temps_envoie_aérienne", "")
+        update_commande = Commande.query.filter_by(commande_id=commande_id).first()
         if not update_commande:
             return {
                 "status": "error",
                 "message": "Commande introuvable"
             }, 404
-
-        # Mise à jour de la commande
         update_commande.statut = statut
         update_commande.details = details
-
-        update_commande.cout_envoie_maritime = float(
-            cout_envoie_maritime or 0
-        )
-
-        update_commande.cout_envoie_aérienne = float(
-            cout_envoie_aerienne or 0
-        )
-
-        update_commande.temps_envoie_maritime = str(
-            temps_envoie_maritime or ""
-        ).strip()
-
-        update_commande.temps_envoie_aérienne = str(
-            temps_envoie_aérienne or ""
-        ).strip()
-
+        update_commande.cout_envoie_maritime = float(cout_envoie_maritime or 0)
+        update_commande.cout_envoie_aérienne = float(cout_envoie_aerienne or 0)
+        update_commande.temps_envoie_maritime = str(temps_envoie_maritime or "").strip()
+        update_commande.temps_envoie_aérienne = str(temps_envoie_aérienne or "").strip()
         update_commande.view = "1"
         update_commande.updated_date = datetime.datetime.now()
-
         db.session.commit()
-
-        # Notification
         send_push_notification(
             user_uid=update_commande.client_id,
             user_type="user",
@@ -629,22 +548,16 @@ def UpdateCommande():
                 "url": "https://founa.ci/orders"
             }
         )
-
-        # Création du log de statut
         log_response = CreateCommandeStatusLog({
             "commande_id": update_commande.commande_id,
             "statut": update_commande.statut,
             "teller_id": update_commande.teller_id
         })
-
-        # Récupération de la réponse du log
         if isinstance(log_response, tuple):
             log_data, log_status = log_response
         else:
             log_data = log_response
             log_status = 200
-
-        # Si la création du log échoue
         if log_status >= 400:
             return {
                 "status": "error",
@@ -655,7 +568,6 @@ def UpdateCommande():
                 },
                 "commande_status_log": log_data
             }, 500
-
         return {
             "status": "success",
             "message": "Commande mise à jour",
@@ -671,15 +583,12 @@ def UpdateCommande():
             },
             "commande_status_log": log_data
         }, 200
-
     except Exception as e:
         db.session.rollback()
-
         return {
             "status": "error",
             "message": str(e)
         }, 500
-
     
     
 def OptionEnvoie():
@@ -707,28 +616,15 @@ def OptionEnvoie():
             "message": str(e)
         }, 500
     
-
     
 def DeleteExpiredCommandes():
     import datetime
     try:
-        limite_date = (
-            datetime.datetime.utcnow()
-            - datetime.timedelta(days=7)
-        )
-        commandes = Commande.query.filter(
-            Commande.statut == "Valider",
-            Commande.created_date <= limite_date
-        ).all()
+        limite_date = (datetime.datetime.utcnow()- datetime.timedelta(days=7))
+        commandes = Commande.query.filter(Commande.statut == "Valider",Commande.created_date <= limite_date).all()
         nombre_supprime = len(commandes)
         for commande in commandes:
-            # Supprimer les logs de statut liés à la commande
-            CommandeStatusLog.query.filter_by(
-                commande_id=commande.commande_id
-            ).delete(
-                synchronize_session=False
-            )
-            # Supprimer ensuite la commande
+            CommandeStatusLog.query.filter_by(commande_id=commande.commande_id).delete(synchronize_session=False)
             db.session.delete(commande)
         db.session.commit()
         return {
@@ -748,4 +644,3 @@ def DeleteExpiredCommandes():
             ),
             "error": str(e)
         }
-        

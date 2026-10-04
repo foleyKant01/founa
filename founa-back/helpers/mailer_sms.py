@@ -2,13 +2,11 @@ from config.constant import *
 import requests
 
 
-
 def send_sms_by_sendexa(phone, message):
     import requests
     response = {}
     token = SENDEXA_BASE64_TOKEN
     phone_number = "+225" + phone
-
     response = requests.post(SENDEXA_API_URL,
         headers={
             "Content-Type": "application/json",
@@ -21,7 +19,6 @@ def send_sms_by_sendexa(phone, message):
         }
     )
     return response.json()
-
 
 
 def send_whatsapp_by_sendexa(phone, message):
