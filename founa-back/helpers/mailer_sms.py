@@ -38,7 +38,6 @@ def send_whatsapp_by_sendexa(phone, message):
                     "body": message
                 }
             },
-            timeout=15
         )
         return response.json()
     except requests.RequestException as e:
@@ -47,3 +46,28 @@ def send_whatsapp_by_sendexa(phone, message):
             "message": "Erreur lors de l'envoi WhatsApp",
             "error": str(e)
         }
+        
+        
+# def send_whatsapp_by_sendexa(phone, message):
+#     try:
+#         token = SENDEXA_BASE64_TOKEN_WHAT
+#         phone_number = "+225" + phone.lstrip("+")
+#         response = requests.post(
+#             "https://api.sendexa.co/v1/whatsapp/send",
+#             headers={
+#                 "Content-Type": "application/json",
+#                 "Authorization": "Basic {token}",
+#             },
+#             json={
+#                 "to": phone_number,
+#                 "type": "text",
+#                 "text": {"body": message},
+#             },
+#         )
+#         return response.json()
+#     except requests.RequestException as e:
+#         return {
+#             "success": False,
+#             "message": "Erreur lors de l'envoi WhatsApp",
+#             "error": str(e)
+#         }
