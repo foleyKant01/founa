@@ -67,7 +67,6 @@ const OrderDetailsPage: React.FC = () => {
     const user = JSON.parse(storedUser);
 
     return (
-      user?.user_infos?.uid ||
       user?.uid ||
       null
     );
