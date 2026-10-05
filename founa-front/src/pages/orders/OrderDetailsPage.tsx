@@ -55,16 +55,31 @@ const OrderDetailsPage: React.FC = () => {
 
   const [paymentLoading, setPaymentLoading] =
     useState(false);
-  const storedUser = localStorage.getItem("user");
 
-  let user_id = null;
+  const getCurrentUserId = (): string | null => {
+  try {
+    const storedUser = localStorage.getItem("user");
 
-  if (storedUser) {
+    if (!storedUser) {
+      return null;
+    }
+
     const user = JSON.parse(storedUser);
-    user_id = user.user_infos.uid;
+
+    return (
+      user?.user_infos?.uid ||
+      user?.uid ||
+      null
+    );
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération de l'utilisateur :",
+      error
+    );
+
+    return null;
   }
-  console.log("uid :",user_id);
-  
+};
 
   const [shippingLoading, setShippingLoading] = useState(false);
 
@@ -423,12 +438,22 @@ const OrderDetailsPage: React.FC = () => {
       console.error("Veuillez sélectionner un mode de paiement.");
       return;
     }
+
+    const user_id = getCurrentUserId();
+
+    if (!user_id) {
+      console.error(
+        "UID utilisateur introuvable."
+      );
+      return;
+    }
+
     try {
       setPaymentLoading(true);
       const response = await PaymentRequest({
         commande_id,
-        user_id,
         paymentMethod: modePaiement,
+        user_id,
       });
       console.log("Réponse paiement :", response.data);
 
