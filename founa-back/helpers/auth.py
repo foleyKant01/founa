@@ -3,7 +3,9 @@ from model.founa import *
 from flask import request
 from helpers.clients import *
 from helpers.send_mailer import *
-
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
+ph = PasswordHasher()
 
 USER_TABLES = [
     {"model": Admin, "role": "Admin"},
@@ -11,6 +13,7 @@ USER_TABLES = [
     {"model": Client, "role": "Client"},
     {"model": PartnerPub, "role": "PartnerPub"},
 ]
+
 
 def LoginClient():
     try:
@@ -34,15 +37,37 @@ def LoginClient():
             model = table["model"]
             role = table["role"]
             if email:
-                user = model.query.filter_by(
-                    email=email
-                ).first()
+                user = model.query.filter_by(email=email).first()
             else:
-                user = model.query.filter_by(
-                    phone=phone
-                ).first()
+                user = model.query.filter_by(phone=phone).first()
             if user:
-                if user.password != password:
+                stored_password = getattr(
+                    user,
+                    "password",
+                    None
+                )
+                if not stored_password:
+                    return {
+                        "status": "error",
+                        "message": "Email/téléphone ou mot de passe incorrect."
+                    }, 401
+                password_valid = False
+                if stored_password.startswith("$argon2"):
+                    try:
+                        password_valid = ph.verify(
+                            stored_password,
+                            str(password)
+                        )
+                    except VerifyMismatchError:
+                        password_valid = False
+                    except InvalidHashError:
+                        password_valid = False
+                else:
+                    if stored_password == str(password):
+                        password_valid = True
+                        user.password = ph.hash(str(password))
+                        db.session.commit()
+                if not password_valid:
                     return {
                         "status": "error",
                         "message": "Email/téléphone ou mot de passe incorrect."
@@ -59,7 +84,8 @@ def LoginClient():
             "uid": getattr(
                 found_user,
                 "uid",
-                getattr(found_user, "id", None)),
+                getattr(found_user, "id", None)
+            ),
             "fullname": getattr(
                 found_user,
                 "fullname",
@@ -123,13 +149,15 @@ def LoginClient():
         return {
             "status": "success",
             "message": f"Connexion réussie en tant que {user_role}.",
-            "user_infos": response_data,
+            "user_infos": response_data
         }, 200
     except Exception as e:
+        db.session.rollback()
         return {
             "status": "error",
-            "message": f"Erreur serveur: {str(e)}"
+            "message": "Erreur serveur."
         }, 500
+
 
 
 def CreateActivityLog(data):

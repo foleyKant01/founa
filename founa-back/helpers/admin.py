@@ -1,6 +1,10 @@
 from config.db import db
 from model.founa import *
 from flask import request
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+ph = PasswordHasher()
 
 
 def CreateAdmin():
@@ -13,11 +17,14 @@ def CreateAdmin():
         confirmpassword = (request.json.get('confirmpassword'))
         if not str(confirmpassword) == str(password):
             return "Mot de passe non conforme"
+        
+        hashed_password = ph.hash(str(password))
+
         new_client = Admin()
         new_client.fullname = fullname
         new_client.email = email
         new_client.phone = phone
-        new_client.password = password
+        new_client.password = hashed_password
         db.session.add(new_client)
         db.session.commit()
         rs = {}

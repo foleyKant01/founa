@@ -1,7 +1,11 @@
 from config.db import db
 from model.founa import *
 from flask import request
-from sqlalchemy import func, extract
+from sqlalchemy import func
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+ph = PasswordHasher()
 
 
 
@@ -17,12 +21,13 @@ def CreateOneTeller():
         confirmpassword = (request.json.get('confirmpassword'))
         if not str(confirmpassword) == str(password):
             return "Mot de passe non conforme"
-        
+        hashed_password = ph.hash(str(password))
+
         new_teller = Teller()
         new_teller.fullname = fullname
         new_teller.email = email
         new_teller.phone = phone
-        new_teller.password = password
+        new_teller.password = hashed_password
         
         db.session.add(new_teller)
         db.session.commit()

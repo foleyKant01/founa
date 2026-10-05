@@ -2,6 +2,10 @@ from config.db import db
 from model.founa import *
 from flask import request
 from sqlalchemy import func, extract
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+ph = PasswordHasher()
 
 
 def CreateOnePartnerPub():
@@ -102,13 +106,14 @@ def CreateOnePartnerPub():
         # =========================
         # CREATION
         # =========================
+        hashed_password = ph.hash(str(password))
 
         new_partner = PartnerPub(
             fullname=fullname,
             email=email,
             phone=phone,
             code_promo=code_promo,
-            password=password
+            password=hashed_password
         )
 
         db.session.add(new_partner)

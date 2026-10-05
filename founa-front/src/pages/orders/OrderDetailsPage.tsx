@@ -55,6 +55,16 @@ const OrderDetailsPage: React.FC = () => {
 
   const [paymentLoading, setPaymentLoading] =
     useState(false);
+  const storedUser = localStorage.getItem("user");
+
+  let user_id = null;
+
+  if (storedUser) {
+    const user = JSON.parse(storedUser);
+    user_id = user.user_infos.uid;
+  }
+  console.log("uid :",user_id);
+  
 
   const [shippingLoading, setShippingLoading] = useState(false);
 
@@ -417,6 +427,7 @@ const OrderDetailsPage: React.FC = () => {
       setPaymentLoading(true);
       const response = await PaymentRequest({
         commande_id,
+        user_id,
         paymentMethod: modePaiement,
       });
       console.log("Réponse paiement :", response.data);

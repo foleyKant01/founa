@@ -133,6 +133,7 @@ def PaymentRequest():
         create_new_payment = False
         data = request.json or {}
         commande_id = (data.get("commande_id") or "").strip()
+        user_id = (data.get("user_id") or "").strip()
         payment_method = (data.get("paymentMethod") or "").strip().lower()
         if not commande_id:
             return {
@@ -156,27 +157,29 @@ def PaymentRequest():
                 "status": "error",
                 "message": "Moyen de paiement invalide"
             }, 400
+            
+        single_client = Client.query.filter_by(
+            uid=user_id
+        ).first()
+        if not single_client:
+            return {
+                "status": "error",
+                "message": "Client introuvable"
+            }, 404
         single_commande = Commande.query.filter_by(
-            commande_id=commande_id
+            commande_id=commande_id,
+            client_id=user_id
         ).first()
         if not single_commande:
             return {
                 "status": "error",
-                "message": "Commande introuvable"
+                "message": "Commande introuvable ou cette commande n'appartient pas à ce client."
             }, 404
         if single_commande.statut == "Payer":
             return {
                 "status": "error",
                 "message": "Cette commande est déjà payée."
             }, 409
-        single_client = Client.query.filter_by(
-            uid=single_commande.client_id
-        ).first()
-        if not single_client:
-            return {
-                "status": "error",
-                "message": "Client de la commande introuvable"
-            }, 404
         if single_commande.option_envoie == "maritime":
             cout_envoie = (
                 single_commande.cout_envoie_maritime or 0
@@ -210,8 +213,6 @@ def PaymentRequest():
         amount_cents = int(
             round(total_reel * 100)
         )
-
-        # VÉRIFIER UN PAYMENT REQUEST EXISTANT
         if single_commande.paiement_infos:
             try:
                 paiement_infos = json.loads(
@@ -238,9 +239,6 @@ def PaymentRequest():
                 redirect_url = (
                     payment_data.get("redirectUrl")
                 )
-
-                # Vérifier que les informations sauvegardées
-                # correspondent bien à cette commande.
                 if payment_request_id:
                     check_result, check_status = (GetJekoPaymentRequest(payment_request_id))
                     if check_status == 200:
@@ -253,8 +251,6 @@ def PaymentRequest():
                         current_error_reason = (
                             current_payment.get("errorReason")
                         )
-
-                        # PAIEMENT ENCORE EN ATTENTE
                         if current_status == "pending":
                             if redirect_url:
                                 return {
@@ -273,8 +269,6 @@ def PaymentRequest():
                                         "redirectUrl": redirect_url
                                     }
                                 }, 200
-
-                        # PAIEMENT DÉJÀ RÉUSSI
                         if current_status == "success":
                             return {
                                 "status": "error",
@@ -284,8 +278,6 @@ def PaymentRequest():
                                 ),
                                 "payment": current_payment
                             }, 409
-
-                        # PAIEMENT ÉCHOUÉ / LIEN EXPIRÉ
                         if current_status == "error":
                             create_new_payment = True
                             print(
@@ -293,8 +285,6 @@ def PaymentRequest():
                                 f"expirée/échouée : "
                                 f"{current_error_reason}"
                             )
-
-                            # On continue plus bas pour créer une nouvelle Payment Request.
                     elif check_status == 404:
                         create_new_payment = True
                         print(
@@ -311,18 +301,12 @@ def PaymentRequest():
                             ),
                             "response": check_result
                         }, check_status
-                        
-        # reference = single_commande.commande_id
-        # Si une nouvelle tentative est nécessaire,
-        # on génère une référence Jeko unique.
         if create_new_payment:
             reference = GenerateJekoReference(
                 single_commande.commande_id
             )
         else:
             reference = single_commande.commande_id
-
-        # CRÉATION D'UNE NOUVELLE PAYMENT REQUEST
         payload = {
             "amountCents": amount_cents,
             "currency": "XOF",
@@ -348,16 +332,10 @@ def PaymentRequest():
             }
         }
         result, status_code = (CreateJekoPaymentRequest(payload))
-        print("status_code:", status_code)
-        print("result:", result)
-
-        # SI JEKO REFUSE LA CRÉATION
         if status_code < 200 or status_code >= 300:
             return result, status_code
         if result.get("status") != "success":
             return result, status_code
-
-        # VÉRIFIER LA RÉPONSE JEKO
         payment_data = (
             result.get("payment") or {}
         )
@@ -376,7 +354,6 @@ def PaymentRequest():
                 ),
                 "response": result
             }, 502
-
         if not redirect_url:
             return {
                 "status": "error",
@@ -386,11 +363,6 @@ def PaymentRequest():
                 ),
                 "response": result
             }, 502
-
-        # ==========================================================
-        # SAUVEGARDE
-        # ==========================================================
-
         single_commande.paiement_infos = json.dumps(
             {
                 "result": result,
@@ -398,13 +370,7 @@ def PaymentRequest():
             },
             ensure_ascii=False
         )
-
         db.session.commit()
-
-        # ==========================================================
-        # RETOUR
-        # ==========================================================
-
         return result, status_code
     except Exception as e:
         db.session.rollback()

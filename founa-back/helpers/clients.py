@@ -5,6 +5,10 @@ from config.constant import *
 from helpers.mailer_sms import *
 
 import secrets
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+ph = PasswordHasher()
 
 def generate_otp():
     return str(secrets.randbelow(900000) + 100000)
@@ -50,6 +54,7 @@ def CreateClient():
                     "status": "error",
                     "message": "Ce code promo n'existe pas."
                 }, 409
+        hashed_password = ph.hash(str(password))
         new_client = Client()
         new_client.fullname = fullname
         new_client.email = email
@@ -57,7 +62,7 @@ def CreateClient():
         new_client.code_promo = code_promo if code_promo else None
         new_client.status_code_promo = status_code_promo if status_code_promo else None
         new_client.adresse_livraison = adresse_livraison
-        new_client.password = password
+        new_client.password = hashed_password
         db.session.add(new_client)
         db.session.commit()
         user_infos = {
