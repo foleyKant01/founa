@@ -56,18 +56,18 @@ const OrderDetailsPage: React.FC = () => {
   const [paymentLoading, setPaymentLoading] =
     useState(false);
 
-  const getCurrentUserId = (): string | null => {
+  const getCurrentUserId = () => {
   try {
-    const storedUser = localStorage.getItem("user");
+    const uidUser = localStorage.getItem("user");
 
-    if (!storedUser) {
+    if (!uidUser) {
       return null;
     }
 
-    const user = JSON.parse(storedUser);
+    const user_id = JSON.parse(uidUser);
 
     return (
-      user?.uid ||
+      user_id?.uid ||
       null
     );
   } catch (error) {
