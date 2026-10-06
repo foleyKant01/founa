@@ -72,6 +72,22 @@ interface HeroSlide {
   badge: string;
 }
 
+const shuffleProducts = (products: Produit[]): Produit[] => {
+  const shuffled = [...products];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [shuffled[i], shuffled[j]] = [
+      shuffled[j],
+      shuffled[i],
+    ];
+  }
+
+  return shuffled;
+};
+
+
 const HERO_SLIDES: HeroSlide[] = [
   {
     eyebrow: "VOTRE UNIVERS FOUNA",
@@ -328,7 +344,9 @@ const HomePage: React.FC = () => {
 
       if (productsResponse?.data?.status === "success") {
         setAllProducts(
-          productsResponse.data.produits || []
+          shuffleProducts(
+            productsResponse.data.produits || []
+          )
         );
 
         setHasMoreProducts(
@@ -365,7 +383,6 @@ const HomePage: React.FC = () => {
       setLoadingProducts(false);
     }
   };
-
 
   /*
    * =========================
@@ -419,7 +436,9 @@ const HomePage: React.FC = () => {
 
         if (productsResponse.data.status === "success") {
           setAllProducts(
-            productsResponse.data.produits || []
+            shuffleProducts(
+              productsResponse.data.produits || []
+            )
           );
 
           setCurrentProductsPage(1);
@@ -481,7 +500,7 @@ const HomePage: React.FC = () => {
 
         setAllProducts((previousProducts) => [
           ...previousProducts,
-          ...newProducts,
+          ...shuffleProducts(newProducts),
         ]);
 
         setCurrentProductsPage(nextPage);
@@ -591,7 +610,7 @@ const handleLoadMoreSearchResults = async () => {
 
       setSearchResults((previousProducts) => [
         ...previousProducts,
-        ...newProducts,
+        ...shuffleProducts(newProducts),
       ]);
 
       setCurrentSearchPage(nextPage);
@@ -783,7 +802,7 @@ const handleLoadMoreCategoryProducts = async () => {
 
       setCategoryProducts((previousProducts) => [
         ...previousProducts,
-        ...newProducts,
+        ...shuffleProducts(newProducts),
       ]);
 
       setCurrentCategoryPage(nextPage);
