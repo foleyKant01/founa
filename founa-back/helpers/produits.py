@@ -756,7 +756,7 @@ def GetAllProduits():
 
         pagination = (
             Produit.query
-            .order_by(Produit.creation_date.desc())
+            .order_by(Produit.random_order)
             .paginate(
                 page=page,
                 per_page=limit,

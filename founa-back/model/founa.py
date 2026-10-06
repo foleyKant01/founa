@@ -1,3 +1,4 @@
+import random
 from config.db import *
 import uuid
 import datetime
@@ -33,6 +34,7 @@ class Produit(db.Model):
     images = db.Column(db.JSON,nullable=False)
     stock_disponible = db.Column(db.Integer,default=0)
     moq = db.Column(db.Integer,default=0)
+    random_order = db.Column(db.Float, nullable=False, default=lambda: random.random())
     creation_date = db.Column(db.DateTime,nullable=False,default=datetime.datetime.utcnow)
     update_date = db.Column(db.DateTime,nullable=False,default=datetime.datetime.utcnow)
     
