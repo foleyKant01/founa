@@ -1772,6 +1772,8 @@ def SearchProduct():
             "error_description": str(e)
 
         }, 500
+        
+        
 
 def TopProducts():
     try:

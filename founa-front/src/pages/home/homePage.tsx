@@ -297,7 +297,7 @@ const HomePage: React.FC = () => {
   const [currentProductsPage, setCurrentProductsPage] = useState(1);
   const [hasMoreProducts, setHasMoreProducts] = useState(false);
 
-  const PRODUCTS_PER_PAGE = 20;
+  const PRODUCTS_PER_PAGE = 100;
 
 
   const [topProducts, setTopProducts] = useState<Produit[]>([]);
