@@ -749,11 +749,9 @@ def GetAllProduits():
     try:
 
         page = request.args.get("page", 1, type=int)
-        limit = request.args.get("limit", 20, type=int)
-
+        limit = request.args.get("limit", 100, type=int)
         page = max(page, 1)
-        limit = min(max(limit, 1), 50)
-
+        limit = min(max(limit, 1), 100)
         pagination = (
             Produit.query
             .order_by(Produit.random_order)
@@ -992,7 +990,6 @@ def UpdateProduit():
         }, 500
 
 
-
 def AllSimilarProducts():
     response = {}
     try:
@@ -1001,7 +998,6 @@ def AllSimilarProducts():
         product_name = (data.get("nom") or "").strip()
         product_description = (data.get("description") or "").strip()
         product_categorie = (data.get("categorie") or "").strip()
-
         if not uid:
             return {
                 "status": "error",
@@ -1056,7 +1052,9 @@ def AllSimilarProducts():
             if len(word) >= 4
             and word not in stop_words
         ]
-        description_words = list(dict.fromkeys(description_words))
+        description_words = list(
+            dict.fromkeys(description_words)
+        )
         candidate_filters = []
         for word in name_words:
             candidate_filters.append(
@@ -1066,6 +1064,11 @@ def AllSimilarProducts():
             candidate_filters.append(
                 Produit.description.ilike(f"%{word}%")
             )
+        if not candidate_filters:
+            return {
+                "status": "success",
+                "products": []
+            }
         query = Produit.query
         query = query.filter(
             Produit.uid != uid
@@ -1075,16 +1078,10 @@ def AllSimilarProducts():
                 product_categorie
             )
         )
-        if not candidate_filters:
-            return {
-                "status": "success",
-                "products": []
-            }
-        all_products = (
-            query
-            .filter(or_(*candidate_filters))
-            .all()
+        query = query.filter(
+            or_(*candidate_filters)
         )
+        all_products = query.all()
         products_info = []
         for product in all_products:
             score = 0
@@ -1108,23 +1105,40 @@ def AllSimilarProducts():
                     50
                 )
             matched_description_words = 0
+
             for word in description_words:
+
                 if word in description:
                     matched_description_words += 1
+
             if matched_description_words > 0:
+
                 score += min(
                     matched_description_words * 2,
                     20
                 )
+
             if len(name_words) > 0:
+
                 name_match_percentage = (
-                    matched_name_words / len(name_words)
+                    matched_name_words /
+                    len(name_words)
                 )
+
                 if name_match_percentage >= 0.75:
+
                     score += 20
+
                 elif name_match_percentage >= 0.50:
+
                     score += 10
+
+            # =========================
+            # AJOUT DU PRODUIT
+            # =========================
+
             if score > 0:
+
                 products_info.append({
                     "id": product.id,
                     "uid": product.uid,
@@ -1137,22 +1151,63 @@ def AllSimilarProducts():
                     "moq": product.moq,
                     "fournisseur": product.fournisseur,
                     "images": product.images,
+
                     "similarity_score": score,
+
                     "matched_name_words": matched_name_words,
-                    "matched_description_words": matched_description_words
+                    "matched_description_words": matched_description_words,
+
+                    # Utilisé uniquement pour le tri
+                    "random_order": product.random_order
                 })
+
+        # =========================
+        # TRI PAR SCORE
+        # =========================
+
         products_info.sort(
             key=lambda product: product["similarity_score"],
             reverse=True
         )
-        products_info = products_info[:10]
+
+        # =========================
+        # GARDER LES 100 MEILLEURS
+        # =========================
+
+        products_info = products_info[:100]
+
+        # =========================
+        # MÉLANGER LES 100 MEILLEURS
+        # AVEC random_order
+        # =========================
+
+        products_info.sort(
+            key=lambda product: product["random_order"]
+        )
+
+        # =========================
+        # NE PAS ENVOYER random_order
+        # AU FRONTEND
+        # =========================
+
+        for product in products_info:
+            product.pop("random_order", None)
+
+        # =========================
+        # RÉPONSE
+        # =========================
+
         response["status"] = "success"
         response["products"] = products_info
+
     except Exception as e:
+
         response["status"] = "error"
         response["error_description"] = str(e)
         response["products"] = []
+
     return response
+
 
 
 
@@ -1176,6 +1231,14 @@ def SearchProduct():
         - categorie
         - description
 
+    Logique :
+        1. Recherche des produits correspondants
+        2. Calcul du score de pertinence
+        3. Tri par score décroissant
+        4. Conservation des 100 meilleurs résultats
+        5. Mélange stable avec random_order
+        6. Pagination
+
     Pagination :
         - page
         - limit
@@ -1198,35 +1261,57 @@ def SearchProduct():
 
         limit = data.get(
             "limit",
-            20
+            100
         )
 
         client_id = data.get(
             "client_id"
         )
 
+        # ==========================================
+        # CONVERSION PAGE
+        # ==========================================
+
         try:
+
             page = int(page)
+
         except (
             TypeError,
             ValueError
         ):
+
             page = 1
 
+        # ==========================================
+        # CONVERSION LIMIT
+        # ==========================================
+
         try:
+
             limit = int(limit)
+
         except (
             TypeError,
             ValueError
         ):
-            limit = 20
 
-        page = max(page, 1)
+            limit = 100
 
+        page = max(
+            page,
+            1
+        )
+
+        # Maximum 100 produits par page
         limit = min(
             max(limit, 1),
-            50
+            100
         )
+
+        # ==========================================
+        # VALIDATION RECHERCHE
+        # ==========================================
 
         if not text:
 
@@ -1237,7 +1322,12 @@ def SearchProduct():
                 )
             }, 400
 
+        # Limiter la recherche
         text = text[:128]
+
+        # ==========================================
+        # NORMALISATION DU TEXTE
+        # ==========================================
 
         text_search = remove_accents(
             text.lower()
@@ -1260,6 +1350,10 @@ def SearchProduct():
                 )
             }, 400
 
+        # ==========================================
+        # CONSTRUCTION DES FILTRES
+        # ==========================================
+
         filters = []
 
         for word in words:
@@ -1267,65 +1361,140 @@ def SearchProduct():
             pattern = f"%{word}%"
 
             filters.append(
-                Produit.nom.ilike(pattern)
+                Produit.nom.ilike(
+                    pattern
+                )
             )
 
             filters.append(
-                Produit.categorie.ilike(pattern)
+                Produit.categorie.ilike(
+                    pattern
+                )
             )
 
             filters.append(
-                Produit.description.ilike(pattern)
+                Produit.description.ilike(
+                    pattern
+                )
             )
 
-        query = Produit.query.filter(
-            or_(*filters)
+        # ==========================================
+        # REQUÊTE
+        # ==========================================
+        #
+        # IMPORTANT :
+        #
+        # On NE fait PAS encore :
+        #
+        # .order_by(Produit.random_order)
+        #
+        # car nous devons d'abord calculer
+        # le score de pertinence.
+        #
+        # ==========================================
+
+        query = (
+            Produit.query
+            .filter(
+                or_(*filters)
+            )
         )
+
+        # ==========================================
+        # RÉCUPÉRATION DES PRODUITS
+        # ==========================================
 
         all_results = query.all()
 
         products_scored = []
 
+        # ==========================================
+        # CALCUL DU SCORE
+        # ==========================================
+
         for product in all_results:
 
             score = 0
 
+            # --------------------------------------
+            # NOM
+            # --------------------------------------
+
             nom = remove_accents(
-                (product.nom or "").lower()
+                (
+                    product.nom or ""
+                ).lower()
             )
+
+            # --------------------------------------
+            # CATÉGORIE
+            # --------------------------------------
 
             categorie = remove_accents(
-                (product.categorie or "").lower()
+                (
+                    product.categorie or ""
+                ).lower()
             )
 
+            # --------------------------------------
+            # DESCRIPTION
+            # --------------------------------------
+
             description = remove_accents(
-                (product.description or "").lower()
+                (
+                    product.description or ""
+                ).lower()
             )
+
+            # --------------------------------------
+            # SCORE PAR MOT
+            # --------------------------------------
 
             for word in words:
 
+                # Mot présent dans le nom
                 if word in nom:
+
                     score += 50
 
+                # Mot présent dans la catégorie
                 if word in categorie:
+
                     score += 30
 
+                # Mot présent dans la description
                 if word in description:
+
                     score += 20
+
+            # --------------------------------------
+            # AJOUT DU PRODUIT
+            # --------------------------------------
 
             if score > 0:
 
                 products_scored.append({
+
                     "product": product,
+
                     "score": score
+
                 })
+
+        # ==========================================
+        # TRI PAR PERTINENCE
+        # ==========================================
 
         products_scored.sort(
             key=lambda item: item["score"],
             reverse=True
         )
 
-        total = len(
+        # ==========================================
+        # NOMBRE TOTAL DE PRODUITS PERTINENTS
+        # ==========================================
+
+        total_matching = len(
             products_scored
         )
 
@@ -1333,7 +1502,7 @@ def SearchProduct():
         # AUCUN RÉSULTAT
         # ==========================================
 
-        if total == 0:
+        if total_matching == 0:
 
             recherche_existante = (
                 UnavaibleProduct.query
@@ -1383,6 +1552,55 @@ def SearchProduct():
             }, 200
 
         # ==========================================
+        # GARDER LES 100 PRODUITS LES PLUS PERTINENTS
+        # ==========================================
+        #
+        # Exemple :
+        #
+        # 2 000 produits correspondent à la recherche
+        #
+        # On les classe :
+        #
+        # score 150
+        # score 140
+        # score 130
+        # ...
+        #
+        # Puis on garde uniquement les 100 meilleurs.
+        #
+        # ==========================================
+
+        products_scored = products_scored[:100]
+
+        # ==========================================
+        # MÉLANGE STABLE AVEC random_order
+        # ==========================================
+        #
+        # random_order est enregistré dans la base.
+        #
+        # Cela permet d'obtenir un ordre différent
+        # du classement par score, tout en gardant
+        # un ordre stable.
+        #
+        # ==========================================
+
+        products_scored.sort(
+            key=lambda item: (
+                item["product"].random_order
+                if item["product"].random_order is not None
+                else 0
+            )
+        )
+
+        # ==========================================
+        # TOTAL APRÈS LIMITATION AUX 100 MEILLEURS
+        # ==========================================
+
+        total = len(
+            products_scored
+        )
+
+        # ==========================================
         # PAGINATION
         # ==========================================
 
@@ -1397,6 +1615,10 @@ def SearchProduct():
         results = products_scored[
             start:end
         ]
+
+        # ==========================================
+        # CONSTRUCTION DE LA RÉPONSE
+        # ==========================================
 
         products_list = []
 
@@ -1461,12 +1683,21 @@ def SearchProduct():
                 )
             })
 
+        # ==========================================
+        # CALCUL DES PAGES
+        # ==========================================
+
         total_pages = (
             (total + limit - 1)
             // limit
         )
 
+        # ==========================================
+        # RÉPONSE FINALE
+        # ==========================================
+
         return {
+
             "status": "success",
 
             "total": total,
@@ -1497,15 +1728,21 @@ def SearchProduct():
             }
         }, 200
 
+    # ==============================================
+    # ERREUR
+    # ==============================================
+
     except Exception as e:
 
         db.session.rollback()
 
         return {
+
             "status": "error",
+
             "error_description": str(e)
+
         }, 500
-        
 
 def TopProducts():
     try:
@@ -1568,7 +1805,7 @@ def GetProduitsByCategorie():
 
         categorie = data.get("categorie")
         page = data.get("page", 1)
-        limit = data.get("limit", 20)
+        limit = data.get("limit", 100)
 
         # Conversion sécurisée
         try:
@@ -1579,10 +1816,10 @@ def GetProduitsByCategorie():
         try:
             limit = int(limit)
         except (TypeError, ValueError):
-            limit = 20
+            limit = 100
 
         page = max(page, 1)
-        limit = min(max(limit, 1), 50)
+        limit = min(max(limit, 1), 100)
 
         if not categorie:
             return {
