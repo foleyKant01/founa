@@ -748,13 +748,25 @@ def GetAllProduits():
 
     try:
 
-        page = request.args.get("page", 1, type=int)
-        limit = request.args.get("limit", 100, type=int)
-        page = max(page, 1)
-        limit = min(max(limit, 1), 100)
+        page = request.args.get(
+            "page",
+            1,
+            type=int
+        )
+
+        # Toujours 100 produits par page
+        limit = 100
+
+        page = max(
+            page,
+            1
+        )
+
         pagination = (
             Produit.query
-            .order_by(Produit.random_order)
+            .order_by(
+                Produit.random_order
+            )
             .paginate(
                 page=page,
                 per_page=limit,
@@ -774,27 +786,46 @@ def GetAllProduits():
                 "stock_disponible": p.stock_disponible,
                 "moq": p.moq,
                 "status": p.status,
-                "creation_date": str(p.creation_date),
+                "creation_date": str(
+                    p.creation_date
+                ),
             })
 
         return {
+
             "status": "success",
+
             "produits": result,
+
             "pagination": {
+
                 "page": pagination.page,
-                "limit": pagination.per_page,
+
+                "limit": 100,
+
                 "total": pagination.total,
+
                 "pages": pagination.pages,
-                "has_next": pagination.has_next,
-                "has_previous": pagination.has_prev
+
+                "has_next": (
+                    pagination.has_next
+                ),
+
+                "has_previous": (
+                    pagination.has_prev
+                )
             }
+
         }, 200
 
     except Exception as e:
 
         return {
+
             "status": "error",
+
             "message": str(e)
+
         }, 500
 
     
