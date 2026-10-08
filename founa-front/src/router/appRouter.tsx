@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import LoginPage from "../pages/auth/loginPage";
 import RegisterPage from "../pages/auth/registerPage";
@@ -42,28 +43,55 @@ import CreatePartnerPub from "../pages/admin/createPartnerPub";
 import ReadAllPartnerPubPage from "../pages/admin/readAllPartnerPub";
 import ProtectedRoutePartnerPub from "../components/routes/ProtectedRoutePartnerPub";
 import HomePartnerPub from "../pages/partnerpub/homePartnerPub";
+import { trackPageView } from "../utils/analytics";
 
 
 const AppRoutes = () => {
   const location = useLocation();
 
+  // 📊 Suivi des changements de pages avec Google Tag Manager
+  useEffect(() => {
+    const path = location.pathname + location.search;
+
+    trackPageView(path);
+  }, [location]);
+
   // Pages où le BottomBar ne doit pas apparaître
-  const authPages = ["/auth/login", "/auth/register", "/auth/forgotpassword", "/auth/sendotp", "/auth/verifyotp"];
-  // toutes les routes teller
+  const authPages = [
+    "/auth/login",
+    "/auth/register",
+    "/auth/forgotpassword",
+    "/auth/sendotp",
+    "/auth/verifyotp",
+  ];
+
+  // Toutes les routes admin
   const isAdminRoute = location.pathname.startsWith("/admin");
+
+  // Toutes les routes teller
   const isTellerRoute = location.pathname.startsWith("/teller");
+
+  // Toutes les routes partnerpub
   const isPartnerPubRoute = location.pathname.startsWith("/partnerpub");
-  const showBottomBar = !authPages.includes(location.pathname) && !isTellerRoute && !isAdminRoute && !isPartnerPubRoute;
+
+  const showBottomBar =
+    !authPages.includes(location.pathname) &&
+    !isTellerRoute &&
+    !isAdminRoute &&
+    !isPartnerPubRoute;
 
   return (
     <>
-      {/* Container principal avec padding pour BottomBar */}
-      <div style={{ paddingBottom: showBottomBar ? 60 : 0, minHeight: "100vh" }}>
+      <div
+        style={{
+          paddingBottom: showBottomBar ? 60 : 0,
+          minHeight: "100vh",
+        }}
+      >
         <Routes>
-          {/* 🚀 Redirection automatique vers Login */}
-          {/* <Route path="/" element={<Navigate to="/auth/login" replace />} /> */}
-          <Route path="/" element={<HomePage />} />
 
+          {/* 🚀 ACCUEIL */}
+          <Route path="/" element={<HomePage />} />
 
           {/* 🔐 AUTH */}
           <Route path="/auth/login" element={<LoginPage />} />
@@ -84,43 +112,188 @@ const AppRoutes = () => {
           <Route path="/singleproduct/:uid" element={<ProductPage />} />
           <Route path="/order/:commande_id" element={<OrderDetailsPage />} />
 
+          {/* 🔒 SÉCURITÉ */}
           <Route path="/cookiepolicy" element={<CookiePolicyPage />} />
           <Route path="/privacypolicy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+
+          {/* 💳 PAIEMENT */}
           <Route path="/payment/success" element={<PaymentSuccessPage />} />
           <Route path="/payment/error" element={<PaymentErrorPage />} />
 
-           {/* 🔥 TELLER */}
-          <Route path="/teller/home" element={<ProtectedRouteTeller><HomeTeller /></ProtectedRouteTeller>} />
-          <Route path="/teller/readall" element={<ProtectedRouteTeller><ReadAllProducts /></ProtectedRouteTeller>} />
-          <Route path="/teller/readsingle/:uid" element={<ProtectedRouteTeller><ReadSingleProduct /></ProtectedRouteTeller>} />
-          <Route path="/teller/allorderteller" element={<ProtectedRouteTeller><OrderTellerPage /></ProtectedRouteTeller>} />
-          <Route path="/teller/stateteller" element={<ProtectedRouteTeller><StatistiquesTellerPage /></ProtectedRouteTeller>} />
+          {/* 🔥 TELLER */}
+          <Route
+            path="/teller/home"
+            element={
+              <ProtectedRouteTeller>
+                <HomeTeller />
+              </ProtectedRouteTeller>
+            }
+          />
+
+          <Route
+            path="/teller/readall"
+            element={
+              <ProtectedRouteTeller>
+                <ReadAllProducts />
+              </ProtectedRouteTeller>
+            }
+          />
+
+          <Route
+            path="/teller/readsingle/:uid"
+            element={
+              <ProtectedRouteTeller>
+                <ReadSingleProduct />
+              </ProtectedRouteTeller>
+            }
+          />
+
+          <Route
+            path="/teller/allorderteller"
+            element={
+              <ProtectedRouteTeller>
+                <OrderTellerPage />
+              </ProtectedRouteTeller>
+            }
+          />
+
+          <Route
+            path="/teller/stateteller"
+            element={
+              <ProtectedRouteTeller>
+                <StatistiquesTellerPage />
+              </ProtectedRouteTeller>
+            }
+          />
 
           {/* 🔥 PARTNERPUB */}
-          <Route path="/partnerpub/home" element={<ProtectedRoutePartnerPub><HomePartnerPub /></ProtectedRoutePartnerPub>} />
-          <Route path="/partnerpub/statepartnerpub" element={<ProtectedRoutePartnerPub><StatistiquesTellerPage /></ProtectedRoutePartnerPub>} />
+          <Route
+            path="/partnerpub/home"
+            element={
+              <ProtectedRoutePartnerPub>
+                <HomePartnerPub />
+              </ProtectedRoutePartnerPub>
+            }
+          />
+
+          <Route
+            path="/partnerpub/statepartnerpub"
+            element={
+              <ProtectedRoutePartnerPub>
+                <StatistiquesTellerPage />
+              </ProtectedRoutePartnerPub>
+            }
+          />
 
           {/* 🔥 ADMIN */}
-          <Route path="/admin/home" element={<ProtectedAdminRoute><HomeAdmin /></ProtectedAdminRoute>} />
-          <Route path="/admin/createproduct" element={<ProtectedAdminRoute><CreateProduct /></ProtectedAdminRoute>} />
-          <Route path="/admin/readall" element={<ProtectedAdminRoute><ReadAllProductsAdmin /></ProtectedAdminRoute>} />
-          <Route path="/admin/createteller" element={<ProtectedAdminRoute><CreateTeller /></ProtectedAdminRoute>} />
-          <Route path="/admin/readallteller"element={<ProtectedAdminRoute><ReadAllTellersPage /></ProtectedAdminRoute>}/>
-          <Route path="/admin/createpartnerpub" element={<ProtectedAdminRoute><CreatePartnerPub /></ProtectedAdminRoute>} />
-          <Route path="/admin/readallpartnerpub" element={<ProtectedAdminRoute><ReadAllPartnerPubPage /></ProtectedAdminRoute>} />
-          <Route path="/admin/getallunavaibleproduct"element={<ProtectedAdminRoute><ReadAllUnavaibleProductsPage /></ProtectedAdminRoute>}/>
-          <Route path="/admin/editproduct/:uid"element={<ProtectedAdminRoute><EditProduct /></ProtectedAdminRoute>}/>
-          <Route path="/admin/readsingleproduct/:uid" element={<ProtectedAdminRoute><ReadSingleProductAdmin /></ProtectedAdminRoute>} />
-          <Route path="/admin/allorders" element={<ProtectedAdminRoute><AllOrderPage /></ProtectedAdminRoute>} />
+          <Route
+            path="/admin/home"
+            element={
+              <ProtectedAdminRoute>
+                <HomeAdmin />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/createproduct"
+            element={
+              <ProtectedAdminRoute>
+                <CreateProduct />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/readall"
+            element={
+              <ProtectedAdminRoute>
+                <ReadAllProductsAdmin />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/createteller"
+            element={
+              <ProtectedAdminRoute>
+                <CreateTeller />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/readallteller"
+            element={
+              <ProtectedAdminRoute>
+                <ReadAllTellersPage />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/createpartnerpub"
+            element={
+              <ProtectedAdminRoute>
+                <CreatePartnerPub />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/readallpartnerpub"
+            element={
+              <ProtectedAdminRoute>
+                <ReadAllPartnerPubPage />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/getallunavaibleproduct"
+            element={
+              <ProtectedAdminRoute>
+                <ReadAllUnavaibleProductsPage />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/editproduct/:uid"
+            element={
+              <ProtectedAdminRoute>
+                <EditProduct />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/readsingleproduct/:uid"
+            element={
+              <ProtectedAdminRoute>
+                <ReadSingleProductAdmin />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/allorders"
+            element={
+              <ProtectedAdminRoute>
+                <AllOrderPage />
+              </ProtectedAdminRoute>
+            }
+          />
+
         </Routes>
       </div>
 
-      {/* BottomBar FIXE uniquement si on n'est pas sur une page d'auth */}
       {showBottomBar && <BottomBar />}
     </>
   );
 };
+
 
 // Comme useLocation() ne fonctionne que dans un Router, 
 // on enveloppe AppRoutes avec BrowserRouter dans un wrapper
