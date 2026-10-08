@@ -1022,223 +1022,203 @@ def UpdateProduit():
 
 
 def AllSimilarProducts():
-    response = {}
     try:
         data = request.json or {}
-        uid = data.get("uid")
-        product_name = (data.get("nom") or "").strip()
-        product_description = (data.get("description") or "").strip()
-        product_categorie = (data.get("categorie") or "").strip()
-        if not uid:
+
+        product_uid = (data.get("uid") or "").strip()
+
+        if not product_uid:
             return {
                 "status": "error",
-                "error_description": "L'identifiant du produit est obligatoire",
-                "products": []
+                "message": "uid du produit obligatoire"
             }, 400
-        if not product_categorie:
-            return {
-                "status": "success",
-                "products": []
-            }
-        if not product_name and not product_description:
-            return {
-                "status": "success",
-                "products": []
-            }
-        stop_words = {
-            "le", "la", "les",
-            "un", "une", "des",
-            "du", "de", "d",
-            "pour", "avec", "sans",
-            "et", "ou",
-            "à", "au", "aux",
-            "en", "sur", "dans",
-            "par",
-            "ce", "cet", "cette", "ces",
-            "son", "sa", "ses",
-            "leur", "leurs",
-            "très", "plus",
-            "idéal", "idéale", "idéalement",
-            "homme", "femme",
-            "hommes", "femmes"
-        }
-        name_words = re.findall(
-            r"[a-zA-ZÀ-ÿ]+",
-            product_name.lower()
-        )
-        name_words = [
-            word
-            for word in name_words
-            if len(word) >= 3
-            and word not in stop_words
-        ]
-        name_words = list(dict.fromkeys(name_words))
-        description_words = re.findall(
-            r"[a-zA-ZÀ-ÿ]+",
-            product_description.lower()
-        )
-        description_words = [
-            word
-            for word in description_words
-            if len(word) >= 4
-            and word not in stop_words
-        ]
-        description_words = list(
-            dict.fromkeys(description_words)
-        )
-        candidate_filters = []
-        for word in name_words:
-            candidate_filters.append(
-                Produit.nom.ilike(f"%{word}%")
-            )
-        for word in description_words[:15]:
-            candidate_filters.append(
-                Produit.description.ilike(f"%{word}%")
-            )
-        if not candidate_filters:
-            return {
-                "status": "success",
-                "products": []
-            }
-        query = Produit.query
-        query = query.filter(
-            Produit.uid != uid
-        )
-        query = query.filter(
-            Produit.categorie.ilike(
-                product_categorie
-            )
-        )
-        query = query.filter(
-            or_(*candidate_filters)
-        )
-        all_products = query.all()
-        products_info = []
-        for product in all_products:
-            score = 0
-            nom = (
-                (product.nom or "")
-                .strip()
-                .lower()
-            )
-            description = (
-                (product.description or "")
-                .strip()
-                .lower()
-            )
-            matched_name_words = 0
-            for word in name_words:
-                if word in nom:
-                    matched_name_words += 1
-            if matched_name_words > 0:
-                score += min(
-                    matched_name_words * 10,
-                    50
-                )
-            matched_description_words = 0
 
+        current_product = Produit.query.filter_by(
+            uid=product_uid
+        ).first()
+
+        if not current_product:
+            return {
+                "status": "error",
+                "message": "Produit introuvable"
+            }, 404
+
+        # ---------------------------------------------------------
+        # Fonction de normalisation
+        # ---------------------------------------------------------
+        def normalize_text_value(value):
+            value = value or ""
+            value = remove_accents(value.lower())
+
+            # On garde uniquement les mots suffisamment significatifs
+            words = normalize_text(value)
+
+            return [
+                word
+                for word in words
+                if len(word) > 2
+            ]
+
+        # ---------------------------------------------------------
+        # Mots du produit actuel
+        # ---------------------------------------------------------
+        name_words = normalize_text_value(
+            current_product.nom
+        )
+
+        description_words = normalize_text_value(
+            current_product.description
+        )
+
+        category_words = normalize_text_value(
+            current_product.categorie
+        )
+
+        # ---------------------------------------------------------
+        # Recherche des produits de la même catégorie
+        # ---------------------------------------------------------
+        products = (
+            Produit.query
+            .filter(
+                Produit.uid != current_product.uid
+            )
+            .all()
+        )
+
+        products_info = []
+
+        # ---------------------------------------------------------
+        # Calcul du score de similarité
+        #
+        # PRIORITÉ :
+        # 1. NOM
+        # 2. DESCRIPTION
+        # 3. CATÉGORIE
+        # ---------------------------------------------------------
+        for product in products:
+
+            product_name_words = normalize_text_value(
+                product.nom
+            )
+
+            product_description_words = normalize_text_value(
+                product.description
+            )
+
+            product_category_words = normalize_text_value(
+                product.categorie
+            )
+
+            score_name = 0
+            score_description = 0
+            score_category = 0
+
+            # -----------------------------------------------------
+            # 1. NOM → priorité maximale
+            # -----------------------------------------------------
+            for word in name_words:
+
+                if word in product_name_words:
+                    score_name += 60
+
+            # -----------------------------------------------------
+            # 2. DESCRIPTION
+            # -----------------------------------------------------
             for word in description_words:
 
-                if word in description:
-                    matched_description_words += 1
+                if word in product_description_words:
+                    score_description += 30
 
-            if matched_description_words > 0:
+            # -----------------------------------------------------
+            # 3. CATÉGORIE → priorité minimale
+            # -----------------------------------------------------
+            for word in category_words:
 
-                score += min(
-                    matched_description_words * 2,
-                    20
-                )
+                if word in product_category_words:
+                    score_category += 10
 
-            if len(name_words) > 0:
+            # -----------------------------------------------------
+            # Score total
+            # -----------------------------------------------------
+            similarity_score = (
+                score_name
+                + score_description
+                + score_category
+            )
 
-                name_match_percentage = (
-                    matched_name_words /
-                    len(name_words)
-                )
+            if similarity_score <= 0:
+                continue
 
-                if name_match_percentage >= 0.75:
+            products_info.append({
+                "uid": product.uid,
+                "nom": product.nom,
+                "categorie": product.categorie,
+                "description": product.description,
+                "lien_1": product.lien_1,
+                "prix_vente": product.prix_vente,
+                "images": product.images,
+                "stock_disponible": product.stock_disponible,
+                "moq": product.moq,
+                "status": product.status,
+                "fournisseur": product.fournisseur,
+                "creation_date": str(product.creation_date),
 
-                    score += 20
+                # Scores détaillés
+                "score_name": score_name,
+                "score_description": score_description,
+                "score_category": score_category,
+                "similarity_score": similarity_score,
 
-                elif name_match_percentage >= 0.50:
+                # Permet de mélanger de manière stable
+                "random_order": product.random_order
+            })
 
-                    score += 10
-
-            # =========================
-            # AJOUT DU PRODUIT
-            # =========================
-
-            if score > 0:
-
-                products_info.append({
-                    "id": product.id,
-                    "uid": product.uid,
-                    "nom": product.nom,
-                    "description": product.description,
-                    "categorie": product.categorie,
-                    "prix_fournisseur": product.prix_fournisseur,
-                    "prix_vente": product.prix_vente,
-                    "stock_disponible": product.stock_disponible,
-                    "moq": product.moq,
-                    "fournisseur": product.fournisseur,
-                    "images": product.images,
-
-                    "similarity_score": score,
-
-                    "matched_name_words": matched_name_words,
-                    "matched_description_words": matched_description_words,
-
-                    # Utilisé uniquement pour le tri
-                    "random_order": product.random_order
-                })
-
-        # =========================
-        # TRI PAR SCORE
-        # =========================
-
+        # ---------------------------------------------------------
+        # Trier d'abord par pertinence
+        # ---------------------------------------------------------
         products_info.sort(
             key=lambda product: product["similarity_score"],
             reverse=True
         )
 
-        # =========================
-        # GARDER LES 100 MEILLEURS
-        # =========================
-
+        # ---------------------------------------------------------
+        # Garder les 100 produits les plus pertinents
+        # ---------------------------------------------------------
         products_info = products_info[:100]
 
-        # =========================
-        # MÉLANGER LES 100 MEILLEURS
-        # AVEC random_order
-        # =========================
+        # ---------------------------------------------------------
+        # Mélanger les 100 meilleurs selon random_order
+        #
+        # La pertinence est déjà déterminée.
+        # random_order sert uniquement à varier leur présentation.
+        # ---------------------------------------------------------
+        # products_info.sort(
+        #     key=lambda product: product["random_order"]
+        # )
 
-        products_info.sort(
-            key=lambda product: product["random_order"]
-        )
-
-        # =========================
-        # NE PAS ENVOYER random_order
-        # AU FRONTEND
-        # =========================
-
+        # ---------------------------------------------------------
+        # Supprimer les champs internes
+        # ---------------------------------------------------------
         for product in products_info:
             product.pop("random_order", None)
+            product.pop("score_name", None)
+            product.pop("score_description", None)
+            product.pop("score_category", None)
 
-        # =========================
-        # RÉPONSE
-        # =========================
-
-        response["status"] = "success"
-        response["products"] = products_info
+        return {
+            "status": "success",
+            "produits": products_info,
+            "total": len(products_info)
+        }, 200
 
     except Exception as e:
 
-        response["status"] = "error"
-        response["error_description"] = str(e)
-        response["products"] = []
+        db.session.rollback()
 
-    return response
-
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
 
 
 
