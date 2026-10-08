@@ -48,7 +48,8 @@ import {
   Bike,
   Laptop,
   Refrigerator,
-  Lightbulb
+  Lightbulb,
+  ChevronRight
 } from "lucide-react";
 interface Produit {
   id: number;
@@ -74,16 +75,13 @@ interface HeroSlide {
 
 const shuffleProducts = (products: Produit[]): Produit[] => {
   const shuffled = [...products];
-
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-
     [shuffled[i], shuffled[j]] = [
       shuffled[j],
       shuffled[i],
     ];
   }
-
   return shuffled;
 };
 
@@ -530,14 +528,14 @@ const HomePage: React.FC = () => {
 
 
   useEffect(() => {
-  if (location.pathname !== "/home") {
-    return;
-  }
+    if (location.pathname !== "/home") {
+      return;
+    }
 
-  if (location.state?.refreshHome) {
-    refreshHomePage();
-  }
-}, [location.state?.refreshHome]);
+    if (location.state?.refreshHome) {
+      refreshHomePage();
+    }
+  }, [location.state?.refreshHome]);
 
   /*
    * =========================
@@ -546,88 +544,92 @@ const HomePage: React.FC = () => {
    */
 
   const handleSearch = async (text: string) => {
-  setSearchText(text);
+    setSearchText(text);
 
-  if (!text || text.trim().length < 2) {
-    setSearchResults([]);
-    setSearchLoading(false);
-    setCurrentSearchPage(1);
-    setHasMoreSearchResults(false);
-    return;
-  }
-
-  try {
-    setSearchLoading(true);
-
-    setCurrentSearchPage(1);
-    setHasMoreSearchResults(false);
-
-    const response = await SearchProduct({
-      textSearch: text,
-      page: 1,
-      limit: PRODUCTS_PER_PAGE,
-    });
-
-    if (response.data.status === "success") {
-      setSearchResults(response.data.products || []);
-
-      setHasMoreSearchResults(
-        Boolean(response.data.pagination?.has_next)
-      );
-    } else {
+    if (!text || text.trim().length < 2) {
       setSearchResults([]);
+      setSearchLoading(false);
+      setCurrentSearchPage(1);
+      setHasMoreSearchResults(false);
+      return;
     }
-  } catch (error) {
-    console.error("Erreur recherche produits :", error);
-    setSearchResults([]);
-  } finally {
-    setSearchLoading(false);
-  }
-};
 
-const handleLoadMoreSearchResults = async () => {
-  if (
-    loadingMoreSearchResults ||
-    !hasMoreSearchResults ||
-    !searchText.trim()
-  ) {
-    return;
-  }
+    try {
+      setSearchLoading(true);
 
-  try {
-    setLoadingMoreSearchResults(true);
+      setCurrentSearchPage(1);
+      setHasMoreSearchResults(false);
 
-    const nextPage = currentSearchPage + 1;
+      const response = await SearchProduct({
+        textSearch: text,
+        page: 1,
+        limit: PRODUCTS_PER_PAGE,
+      });
 
-    const response = await SearchProduct({
-      textSearch: searchText,
-      page: nextPage,
-      limit: PRODUCTS_PER_PAGE,
-    });
+      if (response.data.status === "success") {
+        setSearchResults(
+          shuffleProducts(
+            response.data.products || []
+          )
+        );
 
-    if (response.data.status === "success") {
-      const newProducts = response.data.products || [];
+        setHasMoreSearchResults(
+          Boolean(response.data.pagination?.has_next)
+        );
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error("Erreur recherche produits :", error);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
 
-      setSearchResults((previousProducts) => [
-        ...previousProducts,
-        ...shuffleProducts(newProducts),
-      ]);
+  const handleLoadMoreSearchResults = async () => {
+    if (
+      loadingMoreSearchResults ||
+      !hasMoreSearchResults ||
+      !searchText.trim()
+    ) {
+      return;
+    }
 
-      setCurrentSearchPage(nextPage);
+    try {
+      setLoadingMoreSearchResults(true);
 
-      setHasMoreSearchResults(
-        Boolean(response.data.pagination?.has_next)
+      const nextPage = currentSearchPage + 1;
+
+      const response = await SearchProduct({
+        textSearch: searchText,
+        page: nextPage,
+        limit: PRODUCTS_PER_PAGE,
+      });
+
+      if (response.data.status === "success") {
+        const newProducts = response.data.products || [];
+
+        setSearchResults((previousProducts) => [
+          ...previousProducts,
+          ...shuffleProducts(newProducts),
+        ]);
+
+        setCurrentSearchPage(nextPage);
+
+        setHasMoreSearchResults(
+          Boolean(response.data.pagination?.has_next)
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors du chargement des résultats supplémentaires :",
+        error
       );
+    } finally {
+      setLoadingMoreSearchResults(false);
     }
-  } catch (error) {
-    console.error(
-      "Erreur lors du chargement des résultats supplémentaires :",
-      error
-    );
-  } finally {
-    setLoadingMoreSearchResults(false);
-  }
-};
+  };
 
   /*
    * =========================
@@ -659,37 +661,20 @@ const handleLoadMoreSearchResults = async () => {
     } else {
       imageArray = images;
     }
-
     return imageArray.length > 0
       ? imageArray[0]
       : "/default-image.png";
   };
 
-  /*
-   * =========================
-   * FORMAT PRIX
-   * =========================
-   */
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR").format(price);
   };
 
-  /*
-   * =========================
-   * CARTE PRODUIT
-   * =========================
-   */
-
-  const ProductCard = ({
-    produit,
-    horizontal = false,
-  }: {
+  const ProductCard = ({ produit, horizontal = false, }: {
     produit: Produit;
     horizontal?: boolean;
   }) => {
     const image = getFirstImage(produit.images);
-
     return (
       <div
         className={
@@ -707,119 +692,106 @@ const handleLoadMoreSearchResults = async () => {
         }}
       >
         <div className="product-image-container">
-          <img
-            src={image}
-            alt={produit.nom}
-            className="product-image"
-            onError={(event) => {
-              event.currentTarget.src = "/default-image.png";
-            }}
-          />
-
+          <img src={image} alt={produit.nom} className="product-image" onError={(event) => { event.currentTarget.src = "/default-image.png"; }} />
           {produit.status === "Top" && (
             <span className="top-badge">TOP</span>
           )}
         </div>
-
         <div className="product-content">
           <h3 className="product-name">{produit.nom}</h3>
-
           <p className="product-price">
             {formatPrice(produit.prix_vente)} FCFA
           </p>
-
           <div className="product-moq">
             <Package size={14} strokeWidth={2} />
-
-            <span>
-              MOQ : {formatPrice(Number(produit.moq) || 0)}{" "}
-              {Number(produit.moq) === 1 ? "unité" : "unités"}
-            </span>
+            <span> MOQ : {formatPrice(Number(produit.moq) || 0)}{" "} {Number(produit.moq) === 1 ? "unité" : "unités"} </span>
           </div>
         </div>
       </div>
     );
   };
 
-const handleCategoryClick = async (categorie: string) => {
-  try {
-    setSelectedCategory(categorie);
-    setCategoryLoading(true);
-
-    setCategoryProducts([]);
-    setCurrentCategoryPage(1);
-    setHasMoreCategoryProducts(false);
-
-    const response = await GetProduitsByCategorie({
-      categorie,
-      page: 1,
-      limit: PRODUCTS_PER_PAGE,
-    });
-
-    if (response.data.status === "success") {
-      setCategoryProducts(response.data.produits || []);
-
-      setHasMoreCategoryProducts(
-        Boolean(response.data.pagination?.has_next)
-      );
-    } else {
+  const handleCategoryClick = async (categorie: string) => {
+    try {
+      setSelectedCategory(categorie);
+      setCategoryLoading(true);
       setCategoryProducts([]);
-    }
-  } catch (error) {
-    console.error(
-      "Erreur lors de la recherche des produits par catégorie :",
-      error
-    );
+      setCurrentCategoryPage(1);
+      setHasMoreCategoryProducts(false);
 
-    setCategoryProducts([]);
-  } finally {
-    setCategoryLoading(false);
-  }
-};
+      const response = await GetProduitsByCategorie({
+        categorie,
+        page: 1,
+        limit: PRODUCTS_PER_PAGE,
+      });
 
-const handleLoadMoreCategoryProducts = async () => {
-  if (
-    loadingMoreCategoryProducts ||
-    !hasMoreCategoryProducts ||
-    !selectedCategory
-  ) {
-    return;
-  }
-
-  try {
-    setLoadingMoreCategoryProducts(true);
-
-    const nextPage = currentCategoryPage + 1;
-
-    const response = await GetProduitsByCategorie({
-      categorie: selectedCategory,
-      page: nextPage,
-      limit: PRODUCTS_PER_PAGE,
-    });
-
-    if (response.data.status === "success") {
-      const newProducts = response.data.produits || [];
-
-      setCategoryProducts((previousProducts) => [
-        ...previousProducts,
-        ...shuffleProducts(newProducts),
-      ]);
-
-      setCurrentCategoryPage(nextPage);
-
-      setHasMoreCategoryProducts(
-        Boolean(response.data.pagination?.has_next)
+      if (response.data.status === "success") {
+        setCategoryProducts(
+          shuffleProducts(
+            response.data.produits || []
+          )
+        );
+        setHasMoreCategoryProducts(
+          Boolean(response.data.pagination?.has_next)
+        );
+      } else {
+        setCategoryProducts([]);
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la recherche des produits par catégorie :",
+        error
       );
+
+      setCategoryProducts([]);
+    } finally {
+      setCategoryLoading(false);
     }
-  } catch (error) {
-    console.error(
-      "Erreur lors du chargement des produits de la catégorie :",
-      error
-    );
-  } finally {
-    setLoadingMoreCategoryProducts(false);
-  }
-};
+  };
+
+  const handleLoadMoreCategoryProducts = async () => {
+    if (
+      loadingMoreCategoryProducts ||
+      !hasMoreCategoryProducts ||
+      !selectedCategory
+    ) {
+      return;
+    }
+
+    try {
+      setLoadingMoreCategoryProducts(true);
+
+      const nextPage = currentCategoryPage + 1;
+
+      const response = await GetProduitsByCategorie({
+        categorie: selectedCategory,
+        page: nextPage,
+        limit: PRODUCTS_PER_PAGE,
+      });
+
+      if (response.data.status === "success") {
+        const newProducts = response.data.produits || [];
+
+        setCategoryProducts((previousProducts) => [
+          ...previousProducts,
+          ...shuffleProducts(newProducts),
+        ]);
+
+        setCurrentCategoryPage(nextPage);
+
+        setHasMoreCategoryProducts(
+          Boolean(response.data.pagination?.has_next)
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors du chargement des produits de la catégorie :",
+        error
+      );
+    } finally {
+      setLoadingMoreCategoryProducts(false);
+    }
+  };
 
 
   return (
@@ -873,71 +845,13 @@ const handleLoadMoreCategoryProducts = async () => {
 
                   <div className="hero-content">
                     <div className="hero-text">
-                      {/* <div className="hero-eyebrow">
-                        <Sparkles size={15} />
-                        {slide.eyebrow}
-                      </div> */}
-
-                      {/* <h1>
-                        {slide.title}{" "}
-                        <span>{slide.highlight}</span>
-                      </h1> */}
-
-                      {/* <p>{slide.description}</p> */}
-
-                      {/* <button
-                        type="button"
-                        className="hero-button"
-                        onClick={handleHeroAction}
-                      >
-                        {slide.button}
-                        <ArrowRight size={18} />
-                      </button> */}
                     </div>
-
-                    {/* <div className="hero-side">
-                      <div className="hero-badge">
-                        <Globe2 size={18} />
-                        <span>{slide.badge}</span>
-                      </div>
-
-                      <div className="hero-floating-card">
-                        <ShoppingBag size={22} />
-
-                        <div>
-                          <strong>FOUNA</strong>
-                          <span>
-                            Votre passerelle vers les produits du monde.
-                          </span>
-                        </div>
-                      </div>
-                    </div> */}
                   </div>
                 </div>
               );
             })}
-
-            {/* Bouton précédent */}
-            <button
-              type="button"
-              className="hero-arrow hero-arrow-left"
-              onClick={previousSlide}
-              aria-label="Slide précédent"
-            >
-              <ChevronLeft size={22} />
-            </button>
-
-            {/* Bouton suivant */}
-            <button
-              type="button"
-              className="hero-arrow hero-arrow-right"
-              onClick={nextSlide}
-              aria-label="Slide suivant"
-            >
-              <ChevronDown size={22} />
-            </button>
-
-            {/* Indicateurs */}
+            <button type="button" className="hero-arrow hero-arrow-left" onClick={previousSlide} aria-label="Slide précédent"><ChevronLeft size={22} /></button>
+            <button type="button" className="hero-arrow hero-arrow-right" onClick={nextSlide} aria-label="Slide suivant"><ChevronRight size={22} /></button>
             <div className="hero-dots">
               {HERO_SLIDES.map((slide, index) => (
                 <button
@@ -983,9 +897,8 @@ const handleLoadMoreCategoryProducts = async () => {
                     return (
                       <button
                         type="button"
-                        className={`category-item ${
-                          selectedCategory === category.name ? "active" : ""
-                        }`}
+                        className={`category-item ${selectedCategory === category.name ? "active" : ""
+                          }`}
                         key={category.name}
                         onClick={() => handleCategoryClick(category.name)}
                       >
@@ -1001,20 +914,16 @@ const handleLoadMoreCategoryProducts = async () => {
                   }
                 )}
               </div>
-
-              {/* DEUXIÈME LIGNE */}
               <div className="categories-row">
                 {CATEGORIES.slice(
                   Math.ceil(CATEGORIES.length / 2)
                 ).map((category) => {
                   const Icon = category.icon;
-
                   return (
                     <button
                       type="button"
-                      className={`category-item ${
-                        selectedCategory === category.name ? "active" : ""
-                      }`}
+                      className={`category-item ${selectedCategory === category.name ? "active" : ""
+                        }`}
                       key={category.name}
                       onClick={() => handleCategoryClick(category.name)}
                     >
@@ -1043,10 +952,6 @@ const handleLoadMoreCategoryProducts = async () => {
           </div>
         ) : (
           <>
-            {/* =========================
-                RECHERCHE
-            ========================= */}
-
             {searchText.trim() ? (
               <section className="products-section">
                 <div className="section-header">
@@ -1054,14 +959,11 @@ const handleLoadMoreCategoryProducts = async () => {
                     <span className="section-kicker">
                       RECHERCHE
                     </span>
-
                     <h2>Résultats de recherche</h2>
-
                     <p>
                       Résultats pour « {searchText} »
                     </p>
                   </div>
-
                   {!searchLoading &&
                     searchResults.length > 0 && (
                       <span className="result-count">
@@ -1070,21 +972,17 @@ const handleLoadMoreCategoryProducts = async () => {
                       </span>
                     )}
                 </div>
-
                 {searchLoading ? (
                   <div className="empty-state">
                     <div className="loading-spinner" />
-
                     <p>Recherche en cours...</p>
                   </div>
                 ) : searchResults.length === 0 ? (
                   <div className="empty-state">
                     <PackageOpen size={52} />
-
                     <h3>
                       Aucun produit trouvé pour l'instant
                     </h3>
-
                     <p>
                       Le produit en rapport à votre recherche
                       sera disponible dans 48h.
@@ -1100,7 +998,6 @@ const handleLoadMoreCategoryProducts = async () => {
                         />
                       ))}
                     </div>
-
                     {hasMoreSearchResults && (
                       <div className="load-more-container">
                         <button
@@ -1128,10 +1025,6 @@ const handleLoadMoreCategoryProducts = async () => {
               </section>
             ) : (
               <>
-                {/* =========================
-                    TOP PRODUITS
-                ========================= */}
-
                 {!loadingTopProducts &&
                   topProducts.length > 0 && (
                     <section className="products-section top-section">
@@ -1177,10 +1070,6 @@ const handleLoadMoreCategoryProducts = async () => {
                       </div>
                     </section>
                   )}
-
-                {/* =========================
-                    PRODUITS POPULAIRES
-                ========================= */}
 
                 <section
                   className="products-section"
@@ -2773,5 +2662,4 @@ const handleLoadMoreCategoryProducts = async () => {
     </div>
   );
 };
-
-export default HomePage;
+  export default HomePage;
