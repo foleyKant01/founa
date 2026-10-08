@@ -1192,9 +1192,9 @@ def AllSimilarProducts():
         # La pertinence est déjà déterminée.
         # random_order sert uniquement à varier leur présentation.
         # ---------------------------------------------------------
-        # products_info.sort(
-        #     key=lambda product: product["random_order"]
-        # )
+        products_info.sort(
+            key=lambda product: product["random_order"]
+        )
 
         # ---------------------------------------------------------
         # Supprimer les champs internes
