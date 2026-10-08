@@ -1593,7 +1593,7 @@ def GetProduitsByCategorie():
         query = (
             Produit.query
             .filter(Produit.categorie == categorie)
-            .order_by(Produit.creation_date.desc())
+            .order_by(Produit.random_order)
         )
 
         pagination = query.paginate(
