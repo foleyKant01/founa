@@ -1022,9 +1022,11 @@ def UpdateProduit():
 
 
 def AllSimilarProducts():
+
     response = {}
 
     try:
+
         data = request.json or {}
 
         uid = data.get("uid")
@@ -1041,28 +1043,58 @@ def AllSimilarProducts():
             data.get("categorie") or ""
         ).strip()
 
+        # ==========================================
+        # PAGINATION
+        # ==========================================
+
+        page = data.get(
+            "page",
+            1
+        )
+
+        try:
+            page = int(page)
+        except (TypeError, ValueError):
+            page = 1
+
+        # Toujours 100 produits par page
+        limit = 100
+
+        page = max(
+            page,
+            1
+        )
+
+        # ==========================================
+        # VALIDATIONS
+        # ==========================================
+
         if not uid:
+
             return {
                 "status": "error",
-                "error_description": "L'identifiant du produit est obligatoire",
+                "error_description":
+                    "L'identifiant du produit est obligatoire",
                 "products": []
             }, 400
 
         if not product_categorie:
+
             return {
                 "status": "success",
                 "products": []
             }, 200
 
         if not product_name and not product_description:
+
             return {
                 "status": "success",
                 "products": []
             }, 200
 
-        # =========================================================
+        # ==========================================
         # STOP WORDS
-        # =========================================================
+        # ==========================================
 
         stop_words = {
             "le", "la", "les",
@@ -1082,9 +1114,9 @@ def AllSimilarProducts():
             "hommes", "femmes"
         }
 
-        # =========================================================
+        # ==========================================
         # MOTS DU NOM
-        # =========================================================
+        # ==========================================
 
         name_words = re.findall(
             r"[a-zA-ZÀ-ÿ]+",
@@ -1102,9 +1134,9 @@ def AllSimilarProducts():
             dict.fromkeys(name_words)
         )
 
-        # =========================================================
+        # ==========================================
         # MOTS DE LA DESCRIPTION
-        # =========================================================
+        # ==========================================
 
         description_words = re.findall(
             r"[a-zA-ZÀ-ÿ]+",
@@ -1122,9 +1154,9 @@ def AllSimilarProducts():
             dict.fromkeys(description_words)
         )
 
-        # =========================================================
-        # MOTS DE LA CATÉGORIE
-        # =========================================================
+        # ==========================================
+        # MOTS DE LA CATEGORIE
+        # ==========================================
 
         category_words = re.findall(
             r"[a-zA-ZÀ-ÿ]+",
@@ -1142,30 +1174,30 @@ def AllSimilarProducts():
             dict.fromkeys(category_words)
         )
 
-        # =========================================================
+        # ==========================================
         # RECHERCHE DES CANDIDATS
-        # =========================================================
+        # ==========================================
 
         candidate_filters = []
 
-        # Priorité recherche : NOM
         for word in name_words:
+
             candidate_filters.append(
                 Produit.nom.ilike(
                     f"%{word}%"
                 )
             )
 
-        # Ensuite DESCRIPTION
         for word in description_words[:15]:
+
             candidate_filters.append(
                 Produit.description.ilike(
                     f"%{word}%"
                 )
             )
 
-        # Enfin CATÉGORIE
         for word in category_words:
+
             candidate_filters.append(
                 Produit.categorie.ilike(
                     f"%{word}%"
@@ -1173,14 +1205,15 @@ def AllSimilarProducts():
             )
 
         if not candidate_filters:
+
             return {
                 "status": "success",
                 "products": []
             }, 200
 
-        # =========================================================
-        # RÉCUPÉRATION DES PRODUITS
-        # =========================================================
+        # ==========================================
+        # PRODUITS CANDIDATS
+        # ==========================================
 
         query = Produit.query
 
@@ -1196,16 +1229,9 @@ def AllSimilarProducts():
 
         products_info = []
 
-        # =========================================================
-        # CALCUL DE SIMILARITÉ
-        #
-        # PRIORITÉ :
-        #
-        # NOM          = 60 %
-        # DESCRIPTION  = 30 %
-        # CATÉGORIE    = 10 %
-        #
-        # =========================================================
+        # ==========================================
+        # CALCUL DE SIMILARITE
+        # ==========================================
 
         for product in all_products:
 
@@ -1227,15 +1253,16 @@ def AllSimilarProducts():
                 .lower()
             )
 
-            # =====================================================
-            # 1. NOM
-            # =====================================================
+            # --------------------------------------
+            # SCORE NOM
+            # --------------------------------------
 
             matched_name_words = 0
 
             for word in name_words:
 
                 if word in nom:
+
                     matched_name_words += 1
 
             score_name = 0
@@ -1243,17 +1270,15 @@ def AllSimilarProducts():
             if name_words:
 
                 name_match_percentage = (
-                    matched_name_words /
-                    len(name_words)
+                    matched_name_words
+                    / len(name_words)
                 )
 
-                # Correspondance directe des mots
                 score_name += min(
                     matched_name_words * 12,
                     60
                 )
 
-                # Bonus lorsque le nom est fortement similaire
                 if name_match_percentage >= 0.80:
 
                     score_name = 60
@@ -1272,15 +1297,16 @@ def AllSimilarProducts():
                         30
                     )
 
-            # =====================================================
-            # 2. DESCRIPTION
-            # =====================================================
+            # --------------------------------------
+            # SCORE DESCRIPTION
+            # --------------------------------------
 
             matched_description_words = 0
 
             for word in description_words:
 
                 if word in description:
+
                     matched_description_words += 1
 
             score_description = min(
@@ -1288,15 +1314,16 @@ def AllSimilarProducts():
                 30
             )
 
-            # =====================================================
-            # 3. CATÉGORIE
-            # =====================================================
+            # --------------------------------------
+            # SCORE CATEGORIE
+            # --------------------------------------
 
             matched_category_words = 0
 
             for word in category_words:
 
                 if word in categorie:
+
                     matched_category_words += 1
 
             score_category = min(
@@ -1304,9 +1331,9 @@ def AllSimilarProducts():
                 10
             )
 
-            # =====================================================
+            # --------------------------------------
             # SCORE TOTAL
-            # =====================================================
+            # --------------------------------------
 
             similarity_score = (
                 score_name
@@ -1315,6 +1342,7 @@ def AllSimilarProducts():
             )
 
             if similarity_score <= 0:
+
                 continue
 
             products_info.append({
@@ -1347,11 +1375,9 @@ def AllSimilarProducts():
                 "images":
                     product.images,
 
-                # Score global
                 "similarity_score":
                     similarity_score,
 
-                # Scores détaillés
                 "score_name":
                     score_name,
 
@@ -1371,37 +1397,55 @@ def AllSimilarProducts():
                     matched_category_words
             })
 
-        # =========================================================
-        # CLASSEMENT PAR PERTINENCE
-        #
-        # 1. SCORE TOTAL
-        # 2. SCORE NOM
-        # 3. SCORE DESCRIPTION
-        # 4. SCORE CATÉGORIE
-        #
-        # =========================================================
+        # ==========================================
+        # TRI PAR PERTINENCE
+        # ==========================================
 
         products_info.sort(
+
             key=lambda product: (
+
                 product["similarity_score"],
+
                 product["score_name"],
+
                 product["score_description"],
+
                 product["score_category"]
             ),
+
             reverse=True
         )
 
-        # =========================================================
-        # GARDER LES 100 PRODUITS LES PLUS PERTINENTS
-        # =========================================================
+        # ==========================================
+        # PAGINATION
+        # ==========================================
 
-        products_info = products_info[:100]
+        total = len(
+            products_info
+        )
 
-        # =========================================================
-        # SUPPRIMER LES SCORES INTERNES
-        # =========================================================
+        pages = (
+            (total + limit - 1)
+            // limit
+        )
 
-        for product in products_info:
+        start = (
+            (page - 1)
+            * limit
+        )
+
+        end = start + limit
+
+        paginated_products = (
+            products_info[start:end]
+        )
+
+        # ==========================================
+        # SUPPRESSION DES SCORES INTERNES
+        # ==========================================
+
+        for product in paginated_products:
 
             product.pop(
                 "score_name",
@@ -1433,17 +1477,34 @@ def AllSimilarProducts():
                 None
             )
 
-        # =========================================================
-        # RÉPONSE
-        # =========================================================
+        # ==========================================
+        # REPONSE
+        # ==========================================
 
         response["status"] = "success"
 
-        response["products"] = products_info
-
-        response["total"] = len(
-            products_info
+        response["products"] = (
+            paginated_products
         )
+
+        response["pagination"] = {
+
+            "page": page,
+
+            "limit": 100,
+
+            "total": total,
+
+            "pages": pages,
+
+            "has_next": (
+                page < pages
+            ),
+
+            "has_previous": (
+                page > 1
+            )
+        }
 
     except Exception as e:
 
@@ -1456,7 +1517,6 @@ def AllSimilarProducts():
         response["products"] = []
 
     return response
-
 
 
 def remove_accents(input_str):
