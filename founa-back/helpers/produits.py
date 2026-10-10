@@ -611,9 +611,13 @@ def AllSimilarProducts():
             description = ((product.description or "").strip().lower())
             categorie = ((product.categorie or "").strip().lower())
             matched_name_words = 0
+            matched_description_words = 0
+            matched_category_words = 0
+
             for word in name_words:
                 if word in nom:
                     matched_name_words += 1
+
             score_name = 0
             if name_words:
                 name_match_percentage = (matched_name_words / len(name_words))
