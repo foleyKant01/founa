@@ -235,18 +235,21 @@ const RegisterPage: React.FC = () => {
 /* 🎨 Styles FOUNA */
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
+        minHeight: "100vh",
         height: "100vh",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         background: "#F5F5F5",
+        padding: "30px 15px",
+        boxSizing: "border-box",
     },
 
     card: {
         width: 320,
         padding: "30px 20px",
-        margin: "0px 10px 100px 10px",
+        margin: "0 10px",
         borderRadius: 15,
         background: "#fff",
         boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
@@ -254,9 +257,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
 
     logoWrapper: {
-        marginBottom: 20,
+        width: "100%",
         display: "flex",
         justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 20,
     },
 
     logo: {
