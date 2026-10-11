@@ -835,6 +835,109 @@ const handleEnableNotifications = async () => {
             margin-top: 22px;
           }
 
+          /* =========================================================
+            SUIVEZ-NOUS
+          ========================================================= */
+
+          .profile-social-section {
+            margin-top: 22px;
+          }
+
+          .profile-social-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          }
+
+          .profile-social-item {
+            width: 100%;
+            border: 1px solid #E5E7EB;
+            background: #ffffff;
+            color: #374151;
+            padding: 13px 15px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: left;
+            text-decoration: none;
+          }
+
+          .profile-social-item:hover {
+            transform: translateX(2px);
+          }
+
+          /* Partie gauche */
+          .profile-social-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+          }
+
+          /* Conteneur du logo */
+          .profile-social-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          .profile-social-icon svg {
+            width: 19px;
+            height: 19px;
+          }
+
+          /* Instagram */
+          .profile-social-instagram:hover {
+            border-color: #E1306C;
+            color: #C13584;
+            background: #FFF7FA;
+          }
+
+          .profile-social-instagram .profile-social-icon {
+            color: #E1306C;
+            background: #FCE7F3;
+          }
+
+          /* Facebook */
+          .profile-social-facebook:hover {
+            border-color: #1877F2;
+            color: #1877F2;
+            background: #F5F9FF;
+          }
+
+          .profile-social-facebook .profile-social-icon {
+            color: #1877F2;
+            background: #E8F1FF;
+          }
+
+          /* TikTok */
+          .profile-social-tiktok:hover {
+            border-color: #111827;
+            color: #111827;
+            background: #F8F8F8;
+          }
+
+          .profile-social-tiktok .profile-social-icon {
+            color: #111827;
+            background: #F1F1F1;
+          }
+
+          .profile-social-arrow {
+            color: #9CA3AF;
+            transition: 0.2s;
+          }
+
+          .profile-social-item:hover .profile-social-arrow {
+            transform: translateX(2px);
+          }
+
           .profile-help-list {
             display: flex;
             flex-direction: column;
@@ -1526,6 +1629,157 @@ const handleEnableNotifications = async () => {
 
                     <ChevronRight size={18} />
                   </button>
+
+                </div>
+
+              </div>
+
+              {/* =========================================================
+                  SUIVEZ-NOUS
+              ========================================================= */}
+
+              <div className="profile-card profile-social-section">
+
+                <div className="card-title">
+                  <div className="card-title-left">
+
+                    <div className="card-title-icon">
+                      <MessageCircle size={18} />
+                    </div>
+
+                    <h3>
+                      Suivez-nous
+                    </h3>
+
+                  </div>
+                </div>
+
+                <div className="profile-social-list">
+
+                  {/* INSTAGRAM */}
+                  <a
+                    href="https://www.instagram.com/founa.ci?stkn=MXVseWU3bmFhNWdoOA%3D%3D&utm_source=qr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="profile-social-item profile-social-instagram"
+                  >
+                    <div className="profile-social-item-left">
+
+                      <div className="profile-social-icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <rect
+                            x="3"
+                            y="3"
+                            width="18"
+                            height="18"
+                            rx="5"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          />
+
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="4"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          />
+
+                          <circle
+                            cx="17.5"
+                            cy="6.5"
+                            r="1"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </div>
+
+                      <span>
+                        Instagram
+                      </span>
+
+                    </div>
+
+                    <ChevronRight
+                      size={18}
+                      className="profile-social-arrow"
+                    />
+
+                  </a>
+
+
+                  {/* FACEBOOK */}
+                  <a
+                    href="https://www.facebook.com/share/18g37JjbGf/?mibextid=wwXIfr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="profile-social-item profile-social-facebook"
+                  >
+                    <div className="profile-social-item-left">
+
+                      <div className="profile-social-icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M14 8h3V4h-3c-3.31 0-5 1.69-5 5v3H6v4h3v4h4v-4h3l1-4h-4V9c0-.67.33-1 1-1Z"
+                          />
+                        </svg>
+                      </div>
+
+                      <span>
+                        Facebook
+                      </span>
+
+                    </div>
+
+                    <ChevronRight
+                      size={18}
+                      className="profile-social-arrow"
+                    />
+
+                  </a>
+
+
+                  {/* TIKTOK */}
+                  <a
+                    href="https://www.tiktok.com/@livegaming0102?_r=1&_t=ZS-9ANxMf8pmdD"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="profile-social-item profile-social-tiktok"
+                  >
+                    <div className="profile-social-item-left">
+
+                      <div className="profile-social-icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M16.5 3c.4 2.2 1.7 3.5 4 3.7v3.1c-1.4.1-2.7-.3-4-1v6.5c0 3.5-2.7 5.7-6 5.7-3 0-5.5-2.2-5.5-5.2 0-3.3 2.9-5.5 6.2-5.2v3.2c-1.7-.2-3 .8-3 2.1 0 1.1.9 2 2.2 2 1.5 0 2.6-1.1 2.6-3V3h3.5Z"
+                          />
+                        </svg>
+                      </div>
+
+                      <span>
+                        TikTok
+                      </span>
+
+                    </div>
+
+                    <ChevronRight
+                      size={18}
+                      className="profile-social-arrow"
+                    />
+
+                  </a>
 
                 </div>
 
