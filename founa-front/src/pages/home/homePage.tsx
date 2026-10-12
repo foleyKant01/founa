@@ -319,68 +319,74 @@ const HomePage: React.FC = () => {
   const [loadingMoreSearchResults, setLoadingMoreSearchResults] = useState(false);
 
 
-  const refreshHomePage = async () => {
-    try {
-      setLoadingProducts(true);
+const refreshHomePage = async () => {
+  try {
+    setLoadingProducts(true);
+    setLoadingTopProducts(true);
 
-      // Réinitialiser les recherches
-      setSearchText("");
-      setSearchResults([]);
+    // Réinitialiser la recherche et la catégorie
+    setSearchText("");
+    setSearchResults([]);
+    setSelectedCategory(null);
+    setCategoryProducts([]);
 
-      // Réinitialiser la catégorie sélectionnée
-      setSelectedCategory(null);
-      setCategoryProducts([]);
+    // Revenir à la première page
+    setCurrentProductsPage(1);
 
-      // Revenir à la première page
-      setCurrentProductsPage(1);
+    // Charger les produits et les produits populaires
+    const [productsResponse, topResponse] = await Promise.all([
+      GetAllProduits(1, PRODUCTS_PER_PAGE),
+      TopProducts(),
+    ]);
 
-      // Recharger les 20 premiers produits
-      const productsResponse = await GetAllProduits(
-        1,
-        PRODUCTS_PER_PAGE
+    // Déclarer chaque variable une seule fois
+    let refreshedProducts: Produit[] = [];
+    let refreshedTopProducts: Produit[] = [];
+    let hasMore = false;
+
+    // Traiter les produits du catalogue
+    if (productsResponse?.data?.status === "success") {
+      refreshedProducts = shuffleProducts(
+        productsResponse.data.produits || []
       );
 
-      if (productsResponse?.data?.status === "success") {
-        setAllProducts(
-          shuffleProducts(
-            productsResponse.data.produits || []
-          )
-        );
-
-        setHasMoreProducts(
-          Boolean(
-            productsResponse.data.pagination?.has_next
-          )
-        );
-      } else {
-        setAllProducts([]);
-        setHasMoreProducts(false);
-      }
-
-      // Recharger les produits populaires
-      const topResponse = await TopProducts();
-
-      if (topResponse?.data?.status === "success") {
-        setTopProducts(
-          (topResponse.data.produits || []).slice(0, 10)
-        );
-      } else {
-        setTopProducts([]);
-      }
-
-    } catch (error) {
-      console.error(
-        "Erreur lors du rafraîchissement de la page d'accueil :",
-        error
+      hasMore = Boolean(
+        productsResponse.data.pagination?.has_next
       );
-
-      setAllProducts([]);
-      setHasMoreProducts(false);
-
-    } finally {
-      setLoadingProducts(false);
     }
-  };
+
+    setAllProducts(refreshedProducts);
+    setHasMoreProducts(hasMore);
+
+    // Traiter les produits populaires
+    if (topResponse?.data?.status === "success") {
+      refreshedTopProducts = (
+        topResponse.data.produits || []
+      ).slice(0, 10);
+    }
+
+    setTopProducts(refreshedTopProducts);
+
+    // Enregistrer les données actualisées dans le cache
+    sessionStorage.setItem(
+      "founa_home_products",
+      JSON.stringify({
+        allProducts: refreshedProducts,
+        topProducts: refreshedTopProducts,
+        currentProductsPage: 1,
+        hasMoreProducts: hasMore,
+      })
+    );
+  } catch (error) {
+    console.error(
+      "Erreur lors du rafraîchissement de la page d'accueil :",
+      error
+    );
+  } finally {
+    setLoadingProducts(false);
+    setLoadingTopProducts(false);
+  }
+};
 
   /*
    * =========================
@@ -420,105 +426,179 @@ const HomePage: React.FC = () => {
     };
   }, [isHeroPaused]);
 
-  useEffect(() => {
-    const loadHomeProducts = async () => {
+useEffect(() => {
+  const CACHE_KEY = "founa_home_products";
+
+  const loadHomeProducts = async () => {
+    // 1. Vérifier si les produits sont déjà en cache
+    const cachedData = sessionStorage.getItem(CACHE_KEY);
+
+    if (cachedData) {
       try {
-        setLoadingProducts(true);
-        setLoadingTopProducts(true);
+        const cache = JSON.parse(cachedData);
 
-        const [productsResponse, topResponse] =
-          await Promise.all([
-            GetAllProduits(1, PRODUCTS_PER_PAGE),
-            TopProducts(),
-          ]);
+        setAllProducts(cache.allProducts || []);
+        setTopProducts(cache.topProducts || []);
+        setCurrentProductsPage(cache.currentProductsPage || 1);
+        setHasMoreProducts(Boolean(cache.hasMoreProducts));
 
-        if (productsResponse.data.status === "success") {
-          setAllProducts(
-            shuffleProducts(
-              productsResponse.data.produits || []
-            )
-          );
-
-          setCurrentProductsPage(1);
-
-          setHasMoreProducts(
-            Boolean(
-              productsResponse.data.pagination?.has_next
-            )
-          );
-        } else {
-          setAllProducts([]);
-          setHasMoreProducts(false);
-        }
-
-        if (topResponse.data.status === "success") {
-          setTopProducts(
-            (topResponse.data.produits || []).slice(0, 10)
-          );
-        } else {
-          setTopProducts([]);
-        }
-
-      } catch (error) {
-        console.error(
-          "Erreur lors du chargement de la page d'accueil :",
-          error
-        );
-
-        setAllProducts([]);
-        setTopProducts([]);
-        setHasMoreProducts(false);
-
-      } finally {
         setLoadingProducts(false);
         setLoadingTopProducts(false);
+
+        // Ne pas refaire les requêtes API au retour sur l'accueil
+        return;
+      } catch (error) {
+        console.error("Erreur de lecture du cache :", error);
+        sessionStorage.removeItem(CACHE_KEY);
       }
-    };
-
-    loadHomeProducts();
-  }, []);
-
-  const handleLoadMoreProducts = async () => {
-    if (loadingMoreProducts || !hasMoreProducts) {
-      return;
     }
 
+    // 2. Aucun cache : charger depuis l'API
     try {
-      setLoadingMoreProducts(true);
+      setLoadingProducts(true);
+      setLoadingTopProducts(true);
 
-      const nextPage = currentProductsPage + 1;
+      const [productsResponse, topResponse] = await Promise.all([
+        GetAllProduits(1, PRODUCTS_PER_PAGE),
+        TopProducts(),
+      ]);
 
-      const response = await GetAllProduits(
-        nextPage,
-        PRODUCTS_PER_PAGE
-      );
+      let allProductsData: typeof allProducts = [];
+      let topProductsData: typeof topProducts = [];
+      let hasMore = false;
 
-      if (response.data.status === "success") {
-        const newProducts = response.data.produits || [];
-
-        setAllProducts((previousProducts) => [
-          ...previousProducts,
-          ...shuffleProducts(newProducts),
-        ]);
-
-        setCurrentProductsPage(nextPage);
-
-        setHasMoreProducts(
-          Boolean(
-            response.data.pagination?.has_next
-          )
+      if (productsResponse.data.status === "success") {
+        allProductsData = shuffleProducts(
+          productsResponse.data.produits || []
         );
+
+        hasMore = Boolean(
+          productsResponse.data.pagination?.has_next
+        );
+
+        setAllProducts(allProductsData);
+        setCurrentProductsPage(1);
+        setHasMoreProducts(hasMore);
+      } else {
+        setAllProducts([]);
+        setHasMoreProducts(false);
       }
 
+      if (topResponse.data.status === "success") {
+        topProductsData = (
+          topResponse.data.produits || []
+        ).slice(0, 10);
+
+        setTopProducts(topProductsData);
+      } else {
+        setTopProducts([]);
+      }
+
+      // 3. Mémoriser les données pour les prochaines visites
+      sessionStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          allProducts: allProductsData,
+          topProducts: topProductsData,
+          currentProductsPage: 1,
+          hasMoreProducts: hasMore,
+        })
+      );
     } catch (error) {
       console.error(
-        "Erreur lors du chargement des produits supplémentaires :",
+        "Erreur lors du chargement de la page d'accueil :",
         error
       );
     } finally {
-      setLoadingMoreProducts(false);
+      setLoadingProducts(false);
+      setLoadingTopProducts(false);
     }
   };
+
+  loadHomeProducts();
+}, []);
+
+
+
+  
+const handleLoadMoreProducts = async () => {
+  if (loadingMoreProducts || !hasMoreProducts) {
+    return;
+  }
+
+  try {
+    setLoadingMoreProducts(true);
+
+    const nextPage = currentProductsPage + 1;
+
+    const response = await GetAllProduits(
+      nextPage,
+      PRODUCTS_PER_PAGE
+    );
+
+    if (response.data.status === "success") {
+      const newProducts: Produit[] =
+        response.data.produits || [];
+
+      // Mélanger une seule fois les nouveaux produits
+      const shuffledNewProducts = shuffleProducts(newProducts);
+
+      // Mettre à jour la liste affichée
+      const updatedProducts = [
+        ...allProducts,
+        ...shuffledNewProducts,
+      ];
+
+      setAllProducts(updatedProducts);
+      setCurrentProductsPage(nextPage);
+
+      const hasMore = Boolean(
+        response.data.pagination?.has_next
+      );
+
+      setHasMoreProducts(hasMore);
+
+      // Mettre à jour le cache au même endroit
+      const cachedData = sessionStorage.getItem(
+        "founa_home_products"
+      );
+
+      let cache: {
+        topProducts?: Produit[];
+      } = {};
+
+      if (cachedData) {
+        try {
+          cache = JSON.parse(cachedData);
+        } catch (error) {
+          console.error(
+            "Erreur de lecture du cache produits :",
+            error
+          );
+        }
+      }
+
+      sessionStorage.setItem(
+        "founa_home_products",
+        JSON.stringify({
+          ...cache,
+          allProducts: updatedProducts,
+          topProducts: cache.topProducts || topProducts,
+          currentProductsPage: nextPage,
+          hasMoreProducts: hasMore,
+        })
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Erreur lors du chargement des produits supplémentaires :",
+      error
+    );
+  } finally {
+    setLoadingMoreProducts(false);
+  }
+};
+
 
 
 
@@ -528,14 +608,18 @@ const HomePage: React.FC = () => {
 
 
   useEffect(() => {
-    if (location.pathname !== "/home") {
-      return;
-    }
+    if (location.pathname !== "/home") return;
+    if (!location.state?.refreshHome) return;
 
-    if (location.state?.refreshHome) {
-      refreshHomePage();
-    }
-  }, [location.state?.refreshHome]);
+    refreshHomePage();
+
+    // Consommer le signal pour éviter qu'il reste actif
+    // lors des navigations suivantes.
+    nav("/home", {
+      replace: true,
+      state: null,
+    });
+  }, [location.pathname, location.state?.refreshHome, nav]);
 
   /*
    * =========================
