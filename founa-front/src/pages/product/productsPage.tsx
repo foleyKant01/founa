@@ -16,6 +16,18 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+
+declare global {
+  interface Window {
+    fbq?: (
+      action: string,
+      eventName: string,
+      parameters?: Record<string, unknown>
+    ) => void;
+  }
+}
+
+
 interface Product {
   uid: string;
   name: string;
@@ -94,6 +106,22 @@ const ProductPage: React.FC = () => {
     message: string;
     type: "success" | "error" | "info";
   } | null>(null);
+
+
+useEffect(() => {
+  if (!product.uid || !window.fbq) {
+    return;
+  }
+
+  window.fbq("track", "ViewContent", {
+    content_ids: [product.uid],
+    content_name: product.name,
+    content_type: "product",
+    value: product.price,
+    currency: "XOF",
+  });
+}, [product.uid]);
+
 
   const user = JSON.parse(
     localStorage.getItem("user") || "{}"
@@ -397,13 +425,24 @@ useEffect(() => {
       const response =
         await CreateCommande(payload);
 
-      if (
-        response.data.status === "success"
-      ) {
+      
+      if (response.data.status === "success") {
+        if (window.fbq) {
+          window.fbq("trackCustom", "OrderCreated", {
+            content_ids: [uid],
+            content_name: product.name,
+            content_type: "product",
+            value: product.price * quantity,
+            currency: "XOF",
+            quantity: quantity,
+          });
+        }
+
         showToast(
           "Commande envoyée avec succès !",
           "success"
         );
+
 
         setTimeout(() => {
           nav("/home");
