@@ -140,6 +140,8 @@ const styles: {
     width: "100%",
     position: "fixed",
     bottom: 0,
+    margin: 0
+,    paddingBottom: "10px",
     left: 0,
     display: "flex",
     justifyContent: "space-around",
