@@ -151,6 +151,9 @@ useEffect(() => {
     left: 0,
     behavior: "instant",
   });
+  setLoadingProduct(true);
+  setLoadingSimilar(false);
+  setIsDescriptionExpanded(false);
   if (!uid) {
     setLoadingProduct(false);
     setLoadingSimilar(false);
@@ -429,23 +432,16 @@ useEffect(() => {
     product.stock <= 0 ||
     product.stock < product.moq;
 
+  
   if (loadingProduct) {
     return (
       <div className="product-page-loading">
-        <div className="product-loading-content">
-          <div className="loading-spinner" />
-
-          <div className="loading-title">
-            Chargement du produit
-          </div>
-
-          <div className="loading-subtitle">
-            Veuillez patienter...
-          </div>
-        </div>
+        <div className="loading-spinner-large" />
+        <p>Chargement du produit...</p>
       </div>
     );
   }
+
 
   return (
     <div className="product-page">
@@ -890,105 +886,55 @@ useEffect(() => {
           padding-bottom: 80px;
         }
 
-        .product-page-loading {
-          width: 100%;
-          min-height: 100vh;
+        
+/* Chargement plein écran */
+.product-page-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
 
-          display: flex;
-          align-items: center;
-          justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
 
-          background:
-            linear-gradient(
-              135deg,
-              #f5f7f8 0%,
-              #eef6f6 100%
-            );
-        }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
-        .product-loading-content {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
+  gap: 15px;
 
-          padding: 35px 40px;
+  background: #f5f7f8;
+  font-family: Arial, Helvetica, sans-serif;
+}
 
-          min-width: 280px;
+/* Cercle animé */
+.product-page-loading .loading-spinner-large {
+  width: 45px;
+  height: 45px;
 
-          background:
-            rgba(
-              255,
-              255,
-              255,
-              0.92
-            );
+  border: 4px solid #dfe7e7;
+  border-top-color: #00a4a6;
 
-          border-radius: 18px;
+  border-radius: 50%;
 
-          box-shadow:
-            0 10px 35px
-            rgba(
-              0,
-              0,
-              0,
-              0.08
-            );
-        }
+  animation: productLoadingSpin 0.8s linear infinite;
+  flex-shrink: 0;
+}
 
-        .loading-spinner {
-          width: 48px;
-          height: 48px;
+.product-page-loading p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+}
 
-          border:
-            4px solid
-            #dce8e8;
+@keyframes productLoadingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
-          border-top-color:
-            #00a4a6;
-
-          border-right-color:
-            #00a4a6;
-
-          border-radius: 50%;
-
-          animation:
-            productSpin
-            0.8s
-            linear
-            infinite;
-
-          margin-bottom: 18px;
-        }
-
-        .loading-title {
-          color:
-            #1f2937;
-
-          font-size: 15px;
-
-          font-weight: 600;
-
-          text-align: center;
-        }
-
-        .loading-subtitle {
-          margin-top: 6px;
-
-          color:
-            #7b8787;
-
-          font-size: 12px;
-
-          text-align: center;
-        }
-
-        @keyframes productSpin {
-          to {
-            transform:
-              rotate(360deg);
-          }
-        }
 
         .product-header {
           position: sticky;

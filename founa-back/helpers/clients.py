@@ -6,7 +6,12 @@ from helpers.mailer_sms import *
 
 import secrets
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
+from argon2 import PasswordHasher
+from argon2.exceptions import (
+    VerifyMismatchError,
+    VerificationError,
+    InvalidHashError
+)
 
 ph = PasswordHasher()
 
@@ -253,27 +258,71 @@ def ReadSingleClient():
     return response
 
 
+
 def UpdateClient():
     response = {}
     try:
-        cliend_id = (request.json.get('uid'))
-        password = (request.json.get('password'))
-        update_client = Client.query.filter_by(uid=cliend_id).first()
-        if password != update_client.password:
-            return {"status": "error", "message": "Mot de passe incorrecte"}
-        if update_client:
-            update_client.fullname = request.json.get('fullname', update_client.fullname)
-            update_client.email = request.json.get('email', update_client.email)
-            update_client.phone = request.json.get('phone', update_client.phone)
-            update_client.adresse_livraison = request.json.get('adresse_livraison', update_client.adresse_livraison)
-        db.session.add(update_client)
-        db.session.commit() 
-        response['status'] = 'success'
-        response['message'] = "Mise à jour effectuer"
+        data = request.json or {}
+        client_id = (data.get('uid') or '').strip()
+        password = data.get('password')
+        email = (data.get('email') or '').strip().lower()
+
+        if not client_id:
+            return {
+                "status": "error",
+                "message": "L'identifiant du client est obligatoire"
+            }, 400
+        update_client = Client.query.filter_by(uid=client_id).first()
+        if not update_client:
+            return {
+                "status": "error",
+                "message": "Client introuvable"
+            }, 404
+        if not password:
+            return {
+                "status": "error",
+                "message": "Le mot de passe est obligatoire"
+            }, 400
+
+        try:
+            ph.verify(update_client.password, str(password))
+        except (VerifyMismatchError, VerificationError, InvalidHashError):
+            return {
+                "status": "error",
+                "message": "Mot de passe incorrect"
+            }, 401
+        if email and email != update_client.email.lower():
+            existing_email = Client.query.filter(
+                Client.email.ilike(email),
+                Client.uid != client_id
+            ).first()
+            if existing_email:
+                return {
+                    "status": "error",
+                    "message": "Cette adresse email est déjà utilisée"
+                }, 409
+            update_client.email = email
+        update_client.fullname = data.get(
+            'fullname', update_client.fullname
+        )
+        update_client.phone = data.get(
+            'phone', update_client.phone
+        )
+        update_client.adresse_livraison = data.get(
+            'adresse_livraison', update_client.adresse_livraison
+        )
+        db.session.commit()
+        return {
+            "status": "success",
+            "message": "Mise à jour effectuée"
+        }, 200
     except Exception as e:
-        response['status'] = 'error'
-        response['error_description'] = str(e)
-    return response
+        db.session.rollback()
+        return {
+            "status": "error",
+            "message": "Une erreur est survenue lors de la mise à jour",
+            "error_description": str(e)
+        }, 500
 
 
 def UpdatePassword():
