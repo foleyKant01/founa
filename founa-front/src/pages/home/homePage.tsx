@@ -523,19 +523,18 @@ const HomePage: React.FC = () => {
 
 
   useEffect(() => {
-    refreshCommandeCount();
-  }, [refreshCommandeCount]);
+    if (location.pathname !== "/home") return;
+    if (!location.state?.refreshHome) return;
 
+    refreshHomePage();
 
-  useEffect(() => {
-    if (location.pathname !== "/home") {
-      return;
-    }
-
-    if (location.state?.refreshHome) {
-      refreshHomePage();
-    }
-  }, [location.state?.refreshHome]);
+    // Consommer le signal pour éviter qu'il reste actif
+    // lors des navigations suivantes.
+    nav("/home", {
+      replace: true,
+      state: null,
+    });
+  }, [location.pathname, location.state?.refreshHome, nav]);
 
   /*
    * =========================

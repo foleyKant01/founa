@@ -35,6 +35,7 @@ def CreateClient():
                 "message": "Les mots de passe ne correspondent pas."
             }, 400
         existing_email = Client.query.filter_by(email=email).first()
+
         if existing_email:
             return {
                 "status": "error",
@@ -46,21 +47,24 @@ def CreateClient():
                 "status": "error",
                 "message": "Ce numéro de téléphone est déjà utilisé."
             }, 409
+        status_code_promo = None
         if code_promo:
-            status_code_promo = "non-utiliser"
-            existing_code_promo = PartnerPub.query.filter_by(code_promo=code_promo).first()
+            existing_code_promo = PartnerPub.query.filter_by(
+                code_promo=code_promo
+            ).first()
             if not existing_code_promo:
                 return {
                     "status": "error",
                     "message": "Ce code promo n'existe pas."
                 }, 409
+            status_code_promo = "non-utiliser"
         hashed_password = ph.hash(str(password))
         new_client = Client()
         new_client.fullname = fullname
         new_client.email = email
         new_client.phone = phone
         new_client.code_promo = code_promo if code_promo else None
-        new_client.status_code_promo = status_code_promo if status_code_promo else None
+        new_client.status_code_promo = status_code_promo
         new_client.adresse_livraison = adresse_livraison
         new_client.password = hashed_password
         db.session.add(new_client)
