@@ -1,47 +1,95 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
 
-    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
-    <link rel="icon" type="image/png" href="/logo_founa.png" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Icône écran d'accueil iPhone -->
+    <link rel="icon" type="image/png" href="/logo_founa.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/logo_founa.png" />
 
-    <!-- Couleur du navigateur / interface -->
     <meta name="theme-color" content="#00A4A6" />
-
-    <!-- PWA -->
     <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Meta Pixel Code -->
+    <script>
+      !(function (f, b, e, v, n, t, s) {
+        if (f.fbq) return;
+
+        n = f.fbq = function () {
+          n.callMethod
+            ? n.callMethod.apply(n, arguments)
+            : n.queue.push(arguments);
+        };
+
+        if (!f._fbq) f._fbq = n;
+
+        n.push = n;
+        n.loaded = true;
+        n.version = "2.0";
+        n.queue = [];
+
+        t = b.createElement(e);
+        t.async = true;
+        t.src = v;
+
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s);
+      })(
+        window,
+        document,
+        "script",
+        "https://connect.facebook.net/en_US/fbevents.js"
+      );
+
+      fbq("init", "1869587131060896");
+      fbq("track", "PageView");
+    </script>
+    <!-- End Meta Pixel Code -->
 
     <!-- Google Tag Manager -->
     <script>
-      (function(w,d,s,l,i){
-        w[l]=w[l]||[];
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+
         w[l].push({
-          'gtm.start': new Date().getTime(),
-          event:'gtm.js'
+          "gtm.start": new Date().getTime(),
+          event: "gtm.js",
         });
 
-        var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),
-            dl=l!='dataLayer'?'&l='+l:'';
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
 
-        j.async=true;
-        j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
 
-        f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','GTM-NXTJMDPM');
+        f.parentNode.insertBefore(j, f);
+      })(
+        window,
+        document,
+        "script",
+        "dataLayer",
+        "GTM-NXTJMDPM"
+      );
     </script>
     <!-- End Google Tag Manager -->
 
-    <title>Founa CI</title>
+    <title>FOUNA | Marketplace de produits internationaux</title>
   </head>
 
   <body>
+    <!-- Meta Pixel Code (noscript) -->
+    <noscript>
+      <img
+        height="1"
+        width="1"
+        style="display:none"
+        src="https://www.facebook.com/tr?id=1869587131060896&ev=PageView&noscript=1"
+        alt=""
+      />
+    </noscript>
+    <!-- End Meta Pixel Code (noscript) -->
 
     <!-- Google Tag Manager (noscript) -->
     <noscript>
@@ -49,8 +97,9 @@
         src="https://www.googletagmanager.com/ns.html?id=GTM-NXTJMDPM"
         height="0"
         width="0"
-        style="display:none;visibility:hidden">
-      </iframe>
+        style="display:none;visibility:hidden"
+        title="Google Tag Manager"
+      ></iframe>
     </noscript>
     <!-- End Google Tag Manager (noscript) -->
 
