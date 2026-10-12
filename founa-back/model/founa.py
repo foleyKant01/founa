@@ -43,7 +43,7 @@ class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
     fullname = db.Column(db.String(255), nullable=False)
-    email = db.Column(db.String(128), unique=True, nullable=False)
+    email = db.Column(db.String(128), unique=True, nullable=True)
     phone = db.Column(db.String(128), nullable=False)
     code_promo = db.Column(db.String(128), nullable=True)
     status_code_promo = db.Column(db.String(128), nullable=True, default="non-utiliser") #utiliser, non-utiliser

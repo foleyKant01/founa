@@ -12,6 +12,7 @@ from argon2.exceptions import (
     VerificationError,
     InvalidHashError
 )
+from flask import current_app
 
 ph = PasswordHasher()
 
@@ -97,6 +98,9 @@ def CreateClient():
         }, 200
     except Exception:
         db.session.rollback()
+        current_app.logger.exception(
+            "Erreur lors de la création du compte client"
+        )
         return {
             "status": "error",
             "message": "Erreur lors de la création du compte."
