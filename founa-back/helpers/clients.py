@@ -18,30 +18,37 @@ def CreateClient():
     try:
         data = request.json or {}
         fullname = (data.get("fullname") or "").strip()
-        email = (data.get("email") or "").strip().lower()
         phone = (data.get("phone") or "").strip()
-        code_promo = (data.get("code_promo") or "").strip()
-        adresse_livraison = (data.get("adresse_livraison") or "").strip()
+        code_promo = (data.get("code_promo") or "").strip().upper()
+        adresse_livraison = (
+            data.get("adresse_livraison") or ""
+        ).strip()
         password = data.get("password")
         confirmpassword = data.get("confirmpassword")
-        if not fullname or not email or not phone or not password:
+        if (
+            not fullname
+            or not phone
+            or not adresse_livraison
+            or not password
+            or not confirmpassword
+        ):
             return {
                 "status": "error",
                 "message": "Tous les champs obligatoires doivent être renseignés."
+            }, 400
+        if not phone.isdigit() or not (8 <= len(phone) <= 15):
+            return {
+                "status": "error",
+                "message": "Veuillez entrer un numéro de téléphone valide."
             }, 400
         if str(password) != str(confirmpassword):
             return {
                 "status": "error",
                 "message": "Les mots de passe ne correspondent pas."
             }, 400
-        existing_email = Client.query.filter_by(email=email).first()
-
-        if existing_email:
-            return {
-                "status": "error",
-                "message": "Cette adresse email est déjà utilisée."
-            }, 409
-        existing_phone = Client.query.filter_by(phone=phone).first()
+        existing_phone = Client.query.filter_by(
+            phone=phone
+        ).first()
         if existing_phone:
             return {
                 "status": "error",
@@ -58,12 +65,12 @@ def CreateClient():
                     "message": "Ce code promo n'existe pas."
                 }, 409
             status_code_promo = "non-utiliser"
+            
         hashed_password = ph.hash(str(password))
         new_client = Client()
         new_client.fullname = fullname
-        new_client.email = email
         new_client.phone = phone
-        new_client.code_promo = code_promo if code_promo else None
+        new_client.code_promo = code_promo or None
         new_client.status_code_promo = status_code_promo
         new_client.adresse_livraison = adresse_livraison
         new_client.password = hashed_password
@@ -72,7 +79,6 @@ def CreateClient():
         user_infos = {
             "uid": new_client.uid,
             "fullname": new_client.fullname,
-            "email": new_client.email,
             "phone": new_client.phone,
             "code_promo": new_client.code_promo,
             "adresse_livraison": new_client.adresse_livraison,
@@ -84,14 +90,13 @@ def CreateClient():
             "verification_required": True,
             "user_infos": user_infos
         }, 200
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         return {
             "status": "error",
-            "message": "Erreur lors de la création du compte.",
-            "error_description": str(e)
+            "message": "Erreur lors de la création du compte."
         }, 500
-        
+
         
 def send_OTP():
     phone = request.json.get('phone')

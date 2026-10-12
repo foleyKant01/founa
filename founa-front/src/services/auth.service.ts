@@ -2,7 +2,6 @@ import api from './api';
 
 export const CreateClient = (data: {
   fullname: string;
-  email: string;
   phone: string;
   adresse_livraison: string;
   password: string;

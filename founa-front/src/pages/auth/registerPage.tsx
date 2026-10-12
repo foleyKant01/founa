@@ -43,7 +43,6 @@ const RegisterPage: React.FC = () => {
     const [phone, setPhone] = useState("");
     const [adresse, setAdresse] = useState("");
     const [codePromo, setCodePromo] = useState("");
-    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -73,21 +72,14 @@ const RegisterPage: React.FC = () => {
             );
             return;
         }
-
-        // Construction du payload pour l'API
         const payload = {
             fullname,
             phone,
             adresse_livraison: adresse,
-
-            // Code promo facultatif
             code_promo: codePromo.trim(),
-
-            email,
             password,
             confirmpassword: confirmPassword,
         };
-
         try {
             const response = await CreateClient(payload);
 
@@ -159,6 +151,16 @@ const RegisterPage: React.FC = () => {
                         onChange={(e) => setAdresse(e.target.value)}
                         required
                     />
+                    <small style={{
+                        display: "block",
+                        textAlign: "left",
+                        fontSize: "12px",
+                        color: "#777",
+                        marginTop: "-10px",
+                        marginLeft: "4px"
+                    }}>
+                        Exemple : Abidjan, Yopougon, Kouté
+                    </small>
 
                     {/* Code promo facultatif */}
                     <div style={styles.promoWrapper}>
@@ -177,14 +179,7 @@ const RegisterPage: React.FC = () => {
                         </span>
                     </div>
 
-                    <input
-                        type="email"
-                        placeholder="Adresse email"
-                        style={styles.input}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
+                    
 
                     <input
                         type="password"

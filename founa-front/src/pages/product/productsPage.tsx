@@ -145,129 +145,176 @@ const ProductPage: React.FC = () => {
       : "/default-image.png";
   };
 
-  useEffect(() => {
-    if (!uid) {
-      setLoadingProduct(false);
-      return;
-    }
+useEffect(() => {
+  window.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: "instant",
+  });
+  if (!uid) {
+    setLoadingProduct(false);
+    setLoadingSimilar(false);
+    return;
+  }
 
-    const loadProduct = async () => {
-      setLoadingProduct(true);
-      setLoadingSimilar(false);
+  const CACHE_KEY = `founa_product_${uid}`;
+  let cancelled = false;
 
-      setSimilarProducts([]);
-      setSelectedImage("");
-      setQuantity(1);
+  const loadProduct = async () => {
+    // 1. Vérifier le cache avant tout chargement
+    try {
+      const cachedData = sessionStorage.getItem(CACHE_KEY);
 
-      try {
-        const res = await GetSingleProduit({
-          produit_id: uid,
-        });
+      if (cachedData) {
+        const cached = JSON.parse(cachedData);
 
-        if (res.data.status !== "success") {
-          console.error(
-            "Erreur récupération produit :",
-            res.data.message
+        if (cached.product?.uid === uid) {
+          setProduct(cached.product);
+          setSimilarProducts(cached.similarProducts || []);
+          setSelectedImage(
+            cached.selectedImage ||
+              cached.product.images?.[0] ||
+              ""
+          );
+          setQuantity(
+            cached.quantity ?? cached.product.moq ?? 1
           );
 
           setLoadingProduct(false);
+          setLoadingSimilar(false);
           return;
         }
+      }
+    } catch (error) {
+      console.error("Erreur lecture cache produit :", error);
+      sessionStorage.removeItem(CACHE_KEY);
+    }
 
-        const data = res.data.produit;
+    // 2. Charger depuis l'API seulement si le cache est absent
+    setLoadingProduct(true);
+    setLoadingSimilar(false);
 
-        let imagesArray: string[] = [];
+    try {
+      const res = await GetSingleProduit({
+        produit_id: uid,
+      });
 
-        try {
-          if (typeof data.images === "string") {
-            const parsed = JSON.parse(data.images);
+      if (cancelled) return;
 
-            if (Array.isArray(parsed)) {
-              imagesArray = parsed;
-            }
-          } else if (Array.isArray(data.images)) {
-            imagesArray = data.images;
+      if (res.data.status !== "success") {
+        console.error(
+          "Erreur récupération produit :",
+          res.data.message
+        );
+        setLoadingProduct(false);
+        return;
+      }
+
+      const data = res.data.produit;
+
+      // Convertir les images en tableau
+      let imagesArray: string[] = [];
+
+      try {
+        if (typeof data.images === "string") {
+          const parsed = JSON.parse(data.images);
+
+          if (Array.isArray(parsed)) {
+            imagesArray = parsed;
+          } else if (data.images.startsWith("http")) {
+            imagesArray = [data.images];
           }
-        } catch (error) {
-          console.error(
-            "Erreur parsing images :",
-            error
-          );
-
-          imagesArray = [];
+        } else if (Array.isArray(data.images)) {
+          imagesArray = data.images;
         }
+      } catch {
+        if (typeof data.images === "string" &&
+            data.images.startsWith("http")) {
+          imagesArray = [data.images];
+        }
+      }
 
-        const productMoq = Number(data.moq) || 1;
-        const productStock =
-          Number(data.stock_disponible) || 0;
+      const moq = Number(data.moq) || 1;
+      const stock = Number(data.stock_disponible) || 0;
 
-        const currentProduct: Product = {
+      const currentProduct: Product = {
+        uid: data.uid,
+        name: data.nom || "",
+        price: Number(data.prix_vente) || 0,
+        description: data.description || "",
+        categorie: data.categorie || "",
+        images: imagesArray,
+        stock,
+        moq,
+      };
+
+      if (cancelled) return;
+
+      setProduct(currentProduct);
+
+      const initialImage = imagesArray[0] || "";
+      setSelectedImage(initialImage);
+      setQuantity(stock >= moq ? moq : 0);
+      setLoadingProduct(false);
+
+      // 3. Charger les produits similaires
+      setLoadingSimilar(true);
+
+      let currentSimilarProducts: SimilarProduct[] = [];
+
+      try {
+        const similarResponse = await AllSimilarProducts({
           uid: data.uid,
-          name: data.nom,
-          price: Number(data.prix_vente) || 0,
+          nom: data.nom || "",
           description: data.description || "",
           categorie: data.categorie || "",
-          images: imagesArray,
-          stock: productStock,
-          moq: productMoq,
-        };
+        });
 
-        setProduct(currentProduct);
+        if (cancelled) return;
 
-        if (productStock >= productMoq) {
-          setQuantity(productMoq);
-        } else {
-          setQuantity(0);
-        }
-
-        if (imagesArray.length > 0) {
-          setSelectedImage(imagesArray[0]);
-        }
-
-        setLoadingProduct(false);
-
-        setLoadingSimilar(true);
-
-        try {
-          const similarResponse =
-            await AllSimilarProducts({
-              uid: data.uid,
-              nom: data.nom || "",
-              description: data.description || "",
-              categorie: data.categorie || "",
-            });
-
-          if (
-            similarResponse.data.status === "success"
-          ) {
-            setSimilarProducts(
-              similarResponse.data.products || []
-            );
-          } else {
-            setSimilarProducts([]);
-          }
-        } catch (error) {
-          console.error(
-            "Erreur produits similaires :",
-            error
-          );
-
-          setSimilarProducts([]);
-        } finally {
-          setLoadingSimilar(false);
+        if (similarResponse.data.status === "success") {
+          currentSimilarProducts =
+            similarResponse.data.products || [];
         }
       } catch (error) {
+        console.error(
+          "Erreur produits similaires :",
+          error
+        );
+      } finally {
+        if (!cancelled) {
+          setSimilarProducts(currentSimilarProducts);
+          setLoadingSimilar(false);
+
+          // 4. Sauvegarder la fiche et ses produits similaires
+          sessionStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({
+              product: currentProduct,
+              similarProducts: currentSimilarProducts,
+              selectedImage: initialImage,
+              quantity: stock >= moq ? moq : 0,
+            })
+          );
+        }
+      }
+    } catch (error) {
+      if (!cancelled) {
         console.error(
           "Erreur récupération produit :",
           error
         );
-
         setLoadingProduct(false);
       }
-    };
+    }
+  };
 
-    loadProduct();
-  }, [uid]);
+  loadProduct();
+
+  return () => {
+    cancelled = true;
+  };
+}, [uid]);
 
   const handleQtyChange = (newQty: number) => {
     if (newQty < product.moq) {
