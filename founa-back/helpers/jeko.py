@@ -4,6 +4,7 @@ from flask import request
 from model.founa import *
 from services.fcm_service import send_push_notification
 from helpers.commandestatuslog import CreateCommandeStatusLog
+from helpers.meta_conversions import *
 import hmac
 import hashlib
 import json
@@ -1157,6 +1158,62 @@ def ReceiveJekoWebhook():
         )
 
         db.session.commit()
+        
+        # ==========================================================
+        # META PURCHASE : UNIQUEMENT APRÈS UN PAIEMENT RÉUSSI
+        # ==========================================================
+        if status == "success" and commande.statut == "Payer":
+            try:
+                paiement_infos = json.loads(
+                    commande.paiement_infos or "{}"
+                )
+            except (json.JSONDecodeError, TypeError):
+                paiement_infos = {}
+
+            if not isinstance(paiement_infos, dict):
+                paiement_infos = {}
+
+            event_id = paiement_infos.get(
+                "meta_purchase_event_id"
+            )
+
+            if not event_id:
+                event_id = f"purchase_{commande.commande_id}"
+                paiement_infos["meta_purchase_event_id"] = event_id
+
+                commande.paiement_infos = json.dumps(
+                    paiement_infos,
+                    ensure_ascii=False
+                )
+                db.session.commit()
+
+            if not paiement_infos.get("meta_purchase_sent"):
+                try:
+                    result_meta = SendMetaPurchase(
+                        commande=commande,
+                        client=single_client,
+                        event_id=event_id
+                    )
+
+                    paiement_infos["meta_purchase_sent"] = True
+                    paiement_infos["meta_purchase_sent_at"] = (
+                        datetime.datetime.utcnow().isoformat()
+                    )
+                    paiement_infos["meta_purchase_response"] = result_meta
+
+                    commande.paiement_infos = json.dumps(
+                        paiement_infos,
+                        ensure_ascii=False
+                    )
+                    db.session.commit()
+
+                except Exception as meta_error:
+                    db.session.rollback()
+
+                    print(
+                        f"[META PURCHASE] Échec pour "
+                        f"{commande.commande_id}: {meta_error}"
+                    )
 
         return {
             "status": "success",
