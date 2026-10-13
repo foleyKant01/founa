@@ -129,8 +129,9 @@ class Commande(db.Model):
     teller = db.relationship('Teller', backref=db.backref('commande', lazy=True))
     fournisseur_id = db.Column(db.String(128), db.ForeignKey('fournisseur.uid'), nullable=True)
     fournisseur = db.relationship('Fournisseur', backref=db.backref('commande', lazy=True))
-    quantite = db.Column(db.Integer, nullable=False)
+    quantite = db.Column(db.Integer, nullable=False) 
     prix_total = db.Column(db.Float, nullable=False)
+    total_reel = db.Column(db.Float, nullable=False)
     statut = db.Column(db.String(128), default='commande Initier') # commande en charge, Validerr, Payer, en expedition, en livraison, Livrer
     details = db.Column(db.Text, nullable=True)
     cout_envoie_maritime = db.Column(db.Float, nullable=True)
