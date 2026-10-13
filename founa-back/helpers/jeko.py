@@ -4,7 +4,6 @@ from flask import request
 from model.founa import *
 from services.fcm_service import send_push_notification
 from helpers.commandestatuslog import CreateCommandeStatusLog
-from helpers.meta_conversions import SendMetaPurchase
 import hmac
 import hashlib
 import json
@@ -946,61 +945,6 @@ def ReceiveJekoWebhook():
         webhook.processed = True
         webhook.processed_at = (datetime.datetime.utcnow())
         db.session.commit()
-        # ==========================================================
-        # META PURCHASE : UNIQUEMENT APRÈS UN PAIEMENT RÉUSSI
-        # ==========================================================
-        if status == "success" and commande.statut == "Payer":
-            try:
-                paiement_infos = json.loads(
-                    commande.paiement_infos or "{}"
-                )
-            except (json.JSONDecodeError, TypeError):
-                paiement_infos = {}
-
-            if not isinstance(paiement_infos, dict):
-                paiement_infos = {}
-
-            event_id = paiement_infos.get(
-                "meta_purchase_event_id"
-            )
-
-            if not event_id:
-                event_id = f"purchase_{commande.commande_id}"
-                paiement_infos["meta_purchase_event_id"] = event_id
-
-                commande.paiement_infos = json.dumps(
-                    paiement_infos,
-                    ensure_ascii=False
-                )
-                db.session.commit()
-
-            if not paiement_infos.get("meta_purchase_sent"):
-                try:
-                    result_meta = SendMetaPurchase(
-                        commande=commande,
-                        client=single_client,
-                        event_id=event_id
-                    )
-
-                    paiement_infos["meta_purchase_sent"] = True
-                    paiement_infos["meta_purchase_sent_at"] = (
-                        datetime.datetime.utcnow().isoformat()
-                    )
-                    paiement_infos["meta_purchase_response"] = result_meta
-
-                    commande.paiement_infos = json.dumps(
-                        paiement_infos,
-                        ensure_ascii=False
-                    )
-                    db.session.commit()
-
-                except Exception as meta_error:
-                    db.session.rollback()
-
-                    print(
-                        f"[META PURCHASE] Échec pour "
-                        f"{commande.commande_id}: {meta_error}"
-                    )
         return {
             "status": "success",
             "message": (
@@ -1027,310 +971,207 @@ def ReceiveJekoWebhook():
 
 
 # def ReceiveJekoWebhook():
-    try:
-        raw_body = request.get_data()
-        signature = request.headers.get("Jeko-Signature", "")
-        event = request.headers.get("Jeko-Event", "")
-        if not signature:
-            return {
-                "status": "error",
-                "message": "Signature absente."
-            }, 401
-        if not VerifyJekoWebhookSignature(raw_body, signature):
-            return {
-                "status": "error",
-                "message": "Signature invalide."
-            }, 401
-        if event != "TRANSACTION_COMPLETED":
-            return {
-                "status": "ignored",
-                "message": "Événement ignoré."
-            }, 200
-        try:
-            data = json.loads(raw_body)
-        except (json.JSONDecodeError, TypeError):
-            return {
-                "status": "error",
-                "message": "Corps du webhook invalide."
-            }, 400
-        transaction_id = data.get("transaction_id")
-        reference = data.get("reference")
-        status = str(data.get("status", "")).lower()
-        amount_cents = data.get("amount_cents")
-        currency = str(data.get("currency", "")).upper()
-        if not transaction_id or not reference or status not in (
-            "success", "failed", "error", "cancelled"
-        ):
-            return {
-                "status": "error",
-                "message": "Données de transaction manquantes ou invalides."
-            }, 400
-        webhook_existant = Webhook.query.filter_by(
-            transaction_id=transaction_id
-        ).first()
-        if webhook_existant:
-            return {
-                "status": "success",
-                "message": "Transaction déjà traitée."
-            }, 200
-        commande_id = reference.rsplit("-", 1)[0]
-        commande = Commande.query.filter_by(
-            commande_id=commande_id
-        ).first()
-        if not commande:
-            commande = Commande.query.filter_by(
-                commande_id=reference
-            ).first()
-        if not commande:
-            return {
-                "status": "error",
-                "message": "Commande introuvable."
-            }, 404
-        try:
-            paiement_infos = json.loads(
-                commande.paiement_infos or "{}"
-            )
-        except (json.JSONDecodeError, TypeError):
-            paiement_infos = {}
-        if not isinstance(paiement_infos, dict):
-            paiement_infos = {}
-        reference_attendue = paiement_infos.get("reference")
+#     try:
+#         # ==========================================================
+#         # 1. RÉCUPÉRER ET VÉRIFIER LA SIGNATURE
+#         # ==========================================================
+#         raw_body = request.get_data()
+#         signature = request.headers.get("Jeko-Signature", "")
+#         event = request.headers.get("Jeko-Event", "")
 
-        if not reference_attendue:
-            result_data = paiement_infos.get("result") or {}
-            payment_data = result_data.get("payment") or {}
-            reference_attendue = payment_data.get("reference")
-        if not reference_attendue or reference != reference_attendue:
-            return {
-                "status": "error",
-                "message": "Référence de paiement non vérifiée."
-            }, 409
-        if status == "success":
-            try:
-                montant_recu = int(amount_cents)
-                montant_attendu = int(paiement_infos["amount_cents"])
-                montant_commande = int(
-                    round(float(commande.total_reel) * 100)
-                )
-            except (KeyError, TypeError, ValueError, OverflowError):
-                return {
-                    "status": "error",
-                    "message": "Impossible de vérifier le montant du paiement."
-                }, 409
-            devise_attendue = str(
-                paiement_infos.get("currency", "XOF")
-            ).upper()
+#         if not signature:
+#             return {
+#                 "status": "error",
+#                 "message": "Signature absente."
+#             }, 401
 
-            if currency != devise_attendue or currency != "XOF":
-                return {
-                    "status": "error",
-                    "message": "Devise du paiement invalide."
-                }, 409
-            if (
-                montant_recu != montant_attendu
-                or montant_recu != montant_commande
-            ):
-                return {
-                    "status": "error",
-                    "message": "Le montant payé ne correspond pas à la commande."
-                }, 409
-        single_client = Client.query.filter_by(
-            uid=commande.client_id
-        ).first()
-        if not single_client:
-            return {
-                "status": "error",
-                "message": "Client de la commande introuvable."
-            }, 404
-        executed_at = None
-        executed_at_raw = data.get("executedAt")
-        if executed_at_raw:
-            try:
-                executed_at = datetime.datetime.strptime(
-                    executed_at_raw,
-                    "%Y-%m-%d %H:%M:%S"
-                )
-            except ValueError:
-                executed_at = None
-        
-        nouveau_webhook = Webhook(
-            transaction_id=transaction_id,
-            reference=reference,
-            status=status,
-            executed_at=executed_at,
-            payload=data,
-            processed=False
-        )
-        db.session.add(nouveau_webhook)
-        if status == "success":
-            if commande.statut != "Payer":
-                commande.statut = "Payer"
-                
-                if (single_client.code_promo and single_client.status_code_promo == "non-utiliser"):
-                    single_client.status_code_promo = ("utiliser")
-                    
-                log_result = (
-                    CreateCommandeStatusLog({
-                        "commande_id": (
-                            commande.commande_id
-                        ),
-                        "statut": "Payer",
-                        "teller_id": (
-                            commande.teller_id
-                        )
-                    })
-                )
-                if isinstance(log_result, tuple):
-                    log_data, log_status = (
-                        log_result
-                    )
-                    if log_status != 200:
-                        db.session.rollback()
-                        return {
-                            "status": "error",
-                            "message": (
-                                "Le statut de la commande "
-                                "n'a pas pu être enregistré "
-                                "dans les logs."
-                            ),
-                            "log_error": log_data
-                        }, 500
-                elif isinstance(
-                    log_result,
-                    dict
-                ):
-                    if not log_result.get(
-                        "success"
-                    ):
-                        db.session.rollback()
-                        return {
-                            "status": "error",
-                            "message": (
-                                "Le statut de la commande "
-                                "n'a pas pu être enregistré "
-                                "dans les logs."
-                            ),
-                            "log_error": log_result
-                        }, 500
-                        
-                send_push_notification(
-                    user_uid=commande.client_id,
-                    user_type="user",
-                    title=(
-                        "Mise à jour de votre commande"
-                    ),
-                    body=(
-                        f"Votre commande "
-                        f"{commande.commande_id} "
-                        f"est maintenant : "
-                        f"{commande.statut}"
-                    ),
-                    data={
-                        "type": "order_status",
-                        "commande_id": (
-                            commande.commande_id
-                        ),
-                        "statut": commande.statut,
-                        "url": (
-                            "https://founa.ci/orders"
-                        )
-                    }
-                )
-                if commande.teller_id:
-                    send_push_notification(
-                        user_uid=commande.teller_id,
-                        user_type="teller",
-                        title="Nouvelle commande",
-                        body=(
-                            f"Une commande "
-                            f"{commande.commande_id} "
-                            f"vient d'être payée."
-                        ),
-                        data={
-                            "type": "new_order",
-                            "commande_id": (
-                                commande.commande_id
-                            ),
-                            "statut": commande.statut,
-                            "url": (
-                                "https://founa.ci/teller/orders"
-                            )
-                        }
-                    )
-                print(
-                    f"[JEKO] Commande "
-                    f"{commande.commande_id} "
-                    f"passée de "
-                    f"'{commande.statut}' "
-                    f"à 'Payer'."
-                )
-        db.session.commit()
-        
-        # ==========================================================
-        # META PURCHASE : UNIQUEMENT APRÈS UN PAIEMENT RÉUSSI
-        # ==========================================================
-        if status == "success" and commande.statut == "Payer":
-            try:
-                paiement_infos = json.loads(
-                    commande.paiement_infos or "{}"
-                )
-            except (json.JSONDecodeError, TypeError):
-                paiement_infos = {}
+#         if not VerifyJekoWebhookSignature(raw_body, signature):
+#             return {
+#                 "status": "error",
+#                 "message": "Signature invalide."
+#             }, 401
 
-            if not isinstance(paiement_infos, dict):
-                paiement_infos = {}
+#         # ==========================================================
+#         # 2. VÉRIFIER L'ÉVÉNEMENT
+#         # ==========================================================
+#         if event != "TRANSACTION_COMPLETED":
+#             return {
+#                 "status": "ignored",
+#                 "message": "Événement ignoré."
+#             }, 200
 
-            event_id = paiement_infos.get(
-                "meta_purchase_event_id"
-            )
+#         # ==========================================================
+#         # 3. LIRE LES DONNÉES DU WEBHOOK
+#         # ==========================================================
+#         try:
+#             data = json.loads(raw_body)
+#         except (json.JSONDecodeError, TypeError):
+#             return {
+#                 "status": "error",
+#                 "message": "Corps du webhook invalide."
+#             }, 400
 
-            if not event_id:
-                event_id = f"purchase_{commande.commande_id}"
-                paiement_infos["meta_purchase_event_id"] = event_id
+#         transaction_id = data.get("transaction_id")
+#         reference = data.get("reference")
+#         status = str(data.get("status", "")).lower()
+#         amount_cents = data.get("amount_cents")
+#         currency = str(data.get("currency", "")).upper()
 
-                commande.paiement_infos = json.dumps(
-                    paiement_infos,
-                    ensure_ascii=False
-                )
-                db.session.commit()
+#         if not transaction_id or not reference or status not in (
+#             "success", "failed", "error", "cancelled"
+#         ):
+#             return {
+#                 "status": "error",
+#                 "message": "Données de transaction manquantes ou invalides."
+#             }, 400
 
-            if not paiement_infos.get("meta_purchase_sent"):
-                try:
-                    result_meta = SendMetaPurchase(
-                        commande=commande,
-                        client=single_client,
-                        event_id=event_id
-                    )
+#         # ==========================================================
+#         # 4. ÉVITER LE TRAITEMENT EN DOUBLE
+#         # ==========================================================
+#         webhook_existant = Webhook.query.filter_by(
+#             transaction_id=transaction_id
+#         ).first()
 
-                    paiement_infos["meta_purchase_sent"] = True
-                    paiement_infos["meta_purchase_sent_at"] = (
-                        datetime.datetime.utcnow().isoformat()
-                    )
-                    paiement_infos["meta_purchase_response"] = result_meta
+#         if webhook_existant:
+#             return {
+#                 "status": "success",
+#                 "message": "Transaction déjà traitée."
+#             }, 200
 
-                    commande.paiement_infos = json.dumps(
-                        paiement_infos,
-                        ensure_ascii=False
-                    )
-                    db.session.commit()
+#         # ==========================================================
+#         # 5. RETROUVER LA COMMANDE
+#         # ==========================================================
+#         # La référence est supposée être :
+#         # COMMANDE_ID ou COMMANDE_ID-XXXXXXXX
+#         commande_id = reference.rsplit("-", 1)[0]
 
-                except Exception as meta_error:
-                    db.session.rollback()
+#         commande = Commande.query.filter_by(
+#             commande_id=commande_id
+#         ).first()
 
-                    print(
-                        f"[META PURCHASE] Échec pour "
-                        f"{commande.commande_id}: {meta_error}"
-                    )
-        
-        return {
-            "status": "success",
-            "message": "Webhook traité avec succès."
-        }, 200
-    except Exception as e:
-        db.session.rollback()
-        print(f"[JEKO WEBHOOK] Erreur : {str(e)}")
+#         # Si la référence est exactement l'ID de commande,
+#         # conserver cette référence telle quelle.
+#         if not commande:
+#             commande = Commande.query.filter_by(
+#                 commande_id=reference
+#             ).first()
 
-        return {
-            "status": "error",
-            "message": "Erreur lors du traitement du webhook."
-        }, 500
+#         if not commande:
+#             return {
+#                 "status": "error",
+#                 "message": "Commande introuvable."
+#             }, 404
+
+#         # ==========================================================
+#         # 6. VÉRIFIER LA RÉFÉRENCE ENREGISTRÉE ET LE MONTANT
+#         # ==========================================================
+#         try:
+#             paiement_infos = json.loads(
+#                 commande.paiement_infos or "{}"
+#             )
+#         except (json.JSONDecodeError, TypeError):
+#             paiement_infos = {}
+
+#         if not isinstance(paiement_infos, dict):
+#             paiement_infos = {}
+
+#         reference_attendue = paiement_infos.get("reference")
+
+#         if not reference_attendue:
+#             result_data = paiement_infos.get("result") or {}
+#             payment_data = result_data.get("payment") or {}
+#             reference_attendue = payment_data.get("reference")
+
+#         if not reference_attendue or reference != reference_attendue:
+#             return {
+#                 "status": "error",
+#                 "message": "Référence de paiement non vérifiée."
+#             }, 409
+
+#         if status == "success":
+#             try:
+#                 montant_recu = int(amount_cents)
+#                 montant_attendu = int(paiement_infos["amount_cents"])
+#                 montant_commande = int(
+#                     round(float(commande.total_reel) * 100)
+#                 )
+#             except (KeyError, TypeError, ValueError, OverflowError):
+#                 return {
+#                     "status": "error",
+#                     "message": "Impossible de vérifier le montant du paiement."
+#                 }, 409
+
+#             devise_attendue = str(
+#                 paiement_infos.get("currency", "XOF")
+#             ).upper()
+
+#             if currency != devise_attendue or currency != "XOF":
+#                 return {
+#                     "status": "error",
+#                     "message": "Devise du paiement invalide."
+#                 }, 409
+
+#             if (
+#                 montant_recu != montant_attendu
+#                 or montant_recu != montant_commande
+#             ):
+#                 return {
+#                     "status": "error",
+#                     "message": "Le montant payé ne correspond pas à la commande."
+#                 }, 409
+
+#         # ==========================================================
+#         # 7. VÉRIFIER LE CLIENT
+#         # ==========================================================
+#         single_client = Client.query.filter_by(
+#             uid=commande.client_id
+#         ).first()
+
+#         if not single_client:
+#             return {
+#                 "status": "error",
+#                 "message": "Client de la commande introuvable."
+#             }, 404
+
+#         # ==========================================================
+#         # 8. ENREGISTRER LE WEBHOOK
+#         # ==========================================================
+#         nouveau_webhook = Webhook(
+#             transaction_id=transaction_id,
+#             reference=reference,
+#             status=status
+#         )
+
+#         db.session.add(nouveau_webhook)
+
+#         # ==========================================================
+#         # 9. CONFIRMER LE PAIEMENT
+#         # ==========================================================
+#         if status == "success":
+#             if commande.statut != "Payer":
+#                 commande.statut = "Payer"
+
+#                 # Conserver ici le traitement métier déjà présent
+#                 # dans votre fonction :
+#                 # - consommation du code promo ;
+#                 # - journalisation du changement de statut ;
+#                 # - notifications.
+
+#         db.session.commit()
+
+#         # ==========================================================
+#         # 10. RÉPONSE AU FOURNISSEUR
+#         # ==========================================================
+#         return {
+#             "status": "success",
+#             "message": "Webhook traité avec succès."
+#         }, 200
+
+#     except Exception as e:
+#         db.session.rollback()
+#         print(f"[JEKO WEBHOOK] Erreur : {str(e)}")
+
+#         return {
+#             "status": "error",
+#             "message": "Erreur lors du traitement du webhook."
+#         }, 500
