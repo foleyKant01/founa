@@ -8,7 +8,7 @@ import api from "./api";
 
 export const GetAllProduits = (
   page: number = 1,
-  limit: number = 20
+  limit: number = 100
 ) => {
   return api.get("/produits/get_all_produits", {
     params: {
@@ -18,6 +18,17 @@ export const GetAllProduits = (
   });
 };
 
+export const GetProduitsPremium = (
+  page: number = 1,
+  limit: number = 100
+) => {
+  return api.get("/produits/get_produits_premium", {
+    params: {
+      page,
+      limit,
+    },
+  });
+};
 
 // ======================================================
 // PRODUITS NON DISPONIBLES

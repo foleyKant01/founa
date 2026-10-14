@@ -87,6 +87,7 @@ def ImporterProduit():
         for index, data in enumerate(produits, start=1):
             try:
                 nom = str(data.get("nom") or "").strip()
+                status = str(data.get("status") or "").strip()
                 description = str(data.get("description") or "").strip()
                 categorie = str(data.get("categorie") or "").strip()
                 if not nom:
@@ -233,7 +234,7 @@ def ImporterProduit():
                 produit = Produit(
                     nom=nom,
                     fournisseur=fournisseur,
-                    status="disponible",
+                    status=status,
                     devise=devise,
                     categorie=categorie,
                     description=description,
@@ -317,6 +318,57 @@ def GetAllProduits():
                 "has_previous": (pagination.has_prev)
             }
         }, 200
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+        
+        
+def GetProduitsPremium():
+    try:
+        page = request.args.get("page", 1, type=int)
+        limit = 100
+        page = max(page, 1)
+
+        pagination = (
+            Produit.query
+            .filter(Produit.status == "top")
+            .order_by(Produit.random_order)
+            .paginate(
+                page=page,
+                per_page=limit,
+                error_out=False
+            )
+        )
+
+        result = []
+
+        for p in pagination.items:
+            result.append({
+                "uid": p.uid,
+                "nom": p.nom,
+                "prix_vente": p.prix_vente,
+                "images": p.images,
+                "stock_disponible": p.stock_disponible,
+                "moq": p.moq,
+                "status": p.status,
+                "creation_date": str(p.creation_date),
+            })
+
+        return {
+            "status": "success",
+            "produits": result,
+            "pagination": {
+                "page": pagination.page,
+                "limit": limit,
+                "total": pagination.total,
+                "pages": pagination.pages,
+                "has_next": pagination.has_next,
+                "has_previous": pagination.has_prev
+            }
+        }, 200
+
     except Exception as e:
         return {
             "status": "error",

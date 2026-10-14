@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   GetAllProduits,
+  GetProduitsPremium,
   SearchProduct,
   TopProducts,
   GetProduitsByCategorie,
@@ -307,6 +308,9 @@ const HomePage: React.FC = () => {
   const [topProducts, setTopProducts] = useState<Produit[]>([]);
   const [loadingTopProducts, setLoadingTopProducts] = useState(true);
 
+  const [featuredProducts, setFeaturedProducts] = useState<Produit[]>([]);
+  const [loadingFeaturedProducts, setLoadingFeaturedProducts] = useState(true);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHeroPaused, setIsHeroPaused] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -542,6 +546,47 @@ useEffect(() => {
   };
 
   loadHomeProducts();
+}, []);
+
+
+/*
+ * =========================
+ * SÉLECTION PREMIUM FOUNA
+ * =========================
+ */
+useEffect(() => {
+  const loadFeaturedProducts = async () => {
+    try {
+      setLoadingFeaturedProducts(true);
+
+      const response = await GetProduitsPremium();
+
+      if (response?.data?.status === "success") {
+        const products: Produit[] = response.data.produits || [];
+
+        setFeaturedProducts(
+          products
+            .filter(
+              (produit) =>
+                produit.status?.toLowerCase() === "top"
+            )
+            .slice(0, 10)
+        );
+      } else {
+        setFeaturedProducts([]);
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors du chargement de la sélection premium :",
+        error
+      );
+      setFeaturedProducts([]);
+    } finally {
+      setLoadingFeaturedProducts(false);
+    }
+  };
+
+  loadFeaturedProducts();
 }, []);
 
 
@@ -1133,23 +1178,48 @@ const handleLoadMoreProducts = async () => {
               </section>
             ) : (
               <>
+                {!loadingFeaturedProducts &&
+                  featuredProducts.length > 0 && (
+                    <section className="products-section premium-section">
+                      <div className="section-header">
+                        <div>
+                          <span className="section-kicker">
+                            EXCLUSIVITÉS FOUNA
+                          </span>
+
+                          <h2>La sélection premium FOUNA</h2>
+
+                          <p>
+                            Découvrez nos produits soigneusement sélectionnés
+                            pour vous offrir encore plus de choix et de qualité.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="top-products-slider">
+                        {featuredProducts.map((produit) => (
+                          <ProductCard
+                            key={produit.uid}
+                            produit={produit}
+                            horizontal
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  )}
                 {!loadingTopProducts &&
                   topProducts.length > 0 && (
                     <section className="products-section top-section">
                       <div className="section-header">
                         <div>
                           <span className="section-kicker">
-                            SÉLECTION FOUNA
+                            LES INCONTOURNABLES
                           </span>
-
-                          <h2>Produits au top</h2>
-
+                          <h2>Nos meilleures ventes</h2>
                           <p>
-                            Les produits les plus commandés
-                            par nos clients.
+                            Découvrez les produits les plus appréciés et les plus commandés sur FOUNA.
                           </p>
                         </div>
-
                         <button
                           type="button"
                           className="see-all-button"

@@ -24,8 +24,11 @@ class ProduitsApi(Resource):
         if route == "get_all_produits":
             return GetAllProduits() 
         
+        if route == "get_produits_premium":
+            return GetProduitsPremium() 
+        
         if route == "get_all_unavaible_product":
-            return GetAllUnavaibleProduct() 
+            return GetAllUnavaibleProduct()  
         
         if route == "importer_produit":
             return ImporterProduit() 
