@@ -1237,7 +1237,7 @@ useEffect(() => {
             #008486;
 
           padding:
-            6px 10px;
+            6px 8px;
 
           border-radius: 6px;
 
@@ -1251,7 +1251,7 @@ useEffect(() => {
           letter-spacing:
             0.5px;
 
-          margin-bottom: 12px;
+          margin-bottom: 6px;
         }
 
         .product-title {
@@ -1279,7 +1279,7 @@ useEffect(() => {
         }
 
         .price-section {
-          margin-top: 20px;
+          margin-top: 10px;
         }
 
         .product-price {
@@ -1412,7 +1412,7 @@ useEffect(() => {
             #222;
 
           margin:
-            0 0 10px;
+            0 0 5px;
 
           font-weight: 600;
         }
@@ -1468,7 +1468,7 @@ useEffect(() => {
 
           cursor: pointer;
 
-          margin-top: 7px;
+          margin-top: 3px;
 
           padding: 4px;
         }
@@ -2098,7 +2098,7 @@ useEffect(() => {
 
           .details-section {
             padding:
-              20px 15px 18px;
+              10px 8px 10px;
           }
 
           .product-title {
@@ -2117,31 +2117,24 @@ useEffect(() => {
 
             font-size: 10px;
           }
-
           .product-moq svg {
             width: 14px;
             height: 14px;
           }
-
           .separator {
             margin:
-              18px 0;
+              8px 0;
           }
-
           .order-box {
-            padding: 14px;
-
+            padding: 7px;
             margin-top: 20px;
           }
-
           .similar-section {
             margin-top: 25px;
           }
-
           .similar-header h2 {
             font-size: 20px;
           }
-
           .similar-grid {
             grid-template-columns:
               repeat(
@@ -2151,34 +2144,25 @@ useEffect(() => {
                   1fr
                 )
               );
-
             gap: 9px;
           }
-
           .similar-content {
             padding:
               9px 9px 11px;
           }
-
           .similar-name {
             font-size: 12px;
-
             min-height: 34px;
           }
-
           .similar-price {
             font-size: 14px;
           }
-
         }
-
         @media (max-width: 380px) {
-
           .product-container {
             padding:
               7px;
           }
-
           .main-image-wrapper {
             min-height: 260px;
           }

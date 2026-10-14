@@ -468,11 +468,8 @@ def GetJekoPaymentRequest(payment_request_id):
 
 
 def CreateJekoPaymentRequest(payload):
-
     url = (
-        "https://api.jeko.africa"
-        "/partner_api/payment_requests"
-    )
+        "https://api.jeko.africa""/partner_api/payment_requests")
 
     payment_details = (
         payload.get("paymentDetails") or {}
@@ -525,14 +522,10 @@ def CreateJekoPaymentRequest(payload):
     }
 
     headers = {
-
         "Content-Type": "application/json",
-
         "X-API-KEY": API_KEY,
-
         "X-API-KEY-ID": API_KEY_ID
     }
-
     try:
 
         response = requests.post(

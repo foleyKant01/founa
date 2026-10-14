@@ -971,8 +971,6 @@ const handleLoadMoreProducts = async () => {
             </div>
 
             <div className="categories-rows">
-
-              {/* PREMIÈRE LIGNE */}
               <div className="categories-row">
                 {CATEGORIES.slice(0, Math.ceil(CATEGORIES.length / 2)).map(
                   (category) => {
@@ -1785,7 +1783,7 @@ const handleLoadMoreProducts = async () => {
   overflow-x: auto;
   overflow-y: hidden;
 
-  padding: 4px 4px 8px;
+  padding: 0px 4px 4px;
 
   scroll-behavior: smooth;
 
@@ -1988,7 +1986,7 @@ const handleLoadMoreProducts = async () => {
 
           gap: 20px;
 
-          margin-bottom: 20px;
+          margin-bottom: 10px;
         }
 
         .section-kicker {
@@ -2569,7 +2567,7 @@ const handleLoadMoreProducts = async () => {
 
           .home-content {
             padding:
-              20px
+              10px
               0;
           }
 
@@ -2638,11 +2636,11 @@ const handleLoadMoreProducts = async () => {
           }
 
           .categories-section {
-  padding: 18px 0 20px;
+  padding: 10px 0 0px;
 }
 
 .categories-container {
-  padding: 0 10px;
+  padding: 0 0px;
 }
 
 .categories-header {
