@@ -303,7 +303,7 @@ const HomePage: React.FC = () => {
   const [hasMoreProducts, setHasMoreProducts] = useState(false);
 
   const PRODUCTS_PER_PAGE = 100;
-
+  const HOME_CACHE_KEY = "founa_home_products_v2";
 
   const [topProducts, setTopProducts] = useState<Produit[]>([]);
   const [loadingTopProducts, setLoadingTopProducts] = useState(true);
@@ -330,20 +330,20 @@ const HomePage: React.FC = () => {
 
 
 
+
 const refreshHomePage = async () => {
   try {
     setLoadingProducts(true);
     setLoadingTopProducts(true);
     setLoadingFeaturedProducts(true);
 
-    // Réinitialiser la recherche et la catégorie
     setSearchText("");
     setSearchResults([]);
     setSelectedCategory(null);
     setCategoryProducts([]);
 
-    // Revenir à la première page du catalogue
     setCurrentProductsPage(1);
+    setCurrentCategoryPage(1);
 
     const [
       productsResponse,
@@ -360,7 +360,7 @@ const refreshHomePage = async () => {
     let refreshedFeaturedProducts: Produit[] = [];
     let hasMore = false;
 
-    // Catalogue général
+    // 1. Catalogue général : ordre aléatoire
     if (productsResponse?.data?.status === "success") {
       refreshedProducts = shuffleProducts(
         productsResponse.data.produits || []
@@ -371,36 +371,37 @@ const refreshHomePage = async () => {
       );
     }
 
-    // Meilleures ventes
+    // 2. Produits populaires : sélectionner 10 produits aléatoires
     if (topResponse?.data?.status === "success") {
-      refreshedTopProducts = (
+      refreshedTopProducts = shuffleProducts(
         topResponse.data.produits || []
       ).slice(0, 10);
     }
 
-    // Sélection premium
+    // 3. Sélection premium : conserver tous les produits correspondants
     if (premiumResponse?.data?.status === "success") {
-      refreshedFeaturedProducts = (
+      const premiumList: Produit[] = (
         premiumResponse.data.produits || []
-      )
-        .filter(
-          (produit: Produit) =>
-            produit.status?.toLowerCase() === "top"
-        )
-        .slice(0, 10);
+      ).filter(
+        (produit: Produit) =>
+          produit.status?.trim().toLowerCase() === "top"
+      );
+
+      refreshedFeaturedProducts = shuffleProducts(premiumList);
     }
 
-    // Mettre à jour les états React
+    // Mettre à jour l'affichage
     setAllProducts(refreshedProducts);
     setTopProducts(refreshedTopProducts);
     setFeaturedProducts(refreshedFeaturedProducts);
 
+    setCurrentProductsPage(1);
     setHasMoreProducts(hasMore);
     setHasMoreCategoryProducts(false);
 
-    // Enregistrer les trois listes dans un seul cache
+    // Sauvegarder les listes dans le cache
     sessionStorage.setItem(
-      "founa_home_products",
+      HOME_CACHE_KEY,
       JSON.stringify({
         allProducts: refreshedProducts,
         topProducts: refreshedTopProducts,
