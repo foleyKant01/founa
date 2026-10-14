@@ -500,9 +500,14 @@ useEffect(() => {
           Array.isArray(cache.featuredProducts);
 
         if (hasCompleteCache) {
-          setAllProducts(cache.allProducts);
-          setTopProducts(cache.topProducts);
-          setFeaturedProducts(cache.featuredProducts);
+
+          const shuffledAllProducts = shuffleProducts(cache.allProducts);
+          const shuffledTopProducts = shuffleProducts(cache.topProducts);
+          const shuffledFeaturedProducts = shuffleProducts(cache.featuredProducts);
+
+          setAllProducts(shuffledAllProducts);
+          setTopProducts(shuffledTopProducts);
+          setFeaturedProducts(shuffledFeaturedProducts);
 
           setCurrentProductsPage(
             cache.currentProductsPage || 1

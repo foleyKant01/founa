@@ -327,24 +327,16 @@ def GetAllProduits():
         
 def GetProduitsPremium():
     try:
-        page = request.args.get("page", 1, type=int)
-        limit = 100
-        page = max(page, 1)
-
-        pagination = (
+        produits = (
             Produit.query
             .filter(Produit.status == "top")
             .order_by(Produit.random_order)
-            .paginate(
-                page=page,
-                per_page=limit,
-                error_out=False
-            )
+            .all()
         )
 
         result = []
 
-        for p in pagination.items:
+        for p in produits:
             result.append({
                 "uid": p.uid,
                 "nom": p.nom,
@@ -359,14 +351,7 @@ def GetProduitsPremium():
         return {
             "status": "success",
             "produits": result,
-            "pagination": {
-                "page": pagination.page,
-                "limit": limit,
-                "total": pagination.total,
-                "pages": pagination.pages,
-                "has_next": pagination.has_next,
-                "has_previous": pagination.has_prev
-            }
+            "total": len(result)
         }, 200
 
     except Exception as e:
