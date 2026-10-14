@@ -676,7 +676,6 @@ const handleLoadMoreProducts = async () => {
           );
         }
       }
-
       sessionStorage.setItem(
         "founa_home_products",
         JSON.stringify({
@@ -689,7 +688,6 @@ const handleLoadMoreProducts = async () => {
           hasMoreProducts: hasMore,
         })
       );
-
     }
   } catch (error) {
     console.error(
@@ -724,11 +722,8 @@ const handleLoadMoreProducts = async () => {
   }, [location.pathname, location.state?.refreshHome, nav]);
 
   /*
-   * =========================
    * RECHERCHE
-   * =========================
    */
-
   const handleSearch = async (text: string) => {
     setSearchText(text);
 
