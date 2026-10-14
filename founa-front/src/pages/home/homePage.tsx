@@ -2022,7 +2022,7 @@ const handleLoadMoreProducts = async () => {
 
         .products-section {
           width: 100%;
-          margin-bottom: 50px;
+          margin-bottom: 20px;
           scroll-margin-top: 90px;
         }
 
@@ -2095,7 +2095,7 @@ const handleLoadMoreProducts = async () => {
 
           gap: 20px;
 
-          margin-bottom: 10px;
+          margin-bottom: 0px;
         }
 
         .section-kicker {
@@ -2159,7 +2159,7 @@ const handleLoadMoreProducts = async () => {
 
           cursor: pointer;
 
-          padding: 8px 0;
+          padding: 0px 0 8px;
         }
 
         .see-all-button:hover {
