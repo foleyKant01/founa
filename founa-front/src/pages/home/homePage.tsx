@@ -14,7 +14,6 @@ import {
   ChevronLeft,
   Factory,
   Zap,
-  Smartphone,
   Shirt,
   Home,
   Sparkles,
@@ -49,7 +48,12 @@ import {
   Laptop,
   Refrigerator,
   Lightbulb,
-  ChevronRight
+  ChevronRight,
+  X,
+  Smartphone,
+  Share,
+  MoreVertical,
+  Download
 } from "lucide-react";
 interface Produit {
   id: number;
@@ -317,6 +321,8 @@ const HomePage: React.FC = () => {
   const [currentSearchPage, setCurrentSearchPage] = useState(1);
   const [hasMoreSearchResults, setHasMoreSearchResults] = useState(false);
   const [loadingMoreSearchResults, setLoadingMoreSearchResults] = useState(false);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const [installPlatform, setInstallPlatform] = useState<"ios" | "android" | "other">("other");
 
 
 const refreshHomePage = async () => {
@@ -425,6 +431,26 @@ const refreshHomePage = async () => {
       window.clearInterval(interval);
     };
   }, [isHeroPaused]);
+
+
+  // Afficher l'aide une seule fois par navigateur/appareil.
+  useEffect(() => {
+    const dismissed = localStorage.getItem("founa_add_home_screen_help_dismissed");
+    if (dismissed) return;
+
+    const userAgent = navigator.userAgent || "";
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/i.test(userAgent);
+
+    setInstallPlatform(isIOS ? "ios" : isAndroid ? "android" : "other");
+    setShowInstallHelp(true);
+  }, []);
+
+  const closeInstallHelp = () => {
+    localStorage.setItem("founa_add_home_screen_help_dismissed", "true");
+    setShowInstallHelp(false);
+  };
 
 useEffect(() => {
   const CACHE_KEY = "founa_home_products";
@@ -1309,6 +1335,89 @@ const handleLoadMoreProducts = async () => {
           </>
         )}
       </main>
+
+      {showInstallHelp && (
+        <div
+          className="founa-install-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeInstallHelp();
+          }}
+        >
+          <section
+            className="founa-install-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="founa-install-title"
+          >
+            <button
+              type="button"
+              className="founa-install-close"
+              onClick={closeInstallHelp}
+              aria-label="Fermer les instructions"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="founa-install-icon">
+              <Smartphone size={34} strokeWidth={1.8} />
+            </div>
+            <span className="founa-install-eyebrow">ASTUCE FOUNA</span>
+            <h2 id="founa-install-title">FOUNA, toujours à portée de main !</h2>
+            <p className="founa-install-intro">
+              Ajoutez FOUNA à l’écran d’accueil de votre téléphone pour y accéder rapidement, comme une application.
+            </p>
+
+            {installPlatform === "ios" ? (
+              <div className="founa-install-steps">
+                <div className="founa-install-step">
+                  <span>1</span>
+                  <p>Dans Safari ou Chrome, appuyez sur le bouton <strong>Partager</strong> <Share size={16} className="founa-inline-icon" />.</p>
+                </div>
+                <div className="founa-install-step">
+                  <span>2</span>
+                  <p>Dans le menu, choisissez <strong>Sur l’écran d’accueil</strong>. Si l’option n’apparaît pas dans Chrome, ouvrez FOUNA dans Safari.</p>
+                </div>
+                <div className="founa-install-step">
+                  <span>3</span>
+                  <p>Appuyez sur <strong>Ajouter</strong> en haut de l’écran.</p>
+                </div>
+              </div>
+            ) : installPlatform === "android" ? (
+              <div className="founa-install-steps">
+                <div className="founa-install-step">
+                  <span>1</span>
+                  <p>Dans Chrome, appuyez sur le menu <strong>⋮</strong> en haut à droite <MoreVertical size={16} className="founa-inline-icon" />.</p>
+                </div>
+                <div className="founa-install-step">
+                  <span>2</span>
+                  <p>Choisissez <strong>Installer l’application</strong> ou <strong>Ajouter à l’écran d’accueil</strong>, selon l’option affichée.</p>
+                </div>
+                <div className="founa-install-step">
+                  <span>3</span>
+                  <p>Confirmez en suivant les instructions à l’écran.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="founa-install-steps">
+                <div className="founa-install-step">
+                  <span>1</span>
+                  <p><strong>Sur iPhone (Safari) :</strong> appuyez sur Partager, puis sur « Sur l’écran d’accueil » et « Ajouter ».</p>
+                </div>
+                <div className="founa-install-step">
+                  <span>2</span>
+                  <p><strong>Sur Android (Chrome) :</strong> ouvrez le menu ⋮, puis « Installer l’application » ou « Ajouter à l’écran d’accueil ».</p>
+                </div>
+              </div>
+            )}
+
+            <button type="button" className="founa-install-cta" onClick={closeInstallHelp}>
+              <Download size={18} /> Compris, je vais essayer
+            </button>
+            <p className="founa-install-note">Cette action est facultative. Vous pouvez continuer à utiliser FOUNA normalement.</p>
+          </section>
+        </div>
+      )}
 
       <style>{`
         * {
@@ -2739,6 +2848,172 @@ const handleLoadMoreProducts = async () => {
           .top-product-card {
             flex-basis: 150px;
           }
+        }
+
+        /* =========================
+           MODALE AJOUT A L'ECRAN D'ACCUEIL
+        ========================= */
+        .founa-install-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 5000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          background: rgba(12, 23, 32, 0.68);
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
+          overflow-y: auto;
+        }
+
+        .founa-install-modal {
+          position: relative;
+          width: min(100%, 460px);
+          max-height: min(90vh, 850px);
+          overflow-y: auto;
+          padding: 30px 28px 24px;
+          border-radius: 24px;
+          background: #ffffff;
+          color: #1f2937;
+          box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+          text-align: center;
+          animation: founaModalIn 0.28s ease-out;
+        }
+
+        .founa-install-close {
+          position: absolute;
+          top: 14px;
+          right: 14px;
+          width: 38px;
+          height: 38px;
+          display: grid;
+          place-items: center;
+          border: 0;
+          border-radius: 50%;
+          background: #f1f5f9;
+          color: #475569;
+          cursor: pointer;
+        }
+
+        .founa-install-icon {
+          width: 70px;
+          height: 70px;
+          margin: 0 auto 15px;
+          display: grid;
+          place-items: center;
+          border-radius: 22px;
+          background: #e6f8f8;
+          color: #008f91;
+        }
+
+        .founa-install-eyebrow {
+          color: #008f91;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 1.8px;
+        }
+
+        .founa-install-modal h2 {
+          margin: 9px 0 10px;
+          font-size: clamp(22px, 5vw, 27px);
+          line-height: 1.2;
+          letter-spacing: -0.6px;
+        }
+
+        .founa-install-intro {
+          margin: 0 auto 10px;
+          max-width: 350px;
+          color: #64748b;
+          font-size: 14px;
+          line-height: 1.6;
+        }
+
+        .founa-install-steps {
+          display: grid;
+          gap: 11px;
+          text-align: left;
+        }
+
+        .founa-install-step {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 12px;
+          border: 1px solid #e8eef0;
+          border-radius: 14px;
+          background: #fbfdfd;
+        }
+
+        .founa-install-step > span {
+          flex: 0 0 27px;
+          width: 27px;
+          height: 27px;
+          display: grid;
+          place-items: center;
+          border-radius: 9px;
+          background: #e3f7f7;
+          color: #008f91;
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        .founa-install-step p {
+          margin: 2px 0 0;
+          color: #475569;
+          font-size: 13px;
+          line-height: 1.55;
+        }
+
+        .founa-install-step strong {
+          color: #17212b;
+        }
+
+        .founa-inline-icon {
+          display: inline-block;
+          vertical-align: middle;
+          color: #008f91;
+        }
+
+        .founa-install-cta {
+          width: 100%;
+          min-height: 48px;
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          border: 0;
+          border-radius: 13px;
+          background: #00a4a6;
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .founa-install-cta:hover {
+          background: #008f91;
+          transform: translateY(-1px);
+        }
+
+        .founa-install-note {
+          margin: 12px 0 0;
+          color: #94a3b8;
+          font-size: 11px;
+          line-height: 1.5;
+        }
+
+        @keyframes founaModalIn {
+          from { opacity: 0; transform: translateY(12px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @media (max-width: 480px) {
+          .founa-install-backdrop { padding: 12px; }
+          .founa-install-modal { padding: 15px 17px 15px; border-radius: 20px; max-height: 94vh; }
+          .founa-install-step { padding: 10px; gap: 10px; }
         }
       `}</style>
     </div>
