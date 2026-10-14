@@ -1220,7 +1220,7 @@ const handleLoadMoreProducts = async () => {
                             Découvrez les produits les plus appréciés et les plus commandés sur FOUNA.
                           </p>
                         </div>
-                        <button
+                        {/* <button
                           type="button"
                           className="see-all-button"
                           onClick={() =>
@@ -1234,7 +1234,7 @@ const handleLoadMoreProducts = async () => {
                         >
                           Voir tous
                           <ChevronDown size={18} />
-                        </button>
+                        </button> */}
                       </div>
 
                       <div className="top-products-slider">

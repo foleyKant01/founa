@@ -444,9 +444,9 @@ useEffect(() => {
         );
 
 
-        setTimeout(() => {
-          nav("/home");
-        }, 2500);
+        // setTimeout(() => {
+        //   nav("/home");
+        // }, 2500);
       } else {
         showToast(
           response.data.message ||
