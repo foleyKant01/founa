@@ -329,10 +329,12 @@ const HomePage: React.FC = () => {
   const [installPlatform, setInstallPlatform] = useState<"ios" | "android" | "other">("other");
 
 
+
 const refreshHomePage = async () => {
   try {
     setLoadingProducts(true);
     setLoadingTopProducts(true);
+    setLoadingFeaturedProducts(true);
 
     // Réinitialiser la recherche et la catégorie
     setSearchText("");
@@ -340,21 +342,25 @@ const refreshHomePage = async () => {
     setSelectedCategory(null);
     setCategoryProducts([]);
 
-    // Revenir à la première page
+    // Revenir à la première page du catalogue
     setCurrentProductsPage(1);
 
-    // Charger les produits et les produits populaires
-    const [productsResponse, topResponse] = await Promise.all([
+    const [
+      productsResponse,
+      topResponse,
+      premiumResponse,
+    ] = await Promise.all([
       GetAllProduits(1, PRODUCTS_PER_PAGE),
       TopProducts(),
+      GetProduitsPremium(1, 100),
     ]);
 
-    // Déclarer chaque variable une seule fois
     let refreshedProducts: Produit[] = [];
     let refreshedTopProducts: Produit[] = [];
+    let refreshedFeaturedProducts: Produit[] = [];
     let hasMore = false;
 
-    // Traiter les produits du catalogue
+    // Catalogue général
     if (productsResponse?.data?.status === "success") {
       refreshedProducts = shuffleProducts(
         productsResponse.data.produits || []
@@ -365,24 +371,40 @@ const refreshHomePage = async () => {
       );
     }
 
-    setAllProducts(refreshedProducts);
-    setHasMoreProducts(hasMore);
-
-    // Traiter les produits populaires
+    // Meilleures ventes
     if (topResponse?.data?.status === "success") {
       refreshedTopProducts = (
         topResponse.data.produits || []
       ).slice(0, 10);
     }
 
-    setTopProducts(refreshedTopProducts);
+    // Sélection premium
+    if (premiumResponse?.data?.status === "success") {
+      refreshedFeaturedProducts = (
+        premiumResponse.data.produits || []
+      )
+        .filter(
+          (produit: Produit) =>
+            produit.status?.toLowerCase() === "top"
+        )
+        .slice(0, 10);
+    }
 
-    // Enregistrer les données actualisées dans le cache
+    // Mettre à jour les états React
+    setAllProducts(refreshedProducts);
+    setTopProducts(refreshedTopProducts);
+    setFeaturedProducts(refreshedFeaturedProducts);
+
+    setHasMoreProducts(hasMore);
+    setHasMoreCategoryProducts(false);
+
+    // Enregistrer les trois listes dans un seul cache
     sessionStorage.setItem(
       "founa_home_products",
       JSON.stringify({
         allProducts: refreshedProducts,
         topProducts: refreshedTopProducts,
+        featuredProducts: refreshedFeaturedProducts,
         currentProductsPage: 1,
         hasMoreProducts: hasMore,
       })
@@ -395,8 +417,10 @@ const refreshHomePage = async () => {
   } finally {
     setLoadingProducts(false);
     setLoadingTopProducts(false);
+    setLoadingFeaturedProducts(false);
   }
 };
+
 
   /*
    * =========================
@@ -456,48 +480,79 @@ const refreshHomePage = async () => {
     setShowInstallHelp(false);
   };
 
+
 useEffect(() => {
   const CACHE_KEY = "founa_home_products";
 
   const loadHomeProducts = async () => {
-    // 1. Vérifier si les produits sont déjà en cache
+    // 1. Vérifier le cache
     const cachedData = sessionStorage.getItem(CACHE_KEY);
 
     if (cachedData) {
       try {
         const cache = JSON.parse(cachedData);
 
-        setAllProducts(cache.allProducts || []);
-        setTopProducts(cache.topProducts || []);
-        setCurrentProductsPage(cache.currentProductsPage || 1);
-        setHasMoreProducts(Boolean(cache.hasMoreProducts));
+        // Vérifier la présence des trois listes.
+        // Un ancien cache sans featuredProducts doit être rechargé.
+        const hasCompleteCache =
+          Array.isArray(cache.allProducts) &&
+          Array.isArray(cache.topProducts) &&
+          Array.isArray(cache.featuredProducts);
 
-        setLoadingProducts(false);
-        setLoadingTopProducts(false);
+        if (hasCompleteCache) {
+          setAllProducts(cache.allProducts);
+          setTopProducts(cache.topProducts);
+          setFeaturedProducts(cache.featuredProducts);
 
-        // Ne pas refaire les requêtes API au retour sur l'accueil
-        return;
+          setCurrentProductsPage(
+            cache.currentProductsPage || 1
+          );
+
+          setHasMoreProducts(
+            Boolean(cache.hasMoreProducts)
+          );
+
+          setLoadingProducts(false);
+          setLoadingTopProducts(false);
+          setLoadingFeaturedProducts(false);
+
+          // Les trois listes sont déjà disponibles.
+          return;
+        }
       } catch (error) {
-        console.error("Erreur de lecture du cache :", error);
-        sessionStorage.removeItem(CACHE_KEY);
+        console.error(
+          "Erreur de lecture du cache de la page d'accueil :",
+          error
+        );
       }
+
+      // Cache incomplet ou invalide
+      sessionStorage.removeItem(CACHE_KEY);
     }
 
-    // 2. Aucun cache : charger depuis l'API
+    // 2. Aucun cache complet : charger les trois sources
     try {
       setLoadingProducts(true);
       setLoadingTopProducts(true);
+      setLoadingFeaturedProducts(true);
 
-      const [productsResponse, topResponse] = await Promise.all([
+      const [
+        productsResponse,
+        topResponse,
+        premiumResponse,
+      ] = await Promise.all([
         GetAllProduits(1, PRODUCTS_PER_PAGE),
         TopProducts(),
+        GetProduitsPremium(1, 100),
       ]);
 
-      let allProductsData: typeof allProducts = [];
-      let topProductsData: typeof topProducts = [];
+      let allProductsData: Produit[] = [];
+      let topProductsData: Produit[] = [];
+      let featuredProductsData: Produit[] = [];
       let hasMore = false;
 
-      if (productsResponse.data.status === "success") {
+      // Catalogue général
+      if (productsResponse?.data?.status === "success") {
         allProductsData = shuffleProducts(
           productsResponse.data.produits || []
         );
@@ -505,31 +560,42 @@ useEffect(() => {
         hasMore = Boolean(
           productsResponse.data.pagination?.has_next
         );
-
-        setAllProducts(allProductsData);
-        setCurrentProductsPage(1);
-        setHasMoreProducts(hasMore);
-      } else {
-        setAllProducts([]);
-        setHasMoreProducts(false);
       }
 
-      if (topResponse.data.status === "success") {
+      // Meilleures ventes
+      if (topResponse?.data?.status === "success") {
         topProductsData = (
           topResponse.data.produits || []
         ).slice(0, 10);
-
-        setTopProducts(topProductsData);
-      } else {
-        setTopProducts([]);
       }
 
-      // 3. Mémoriser les données pour les prochaines visites
+      // Sélection premium
+      if (premiumResponse?.data?.status === "success") {
+        featuredProductsData = (
+          premiumResponse.data.produits || []
+        )
+          .filter(
+            (produit: Produit) =>
+              produit.status?.toLowerCase() === "top"
+          )
+          .slice(0, 10);
+      }
+
+      // Mettre à jour les états
+      setAllProducts(allProductsData);
+      setTopProducts(topProductsData);
+      setFeaturedProducts(featuredProductsData);
+
+      setCurrentProductsPage(1);
+      setHasMoreProducts(hasMore);
+
+      // 3. Sauvegarder les trois listes
       sessionStorage.setItem(
         CACHE_KEY,
         JSON.stringify({
           allProducts: allProductsData,
           topProducts: topProductsData,
+          featuredProducts: featuredProductsData,
           currentProductsPage: 1,
           hasMoreProducts: hasMore,
         })
@@ -542,52 +608,13 @@ useEffect(() => {
     } finally {
       setLoadingProducts(false);
       setLoadingTopProducts(false);
+      setLoadingFeaturedProducts(false);
     }
   };
 
   loadHomeProducts();
 }, []);
 
-
-/*
- * =========================
- * SÉLECTION PREMIUM FOUNA
- * =========================
- */
-useEffect(() => {
-  const loadFeaturedProducts = async () => {
-    try {
-      setLoadingFeaturedProducts(true);
-
-      const response = await GetProduitsPremium();
-
-      if (response?.data?.status === "success") {
-        const products: Produit[] = response.data.produits || [];
-
-        setFeaturedProducts(
-          products
-            .filter(
-              (produit) =>
-                produit.status?.toLowerCase() === "top"
-            )
-            .slice(0, 10)
-        );
-      } else {
-        setFeaturedProducts([]);
-      }
-    } catch (error) {
-      console.error(
-        "Erreur lors du chargement de la sélection premium :",
-        error
-      );
-      setFeaturedProducts([]);
-    } finally {
-      setLoadingFeaturedProducts(false);
-    }
-  };
-
-  loadFeaturedProducts();
-}, []);
 
 
 
@@ -636,6 +663,7 @@ const handleLoadMoreProducts = async () => {
 
       let cache: {
         topProducts?: Produit[];
+        featuredProducts?: Produit[];
       } = {};
 
       if (cachedData) {
@@ -654,11 +682,14 @@ const handleLoadMoreProducts = async () => {
         JSON.stringify({
           ...cache,
           allProducts: updatedProducts,
-          topProducts: cache.topProducts || topProducts,
+          topProducts: cache.topProducts ?? topProducts,
+          featuredProducts:
+            cache.featuredProducts ?? featuredProducts,
           currentProductsPage: nextPage,
           hasMoreProducts: hasMore,
         })
       );
+
     }
   } catch (error) {
     console.error(
