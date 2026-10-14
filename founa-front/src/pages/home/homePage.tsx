@@ -1892,7 +1892,7 @@ const handleLoadMoreProducts = async () => {
   overflow-x: auto;
   overflow-y: hidden;
 
-  padding: 0px 4px 4px;
+  padding: 10px 4px 4px;
 
   scroll-behavior: smooth;
 
