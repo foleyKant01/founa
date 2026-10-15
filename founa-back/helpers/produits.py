@@ -1,3 +1,4 @@
+import os
 from config.db import db
 from model.founa import *
 from config.constant import *
@@ -39,10 +40,7 @@ def delete_cloudinary_images(images):
         try:
             public_id = image.get("public_id")
             if public_id:
-                cloudinary.uploader.destroy(
-                    public_id,
-                    resource_type="image"
-                )
+                cloudinary.uploader.destroy(public_id, resource_type="image")
         except Exception as e:
             print(
                 f"Erreur suppression Cloudinary "
@@ -55,25 +53,14 @@ def ImporterProduit():
     erreurs = []
     produits_ignores = []
     try:
-        base_dir = os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))
-        )
-        fichier_json = os.path.join(
-            base_dir,
-            "data",
-            "produits.json"
-        )
-
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        fichier_json = os.path.join(base_dir, "data", "produits.json")
         if not os.path.exists(fichier_json):
             return {
                 "status": "error",
                 "message": f"Fichier introuvable : {fichier_json}"
             }
-        with open(
-            fichier_json,
-            "r",
-            encoding="utf-8"
-        ) as fichier:
+        with open(fichier_json, "r", encoding="utf-8") as fichier:
             produits = json.load(fichier)
         if not isinstance(produits, list):
             return {
@@ -328,14 +315,8 @@ def GetAllProduits():
 def GetProduitsPremium():
     try:
         produits = (
-            Produit.query
-            .filter(Produit.status == "top")
-            .order_by(Produit.random_order)
-            .all()
-        )
-
+            Produit.query.filter(Produit.status == "top").order_by(Produit.random_order).all())
         result = []
-
         for p in produits:
             result.append({
                 "uid": p.uid,
@@ -347,13 +328,11 @@ def GetProduitsPremium():
                 "status": p.status,
                 "creation_date": str(p.creation_date),
             })
-
         return {
             "status": "success",
             "produits": result,
             "total": len(result)
         }, 200
-
     except Exception as e:
         return {
             "status": "error",
@@ -383,11 +362,7 @@ def MettreAJourPrixVente():
         produits = Produit.query.all()
         produits_mis_a_jour = []
         for p in produits:
-            devise = (
-                (p.devise or "usd")
-                .strip()
-                .lower()
-            )
+            devise = ((p.devise or "usd").strip().lower())
             if devise == "usd":
                 taux_conversion = TAUX_USD_XOF
             elif devise == "euro":
@@ -397,31 +372,19 @@ def MettreAJourPrixVente():
                     f"Devise inconnue pour le produit "
                     f"'{p.nom}' : {p.devise}"
                 )
-            prix_fournisseur_devise = float(
-                p.prix_fournisseur_devise or 0
-            )
-            prix_fournisseur_fcfa = math.ceil(
-                prix_fournisseur_devise * taux_conversion
-            )
+            prix_fournisseur_devise = float(p.prix_fournisseur_devise or 0)
+            prix_fournisseur_fcfa = math.ceil(prix_fournisseur_devise * taux_conversion)
             p.prix_fournisseur = prix_fournisseur_fcfa
-            prix_vente = (
-                prix_fournisseur_fcfa * 1.25
-            )
-            p.prix_vente = (
-                math.ceil(prix_vente / 10) * 10
-            )
+            prix_vente = (prix_fournisseur_fcfa * 1.25)
+            p.prix_vente = (math.ceil(prix_vente / 10) * 10)
             produits_mis_a_jour.append({
                 "uid": p.uid,
                 "nom": p.nom,
                 "devise": devise,
-                "prix_fournisseur_devise":
-                    prix_fournisseur_devise,
-                "taux_conversion":
-                    taux_conversion,
-                "prix_fournisseur_fcfa":
-                    prix_fournisseur_fcfa,
-                "prix_vente":
-                    p.prix_vente
+                "prix_fournisseur_devise":prix_fournisseur_devise,
+                "taux_conversion":taux_conversion,
+                "prix_fournisseur_fcfa":prix_fournisseur_fcfa,
+                "prix_vente":p.prix_vente
             })
         db.session.commit()
         return {
@@ -486,12 +449,8 @@ def UpdateProduit():
             prix_fournisseur = float(prix_fournisseur_str)
         except (TypeError, ValueError):
             prix_fournisseur = 0.0
-        prix_vente = math.ceil(
-            prix_fournisseur * 1.25 / 10
-        ) * 10
-        stock_disponible_str = request.form.get(
-            'stock_disponible'
-        ) or "0"
+        prix_vente = math.ceil(prix_fournisseur * 1.25 / 10) * 10
+        stock_disponible_str = request.form.get('stock_disponible') or "0"
         moq_str = request.form.get('moq') or "0"
         try:
             stock_disponible = int(stock_disponible_str)
@@ -665,12 +624,10 @@ def AllSimilarProducts():
                     score_name = max(score_name,45)
                 elif name_match_percentage >= 0.40:
                     score_name = max(score_name, 30)
-
             for word in description_words:
                 if word in description:
                     matched_description_words += 1
             score_description = min(matched_description_words * 3, 30)
-
             for word in category_words:
                 if word in categorie:
                     matched_category_words += 1
@@ -709,30 +666,12 @@ def AllSimilarProducts():
         )
         products_info = products_info[:100]
         for product in products_info:
-            product.pop(
-                "score_name",
-                None
-            )
-            product.pop(
-                "score_description",
-                None
-            )
-            product.pop(
-                "score_category",
-                None
-            )
-            product.pop(
-                "matched_name_words",
-                None
-            )
-            product.pop(
-                "matched_description_words",
-                None
-            )
-            product.pop(
-                "matched_category_words",
-                None
-            )
+            product.pop("score_name", None)
+            product.pop("score_description", None)
+            product.pop("score_category", None)
+            product.pop("matched_name_words", None)
+            product.pop("matched_description_words", None)
+            product.pop("matched_category_words", None)
         response["status"] = "success"
         response["products"] = products_info
         response["total"] = len(products_info)
@@ -755,7 +694,6 @@ def normalize_text(text):
      
 
 def SearchProduct():
-    response = {}
     try:
         data = request.json or {}
         text = (data.get("textSearch") or "").strip()

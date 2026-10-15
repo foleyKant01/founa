@@ -5,15 +5,14 @@ from helpers.clients import *
 from helpers.send_mailer import *
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, InvalidHashError
-ph = PasswordHasher()
 
+ph = PasswordHasher()
 USER_TABLES = [
     {"model": Admin, "role": "Admin"},
     {"model": Teller, "role": "Teller"},
     {"model": Client, "role": "Client"},
     {"model": PartnerPub, "role": "PartnerPub"},
 ]
-
 
 def LoginClient():
     try:
@@ -81,71 +80,25 @@ def LoginClient():
                 "message": "Email/téléphone ou mot de passe incorrect."
             }, 401
         response_data = {
-            "uid": getattr(
-                found_user,
-                "uid",
-                getattr(found_user, "id", None)
-            ),
-            "fullname": getattr(
-                found_user,
-                "fullname",
-                ""
-            ),
-            "email": getattr(
-                found_user,
-                "email",
-                ""
-            ),
-            "phone": getattr(
-                found_user,
-                "phone",
-                ""
-            ),
+            "uid": getattr(found_user, "uid", getattr(found_user, "id", None)),
+            "fullname": getattr(found_user, "fullname",""),
+            "email": getattr(found_user, "email", ""),
+            "phone": getattr(found_user, "phone", ""),
             "role": user_role
         }
         if user_role == "Client":
-            response_data["status"] = getattr(
-                found_user,
-                "status",
-                ""
-            )
-            response_data["adresse_livraison"] = getattr(
-                found_user,
-                "adresse_livraison",
-                ""
-            )
+            response_data["status"] = getattr(found_user, "status", "")
+            response_data["adresse_livraison"] = getattr(found_user, "adresse_livraison", "")
             response_data["created_date"] = str(
-                getattr(
-                    found_user,
-                    "created_date",
-                    ""
-                )
-            )
+                getattr(found_user, "created_date", ""))
         if user_role == "Teller":
-            CreateActivityLog({
-                "actions": "connexion",
-                "user": found_user.uid
-            })
+            CreateActivityLog({"actions": "connexion", "user": found_user.uid})
         if user_role == "PartnerPub":
-            response_data["code_promo"] = getattr(
-                found_user,
-                "code_promo",
-                ""
-            )
+            response_data["code_promo"] = getattr(found_user, "code_promo","")
             response_data["created_date"] = str(
-                getattr(
-                    found_user,
-                    "created_date",
-                    ""
-                )
-            )
+                getattr(found_user, "created_date",""))
             response_data["updated_date"] = str(
-                getattr(
-                    found_user,
-                    "updated_date",
-                    ""
-                )
-            )
+                getattr(found_user,"updated_date",""))
         return {
             "status": "success",
             "message": f"Connexion réussie en tant que {user_role}.",
@@ -157,7 +110,6 @@ def LoginClient():
             "status": "error",
             "message": "Erreur serveur."
         }, 500
-
 
 
 def CreateActivityLog(data):

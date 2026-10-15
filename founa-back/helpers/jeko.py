@@ -158,19 +158,13 @@ def PaymentRequest():
                 "status": "error",
                 "message": "Moyen de paiement invalide"
             }, 400
-            
-        single_client = Client.query.filter_by(
-            uid=user_id
-        ).first()
+        single_client = Client.query.filter_by(uid=user_id).first()
         if not single_client:
             return {
                 "status": "error",
                 "message": "Client introuvable"
             }, 404
-        single_commande = Commande.query.filter_by(
-            commande_id=commande_id,
-            client_id=user_id
-        ).first()
+        single_commande = Commande.query.filter_by(commande_id=commande_id, client_id=user_id).first()
         if not single_commande:
             return {
                 "status": "error",
@@ -182,13 +176,9 @@ def PaymentRequest():
                 "message": "Cette commande est déjà payée."
             }, 409
         if single_commande.option_envoie == "maritime":
-            cout_envoie = (
-                single_commande.cout_envoie_maritime or 0
-            )
+            cout_envoie = (single_commande.cout_envoie_maritime or 0)
         elif single_commande.option_envoie == "aérienne":
-            cout_envoie = (
-                single_commande.cout_envoie_aérienne or 0
-            )
+            cout_envoie = (single_commande.cout_envoie_aérienne or 0)
         else:
             return {
                 "status": "error",
@@ -199,59 +189,32 @@ def PaymentRequest():
             reduction = prix_articles * 0.10
         else:
             reduction = 0
-        prix_apres_reduction = (
-            prix_articles - reduction
-        )
-        total_reel = (
-            prix_apres_reduction
-            + float(cout_envoie)
-        )
+        prix_apres_reduction = (prix_articles - reduction)
+        total_reel = (prix_apres_reduction + float(cout_envoie))
         if total_reel <= 0:
             return {
                 "status": "error",
                 "message": "Le montant du paiement est invalide."
             }, 400
-        amount_cents = int(
-            round(total_reel * 100)
-        )
+        amount_cents = int(round(total_reel * 100))
         if single_commande.paiement_infos:
             try:
-                paiement_infos = json.loads(
-                    single_commande.paiement_infos
-                )
+                paiement_infos = json.loads(single_commande.paiement_infos)
             except (json.JSONDecodeError, TypeError):
                 paiement_infos = None
             if paiement_infos:
-                result_data = (
-                    paiement_infos.get("result") or {}
-                )
-                payment_data = (
-                    result_data.get("payment") or {}
-                )
-                payment_request_id = (
-                    payment_data.get("id")
-                )
-                saved_reference = (
-                    payment_data.get("reference")
-                )
-                saved_payment_method = (
-                    payment_data.get("paymentMethod")
-                )
-                redirect_url = (
-                    payment_data.get("redirectUrl")
-                )
+                result_data = (paiement_infos.get("result") or {})
+                payment_data = (result_data.get("payment") or {})
+                payment_request_id = (payment_data.get("id"))
+                saved_reference = (payment_data.get("reference"))
+                saved_payment_method = (payment_data.get("paymentMethod"))
+                redirect_url = (payment_data.get("redirectUrl"))
                 if payment_request_id:
                     check_result, check_status = (GetJekoPaymentRequest(payment_request_id))
                     if check_status == 200:
-                        current_payment = (
-                            check_result.get("payment") or {}
-                        )
-                        current_status = (
-                            current_payment.get("status")
-                        )
-                        current_error_reason = (
-                            current_payment.get("errorReason")
-                        )
+                        current_payment = (check_result.get("payment") or {})
+                        current_status = (current_payment.get("status"))
+                        current_error_reason = (current_payment.get("errorReason"))
                         if current_status == "pending":
                             if redirect_url:
                                 return {
@@ -303,9 +266,7 @@ def PaymentRequest():
                             "response": check_result
                         }, check_status
         if create_new_payment:
-            reference = GenerateJekoReference(
-                single_commande.commande_id
-            )
+            reference = GenerateJekoReference(single_commande.commande_id)
         else:
             reference = single_commande.commande_id
         payload = {
@@ -337,15 +298,9 @@ def PaymentRequest():
             return result, status_code
         if result.get("status") != "success":
             return result, status_code
-        payment_data = (
-            result.get("payment") or {}
-        )
-        payment_request_id = (
-            payment_data.get("id")
-        )
-        redirect_url = (
-            payment_data.get("redirectUrl")
-        )
+        payment_data = (result.get("payment") or {})
+        payment_request_id = (payment_data.get("id"))
+        redirect_url = (payment_data.get("redirectUrl"))
         if not payment_request_id:
             return {
                 "status": "error",
@@ -399,18 +354,10 @@ def GetJekoPaymentRequest(payment_request_id):
         "X-API-KEY-ID": API_KEY_ID
     }
     try:
-
-        response = requests.get(
-            url,
-            headers=headers,
-            timeout=30
-        )
-
+        response = requests.get(url, headers=headers, timeout=30)
         try:
             response_data = response.json()
-
         except ValueError:
-
             return {
                 "status": "error",
                 "message": (
@@ -419,9 +366,7 @@ def GetJekoPaymentRequest(payment_request_id):
                 ),
                 "response": response.text
             }, 502
-
         if response.status_code != 200:
-
             return {
                 "status": "error",
                 "message": (
@@ -430,14 +375,11 @@ def GetJekoPaymentRequest(payment_request_id):
                 ),
                 "response": response_data
             }, response.status_code
-
         return {
             "status": "success",
             "payment": response_data
         }, 200
-
     except requests.exceptions.Timeout:
-
         return {
             "status": "error",
             "message": (
@@ -445,9 +387,7 @@ def GetJekoPaymentRequest(payment_request_id):
                 "de paiement Jèko a expiré."
             )
         }, 504
-
     except requests.exceptions.RequestException as e:
-
         return {
             "status": "error",
             "message": (
@@ -455,91 +395,38 @@ def GetJekoPaymentRequest(payment_request_id):
                 "de la demande de paiement Jèko."
             ),
             "error": str(e),
-            "response": (
-                e.response.text
-                if e.response is not None
-                else None
-            )
-        }, (
-            e.response.status_code
-            if e.response is not None
-            else 500
-        )
+            "response": (e.response.text if e.response is not None else None)
+        }, (e.response.status_code if e.response is not None else 500)
 
 
 def CreateJekoPaymentRequest(payload):
-    url = (
-        "https://api.jeko.africa""/partner_api/payment_requests")
-
-    payment_details = (
-        payload.get("paymentDetails") or {}
-    )
-
-    payment_data = (
-        payment_details.get("data") or {}
-    )
-
+    url = ("https://api.jeko.africa""/partner_api/payment_requests")
+    payment_details = (payload.get("paymentDetails") or {})
+    payment_data = (payment_details.get("data") or {})
     body = {
-
-        "amountCents": payload.get(
-            "amountCents"
-        ),
-
-        "currency": payload.get(
-            "currency"
-        ),
-
-        "reference": payload.get(
-            "reference"
-        ),
-
-        "storeId": payload.get(
-            "storeId"
-        ),
-
+        "amountCents": payload.get("amountCents"),
+        "currency": payload.get("currency"),
+        "reference": payload.get("reference"),
+        "storeId": payload.get("storeId"),
         "paymentDetails": {
-
-            "type": payment_details.get(
-                "type",
-                "redirect"
-            ),
-
+            "type": payment_details.get("type", "redirect"),
             "data": {
-
-                "paymentMethod": payment_data.get(
-                    "paymentMethod"
-                ),
-
-                "successUrl": payment_data.get(
-                    "successUrl"
-                ),
-
-                "errorUrl": payment_data.get(
-                    "errorUrl"
-                )
+                "paymentMethod": payment_data.get("paymentMethod"),
+                "successUrl": payment_data.get("successUrl"),
+                "errorUrl": payment_data.get("errorUrl")
             }
         }
     }
-
     headers = {
         "Content-Type": "application/json",
         "X-API-KEY": API_KEY,
         "X-API-KEY-ID": API_KEY_ID
     }
     try:
-
-        response = requests.post(
-            url,
-            json=body,
-            headers=headers,
-            timeout=30
-        )
-
+        response = requests.post(url, json=body, headers=headers, timeout=30)
         try:
             response_data = response.json()
-
         except ValueError:
-
             return {
                 "status": "error",
                 "message": (
@@ -548,9 +435,7 @@ def CreateJekoPaymentRequest(payload):
                 ),
                 "response": response.text
             }, 502
-
         if response.status_code < 200 or response.status_code >= 300:
-
             return {
                 "status": "error",
                 "message": (
@@ -559,14 +444,11 @@ def CreateJekoPaymentRequest(payload):
                 ),
                 "response": response_data
             }, response.status_code
-
         return {
             "status": "success",
             "payment": response_data
         }, response.status_code
-
     except requests.exceptions.Timeout:
-
         return {
             "status": "error",
             "message": (
@@ -574,9 +456,7 @@ def CreateJekoPaymentRequest(payload):
                 "a expiré."
             )
         }, 504
-
     except requests.exceptions.RequestException as e:
-
         return {
             "status": "error",
             "message": (
@@ -594,9 +474,7 @@ def CreateJekoPaymentRequest(payload):
             if e.response is not None
             else 500
         )
-
     except Exception as e:
-
         return {
             "status": "error",
             "message": (
@@ -607,94 +485,41 @@ def CreateJekoPaymentRequest(payload):
         }, 500
         
         
-        
 def VerifyJekoWebhookSignature(raw_body, signature):
-
     if not SECRET_WEBHOOK:
         return False
-
     if not signature:
         return False
-
-    expected_signature = hmac.new(
-        SECRET_WEBHOOK.encode("utf-8"),
-        raw_body,
-        hashlib.sha256
-    ).hexdigest()
-
-    return hmac.compare_digest(
-        expected_signature,
-        signature
-    )
+    expected_signature = hmac.new(SECRET_WEBHOOK.encode("utf-8"), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected_signature, signature)
 
 
 def ReceiveJekoWebhook():
-
     try:
-
-        # ==========================================================
-        # BODY BRUT
-        # ==========================================================
-
         raw_body = request.get_data()
-
         if not raw_body:
-
             return {
                 "status": "error",
                 "message": "Payload webhook vide."
             }, 400
-
-        # ==========================================================
-        # ÉVÉNEMENT
-        # ==========================================================
-
-        event = request.headers.get(
-            "Jeko-Event",
-            ""
-        )
-
+        event = request.headers.get("Jeko-Event", "")
         if event != "TRANSACTION_COMPLETED":
-
             return {
                 "status": "success",
                 "message": "Événement Jèko ignoré.",
                 "event": event
             }, 200
-
-        # ==========================================================
-        # SIGNATURE
-        # ==========================================================
-
-        signature = request.headers.get(
-            "Jeko-Signature",
-            ""
-        )
-
-        if not VerifyJekoWebhookSignature(
-            raw_body,
-            signature
-        ):
-
+        signature = request.headers.get("Jeko-Signature", "")
+        if not VerifyJekoWebhookSignature(raw_body, signature):
             return {
                 "status": "error",
                 "message": (
                     "Signature webhook Jèko invalide."
                 )
             }, 401
-
-        # ==========================================================
-        # JSON
-        # ==========================================================
-
         try:
-
-            data = json.loads(
-                raw_body
-            )
-
+            data = json.loads(raw_body)
         except json.JSONDecodeError:
-
             return {
                 "status": "error",
                 "message": (
@@ -702,9 +527,7 @@ def ReceiveJekoWebhook():
                     "contient un JSON invalide."
                 )
             }, 400
-
         if not isinstance(data, dict):
-
             return {
                 "status": "error",
                 "message": (
@@ -712,65 +535,20 @@ def ReceiveJekoWebhook():
                     "doit être un objet JSON."
                 )
             }, 400
-
-        # ==========================================================
-        # DONNÉES TRANSACTION
-        # ==========================================================
-
         transaction_id = data.get("id")
-
         status = data.get("status")
-
-        transaction_type = data.get(
-            "transactionType"
-        )
-
-        payment_method = data.get(
-            "paymentMethod"
-        )
-
-        amount_data = (
-            data.get("amount") or {}
-        )
-
-        amount_cents = amount_data.get(
-            "amount"
-        )
-
-        currency = amount_data.get(
-            "currency"
-        )
-
-        fees_data = (
-            data.get("fees") or {}
-        )
-
-        fees_cents = fees_data.get(
-            "amount"
-        )
-
-        fees_currency = fees_data.get(
-            "currency"
-        )
-
-        transaction_details = (
-            data.get("transactionDetails") or {}
-        )
-
-        reference = transaction_details.get(
-            "reference"
-        )
-
-        payment_link_id = transaction_details.get(
-            "paymentLinkId"
-        )
-
-        # ==========================================================
-        # VALIDATIONS
-        # ==========================================================
-
+        transaction_type = data.get("transactionType")
+        payment_method = data.get("paymentMethod")
+        amount_data = (data.get("amount") or {})
+        amount_cents = amount_data.get("amount")
+        currency = amount_data.get("currency")
+        fees_data = (data.get("fees") or {})
+        fees_cents = fees_data.get("amount")
+        fees_currency = fees_data.get("currency")
+        transaction_details = (data.get("transactionDetails") or {})
+        reference = transaction_details.get("reference")
+        payment_link_id = transaction_details.get("paymentLinkId")
         if not transaction_id:
-
             return {
                 "status": "error",
                 "message": (
@@ -778,9 +556,7 @@ def ReceiveJekoWebhook():
                     "Jèko est obligatoire."
                 )
             }, 400
-
         if not reference:
-
             return {
                 "status": "error",
                 "message": (
@@ -788,9 +564,7 @@ def ReceiveJekoWebhook():
                     "est absente."
                 )
             }, 400
-
         if amount_cents is None:
-
             return {
                 "status": "error",
                 "message": (
@@ -798,211 +572,80 @@ def ReceiveJekoWebhook():
                     "Jèko est absent."
                 )
             }, 400
-
-        # Les frais peuvent être absents
-        # selon le payload.
         fees = (
-            float(fees_cents) / 100
-            if fees_cents is not None
-            else 0
-        )
-
-        amount = (
-            float(amount_cents) / 100
-        )
-
-        # ==========================================================
-        # IDEMPOTENCE
-        # ==========================================================
-
-        webhook_existant = Webhook.query.filter_by(
-            transaction_id=transaction_id
-        ).first()
-
+            float(fees_cents) / 100 if fees_cents is not None else 0)
+        amount = (float(amount_cents) / 100)
+        webhook_existant = Webhook.query.filter_by(transaction_id=transaction_id).first()
         if webhook_existant:
-
             return {
                 "status": "success",
                 "message": "Webhook déjà reçu.",
                 "duplicate": True,
                 "webhook_uid": webhook_existant.uid
             }, 200
-
-        # ==========================================================
-        # COMMANDE
-        # ==========================================================
         commande_id = reference.rsplit("-", 1)[0]
-
-        commande = Commande.query.filter_by(
-            commande_id=commande_id
-        ).first()
-
+        commande = Commande.query.filter_by(commande_id=commande_id).first()
         if not commande:
-
             return {
                 "status": "error",
                 "message": (
                     f"Commande introuvable : {reference}"
                 )
             }, 404
-
-        # ==========================================================
-        # CLIENT
-        # ==========================================================
-
-        single_client = Client.query.filter_by(
-            uid=commande.client_id
-        ).first()
-
+        single_client = Client.query.filter_by(uid=commande.client_id).first()
         if not single_client:
-
             return {
                 "status": "error",
                 "message": (
                     "Client de la commande introuvable."
                 )
             }, 404
-
-        # ==========================================================
-        # DATE D'EXÉCUTION
-        # ==========================================================
-
         executed_at = None
-
-        executed_at_raw = data.get(
-            "executedAt"
-        )
-
+        executed_at_raw = data.get("executedAt")
         if executed_at_raw:
-
             try:
-
-                executed_at = datetime.datetime.strptime(
-                    executed_at_raw,
-                    "%Y-%m-%d %H:%M:%S"
-                )
-
+                executed_at = datetime.datetime.strptime(executed_at_raw, "%Y-%m-%d %H:%M:%S")
             except ValueError:
-
                 executed_at = None
-
-        # ==========================================================
-        # ENREGISTREMENT DU WEBHOOK
-        # ==========================================================
-
         webhook = Webhook(
-
             transaction_id=transaction_id,
-
             transaction_type=transaction_type,
-
             reference=reference,
-
             payment_link_id=payment_link_id,
-
             status=status,
-
             payment_method=payment_method,
-
             amount=amount,
-
             currency=currency,
-
             fees=fees,
-
             fees_currency=fees_currency,
-
-            counterpart_label=data.get(
-                "counterpartLabel"
-            ),
-
-            counterpart_identifier=data.get(
-                "counterpartIdentifier"
-            ),
-
-            business_name=data.get(
-                "businessName"
-            ),
-
-            store_name=data.get(
-                "storeName"
-            ),
-
-            description=data.get(
-                "description"
-            ),
-
+            counterpart_label=data.get("counterpartLabel"),
+            counterpart_identifier=data.get("counterpartIdentifier"),
+            business_name=data.get("businessName"),
+            store_name=data.get("storeName"),
+            description=data.get("description"),
             executed_at=executed_at,
-
             payload=data,
-
             processed=False
         )
-
-        db.session.add(
-            webhook
-        )
-
-        # ==========================================================
-        # PAIEMENT RÉUSSI
-        # ==========================================================
-
+        db.session.add(webhook)
         if status == "success":
-
             if commande.statut != "Payer":
-
                 ancien_statut = commande.statut
-
-                # --------------------------------------------------
-                # COMMANDE
-                # --------------------------------------------------
-
                 commande.statut = "Payer"
-
-                commande.updated_date = (
-                    datetime.datetime.utcnow()
-                )
-
-                # --------------------------------------------------
-                # CODE PROMO
-                # --------------------------------------------------
-
-                if (
-                    single_client.code_promo
-                    and single_client.status_code_promo
-                    == "non-utiliser"
-                ):
-
-                    single_client.status_code_promo = (
-                        "utiliser"
-                    )
-
-                # --------------------------------------------------
-                # LOG
-                # --------------------------------------------------
-
+                commande.updated_date = (datetime.datetime.utcnow())
+                if (single_client.code_promo and single_client.status_code_promo == "non-utiliser"):
+                    single_client.status_code_promo = ("utiliser")
                 log_result = (
                     CreateCommandeStatusLog({
-                        "commande_id": (
-                            commande.commande_id
-                        ),
+                        "commande_id": (commande.commande_id),
                         "statut": "Payer",
-                        "teller_id": (
-                            commande.teller_id
-                        )
+                        "teller_id": (commande.teller_id)
                     })
                 )
-
                 if isinstance(log_result, tuple):
-
-                    log_data, log_status = (
-                        log_result
-                    )
-
+                    log_data, log_status = (log_result)
                     if log_status != 200:
-
                         db.session.rollback()
-
                         return {
                             "status": "error",
                             "message": (
@@ -1012,18 +655,9 @@ def ReceiveJekoWebhook():
                             ),
                             "log_error": log_data
                         }, 500
-
-                elif isinstance(
-                    log_result,
-                    dict
-                ):
-
-                    if not log_result.get(
-                        "success"
-                    ):
-
+                elif isinstance(log_result, dict):
+                    if not log_result.get("success"):
                         db.session.rollback()
-
                         return {
                             "status": "error",
                             "message": (
@@ -1033,199 +667,98 @@ def ReceiveJekoWebhook():
                             ),
                             "log_error": log_result
                         }, 500
-
-                # --------------------------------------------------
-                # NOTIFICATION CLIENT
-                # --------------------------------------------------
-
                 send_push_notification(
-
                     user_uid=commande.client_id,
-
                     user_type="user",
-
-                    title=(
-                        "Mise à jour de votre commande"
-                    ),
-
+                    title=("Mise à jour de votre commande"),
                     body=(
                         f"Votre commande "
                         f"{commande.commande_id} "
                         f"est maintenant : "
                         f"{commande.statut}"
                     ),
-
                     data={
                         "type": "order_status",
-                        "commande_id": (
-                            commande.commande_id
-                        ),
+                        "commande_id": (commande.commande_id),
                         "statut": commande.statut,
-                        "url": (
-                            "https://founa.ci/orders"
-                        )
+                        "url": ("https://founa.ci/orders")
                     }
                 )
-
-                # --------------------------------------------------
-                # NOTIFICATION TELLER
-                # --------------------------------------------------
-
                 if commande.teller_id:
-
                     send_push_notification(
-
                         user_uid=commande.teller_id,
-
                         user_type="teller",
-
                         title="Nouvelle commande",
-
                         body=(
                             f"Une commande "
                             f"{commande.commande_id} "
                             f"vient d'être payée."
                         ),
-
                         data={
                             "type": "new_order",
-                            "commande_id": (
-                                commande.commande_id
-                            ),
+                            "commande_id": (commande.commande_id),
                             "statut": commande.statut,
-                            "url": (
-                                "https://founa.ci/teller/orders"
-                            )
+                            "url": ("https://founa.ci/teller/orders")
                         }
                     )
-
-                print(
-                    f"[JEKO] Commande "
-                    f"{commande.commande_id} "
-                    f"passée de "
-                    f"'{ancien_statut}' "
-                    f"à 'Payer'."
-                )
-
             else:
-
                 print(
                     f"[JEKO] Commande "
                     f"{commande.commande_id} "
                     f"est déjà au statut 'Payer'."
                 )
-
-        # ==========================================================
-        # PAIEMENT ÉCHOUÉ
-        # ==========================================================
-
         elif status == "error":
-
             print(
                 f"[JEKO] Paiement échoué pour "
                 f"la commande "
                 f"{commande.commande_id}. "
                 f"Status Jèko : {status}"
             )
-
-        # ==========================================================
-        # AUTRE STATUT
-        # ==========================================================
-
         else:
-
             print(
                 f"[JEKO] Statut Jèko reçu : "
                 f"{status} pour "
                 f"{commande.commande_id}"
             )
-
-        # ==========================================================
-        # WEBHOOK TRAITÉ
-        # ==========================================================
-
         webhook.processed = True
-
-        webhook.processed_at = (
-            datetime.datetime.utcnow()
-        )
-
+        webhook.processed_at = (datetime.datetime.utcnow())
         db.session.commit()
-        
-        # ==========================================================
-        # META PURCHASE : UNIQUEMENT APRÈS UN PAIEMENT RÉUSSI
-        # ==========================================================
         if status == "success" and commande.statut == "Payer":
             try:
-                paiement_infos = json.loads(
-                    commande.paiement_infos or "{}"
-                )
+                paiement_infos = json.loads(commande.paiement_infos or "{}")
             except (json.JSONDecodeError, TypeError):
                 paiement_infos = {}
-
             if not isinstance(paiement_infos, dict):
                 paiement_infos = {}
-
-            event_id = paiement_infos.get(
-                "meta_purchase_event_id"
-            )
-
+            event_id = paiement_infos.get("meta_purchase_event_id")
             if not event_id:
                 event_id = f"purchase_{commande.commande_id}"
                 paiement_infos["meta_purchase_event_id"] = event_id
-
-                commande.paiement_infos = json.dumps(
-                    paiement_infos,
-                    ensure_ascii=False
-                )
+                commande.paiement_infos = json.dumps(paiement_infos, ensure_ascii=False)
                 db.session.commit()
-
             if not paiement_infos.get("meta_purchase_sent"):
                 try:
-                    result_meta = SendMetaPurchase(
-                        commande=commande,
-                        client=single_client,
-                        event_id=event_id
-                    )
-
+                    result_meta = SendMetaPurchase(commande=commande, client=single_client, event_id=event_id)
                     paiement_infos["meta_purchase_sent"] = True
-                    paiement_infos["meta_purchase_sent_at"] = (
-                        datetime.datetime.utcnow().isoformat()
-                    )
+                    paiement_infos["meta_purchase_sent_at"] = (datetime.datetime.utcnow().isoformat())
                     paiement_infos["meta_purchase_response"] = result_meta
-
-                    commande.paiement_infos = json.dumps(
-                        paiement_infos,
-                        ensure_ascii=False
-                    )
+                    commande.paiement_infos = json.dumps(paiement_infos, ensure_ascii=False)
                     db.session.commit()
-
                 except Exception as meta_error:
                     db.session.rollback()
-
                     print(
                         f"[META PURCHASE] Échec pour "
                         f"{commande.commande_id}: {meta_error}"
                     )
-
         return {
             "status": "success",
-            "message": (
-                "Webhook Jèko traité avec succès."
-            ),
+            "message": ("Webhook Jèko traité avec succès."),
             "transaction_id": transaction_id,
             "commande_id": commande.commande_id,
             "commande_status": commande.statut
         }, 200
-
     except Exception as e:
-
         db.session.rollback()
-
-        print(
-            f"[JEKO WEBHOOK ERROR] {str(e)}"
-        )
-
         return {
             "status": "error",
             "message": (

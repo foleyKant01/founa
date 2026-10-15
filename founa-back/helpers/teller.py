@@ -3,15 +3,9 @@ from model.founa import *
 from flask import request
 from sqlalchemy import func
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
 
 ph = PasswordHasher()
-
-
-
-
 def CreateOneTeller():
-    
     reponse = {}
     try:
         fullname = (request.json.get('fullname'))
@@ -22,39 +16,31 @@ def CreateOneTeller():
         if not str(confirmpassword) == str(password):
             return "Mot de passe non conforme"
         hashed_password = ph.hash(str(password))
-
         new_teller = Teller()
         new_teller.fullname = fullname
         new_teller.email = email
         new_teller.phone = phone
         new_teller.password = hashed_password
-        
         db.session.add(new_teller)
         db.session.commit()
-
         rs = {}
         rs['uid'] = new_teller.uid
         rs['fullname'] = fullname
         rs['email'] = email
         rs['phone'] = phone
         rs['creation_date'] = str(new_teller.created_date)
-
         reponse['status'] = 'success'
         reponse['user_infos'] = rs
-
     except Exception as e:
         reponse['error_description'] = str(e)
         reponse['status'] = 'error'
-
     return reponse
-
 
 
 def ReadAllTellers():
     response = {}
     try:
         all_teller = Teller.query.all()
-
         if all_teller:
             teller_informations = [
                 {
@@ -71,13 +57,10 @@ def ReadAllTellers():
         else:
             response['status'] = 'erreur'
             response['motif'] = 'aucun teller trouvé'
-
     except Exception as e:
         response['status'] = 'error'
         response['error_description'] = str(e)
-
     return response
-
 
 
 def ReadSingleTeller():
@@ -85,7 +68,6 @@ def ReadSingleTeller():
     try:
         teller_id = (request.json.get('uid'))
         teller = Teller.query.filter_by(uid=teller_id).first()
-
         if teller:
             teller_info = {
                 'uid': teller.uid,
@@ -99,76 +81,49 @@ def ReadSingleTeller():
         else:
             response['status'] = 'error'
             response['message'] = 'teller introuvable'
-
     except Exception as e:
         response['status'] = 'error'
         response['error_description'] = str(e)
-
     return response
-
 
 
 def UpdateTeller():
     response = {}
-
     try:
         teller_id = (request.json.get('uid'))
         update_teller = Teller.query.filter_by(uid=teller_id).first()
-        
         if update_teller:
             update_teller.fullname = request.json.get('fullname', update_teller.fullname)
             update_teller.email = request.json.get('email', update_teller.email)
             update_teller.phone = request.json.get('phone', update_teller.phone)
             update_teller.password = request.json.get('password', update_teller.password)
-     
         db.session.add(update_teller)
         db.session.commit() 
-        
         response['status'] = 'success'
         response['message'] = "Mise à jour effectuer"
-
     except Exception as e:
         response['status'] = 'error'
         response['error_description'] = str(e)
-
     return response
 
 
-
 def StatistiquesTeller():
-    
     try:
-
         data = request.get_json() or {}
-
         teller_id = data.get("teller_id")
-
         if not teller_id:
             return {
                 "status": "error",
                 "message": "teller_id requis"
             }, 400
-
         total_revenu = (
-            db.session.query(
-                func.sum(Commande.prix_total * 0.03)
-            )
-            .filter(
-                Commande.teller_id == teller_id,
-                Commande.statut == "Livrer"
-            )
-            .scalar()
-            or 0
-        )
-
+            db.session.query(func.sum(Commande.prix_total * 0.03)).filter(Commande.teller_id == teller_id, Commande.statut == "Livrer").scalar()or 0)
         return {
             "status": "success",
             "teller_id": teller_id,
             "revenu_total": float(total_revenu)
         }, 200
-
     except Exception as e:
-
         return {
             "status": "error",
             "message": str(e)
@@ -176,66 +131,34 @@ def StatistiquesTeller():
         
         
 def RevenuTellerPeriode():
-    
     try:
-
         data = request.get_json() or {}
-
         teller_id = data.get("teller_id")
         date_debut = data.get("date_debut")
         date_fin = data.get("date_fin")
-
-        if not teller_id:
+        if not teller_id or not date_debut or not date_fin:
             return {
-                "status": "error",
-                "message": "teller_id requis"
-            }, 400
-
-        if not date_debut:
-            return {
-                "status": "error",
-                "message": "date_debut requise"
-            }, 400
-
-        if not date_fin:
-            return {
-                "status": "error",
-                "message": "date_fin requise"
-            }, 400
-
+            "status": "error",
+            "message": "teller_id, date_debut et date_fin sont requis."
+        }, 400
         try:
-            date_debut_obj = datetime.datetime.strptime(
-                date_debut,
-                "%Y-%m-%d"
-            )
-
-            date_fin_obj = datetime.datetime.strptime(
-                date_fin,
-                "%Y-%m-%d"
-            )
-
+            date_debut_obj = datetime.datetime.strptime(date_debut, "%Y-%m-%d")
+            date_fin_obj = datetime.datetime.strptime(date_fin, "%Y-%m-%d")
             date_fin_obj = date_fin_obj + datetime.timedelta(days=1)
-
         except ValueError:
             return {
                 "status": "error",
                 "message": "Format de date invalide. Utilisez YYYY-MM-DD."
             }, 400
-
         revenu = (
-            db.session.query(
-                func.sum(Commande.prix_total * 0.03)
-            )
+            db.session.query(func.sum(Commande.prix_total * 0.03))
             .filter(
                 Commande.teller_id == teller_id,
                 Commande.statut == "Livrer",
                 Commande.created_date >= date_debut_obj,
                 Commande.created_date < date_fin_obj
-            )
-            .scalar()
-            or 0
+            ).scalar()or 0
         )
-
         return {
             "status": "success",
             "teller_id": teller_id,
@@ -243,9 +166,7 @@ def RevenuTellerPeriode():
             "date_fin": date_fin,
             "revenu": float(revenu)
         }, 200
-
     except Exception as e:
-
         return {
             "status": "error",
             "message": str(e)

@@ -1,24 +1,18 @@
 from flask_restful import Resource
 from helpers.teller import *
 
-
 class TellerApi(Resource):
     def post(self, route):
         if route == "create_one_teller":
             return CreateOneTeller()
-        
         if route == "read_single_teller":
             return ReadSingleTeller()
-        
         if route == "update_teller":
             return UpdateTeller() 
-        
         if route == "statistiques_teller":
             return StatistiquesTeller()
-        
         if route == "revenu_teller_periode":
             return RevenuTellerPeriode()
-        
     
     def get(self, route):
         if route == "read_all_teller":

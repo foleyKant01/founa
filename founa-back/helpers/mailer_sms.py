@@ -1,6 +1,5 @@
 from config.constant import *
 
-
 def send_sms_by_sendexa(phone, message):
     import requests
     response = {}

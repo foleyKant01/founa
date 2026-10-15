@@ -4,20 +4,6 @@ import uuid
 import datetime
 
 
-
-class Fournisseur(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
-    nom = db.Column(db.String(255), nullable=False)
-    email = db.Column(db.String(128))
-    phone = db.Column(db.String(128))
-    boutique = db.Column(db.String(128))
-    teller_id = db.Column(db.String(128))  # API / mode dropshipping
-    creation_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-    update_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-
-
-
 class Produit(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     uid = db.Column(db.String(128),unique=True,default=lambda: str(uuid.uuid4()))
@@ -37,7 +23,6 @@ class Produit(db.Model):
     random_order = db.Column(db.Float, nullable=False, default=lambda: random.random())
     creation_date = db.Column(db.DateTime,nullable=False,default=datetime.datetime.utcnow)
     update_date = db.Column(db.DateTime,nullable=False,default=datetime.datetime.utcnow)
-    
 
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -53,14 +38,12 @@ class Client(db.Model):
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     
-    
 class Otp(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     otp = db.Column(db.String(6), nullable=False)
     phone = db.Column(db.String(128), nullable=False)
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-    
     
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -72,7 +55,6 @@ class Admin(db.Model):
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     
-    
 class Teller(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
@@ -82,7 +64,6 @@ class Teller(db.Model):
     password = db.Column(db.String(128), nullable=False)
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-    
     
 class PartnerPub(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -94,7 +75,6 @@ class PartnerPub(db.Model):
     password = db.Column(db.String(128), nullable=False)
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-    
     
 class AlibabSellers(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -115,8 +95,6 @@ class AlibabSellers(db.Model):
     status = db.Column(db.String(128), nullable=False, default='active') # active, expired
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-    
-    
     
 class Commande(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -144,7 +122,6 @@ class Commande(db.Model):
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
-
 class Historiques(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     h_uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
@@ -162,7 +139,6 @@ class Favoris(db.Model):
     client_id = db.Column(db.String(128), db.ForeignKey('client.uid'))
     client = db.relationship('Client', backref=db.backref('favoris', lazy=True))
     creation_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-
 
 class CommandeStatusLog(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -183,7 +159,6 @@ class ActivityLog(db.Model):
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     
-    
 class UnavaibleProduct(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
@@ -193,20 +168,6 @@ class UnavaibleProduct(db.Model):
     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     
-# class ProduitActionsLog(db.Model):
-#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
-#     produit_id = db.Column(db.String(128), db.ForeignKey('produit.uid'), nullable=False)
-#     produit = db.relationship('Produit', backref=db.backref('produitactionslog', lazy=True))
-#     commande_id = db.Column(db.String(128), db.ForeignKey('commande.commande_id'), nullable=False)
-#     commande = db.relationship('Commande', backref=db.backref('commandestatuslog', lazy=True))
-#     status_commande = db.Column(db.String(20), nullable=False)
-#     teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=False)
-#     teller = db.relationship('Teller', backref=db.backref('commandestatuslog', lazy=True))
-#     created_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-#     updated_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-
-
 class DeviceTokens(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     u_uid = db.Column(db.String(128), unique=True, default=lambda: str(uuid.uuid4()))
@@ -217,7 +178,6 @@ class DeviceTokens(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
-    
     
 class Webhook(db.Model):
     id = db.Column( db.Integer, primary_key=True, autoincrement=True)

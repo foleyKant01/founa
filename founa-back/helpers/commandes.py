@@ -23,9 +23,7 @@ def GetTellerForNewCommande():
             return None
         teller_data = []
         for teller in tellers:
-            nombre_commandes = Commande.query.filter_by(
-                teller_id=teller.uid
-            ).count()
+            nombre_commandes = Commande.query.filter_by(teller_id=teller.uid).count()
             derniere_connexion = (ActivityLog.query.filter(ActivityLog.user == teller.uid,ActivityLog.actions == "connexion").order_by(ActivityLog.created_date.desc()).first())
             if derniere_connexion:
                 teller_data.append({
@@ -57,9 +55,7 @@ def AttribuerUneCommande():
                 "status": "error",
                 "message": "commande_id est requis"
             }, 400
-        single_commande = Commande.query.filter_by(
-            commande_id=commande_id
-        ).first()
+        single_commande = Commande.query.filter_by(commande_id=commande_id).first()
         if not single_commande:
             return {
                 "status": "error",
@@ -72,11 +68,7 @@ def AttribuerUneCommande():
                 "message": "Aucun teller disponible"
             }, 404
         single_commande.teller_id = teller
-        status_log = CommandeStatusLog(
-            commande_id=single_commande.commande_id,
-            status_commande=single_commande.statut,
-            teller_id=teller.uid
-        )
+        status_log = CommandeStatusLog(commande_id=single_commande.commande_id,status_commande=single_commande.statut,teller_id=teller.uid)
         db.session.add(status_log)
         db.session.commit()
         return {
@@ -99,14 +91,7 @@ def AttribuerUneCommande():
         
 def AttribuerCommandes():
     try:
-        commandes_sans_teller = (
-            Commande.query
-            .filter(
-                (Commande.teller_id == None) |
-                (Commande.teller_id == "")
-            )
-            .all()
-        )
+        commandes_sans_teller = (Commande.query.filter((Commande.teller_id == None) | (Commande.teller_id == "")).all())
         if not commandes_sans_teller:
             return {
                 "status": "success",
@@ -120,11 +105,7 @@ def AttribuerCommandes():
             if not teller_uid:
                 break
             commande.teller_id = teller_uid
-            status_log = CommandeStatusLog(
-                commande_id=commande.commande_id,
-                status_commande=commande.statut,
-                teller_id=teller_uid
-            )
+            status_log = CommandeStatusLog(commande_id=commande.commande_id, status_commande=commande.statut, teller_id=teller_uid)
             db.session.add(status_log)
             commandes_attribuees.append({
                 "commande_id": commande.commande_id,
@@ -240,16 +221,8 @@ def GetAllCommandes():
                 "cout_envoie_maritime": c.cout_envoie_maritime,
                 "cout_envoie_aérienne": c.cout_envoie_aérienne,
                 "option_envoie": c.option_envoie,
-                "created_date": (
-                    c.created_date.isoformat()
-                    if c.created_date
-                    else None
-                ),
-                "updated_date": (
-                    c.updated_date.isoformat()
-                    if c.updated_date
-                    else None
-                )
+                "created_date": (c.created_date.isoformat() if c.created_date else None),
+                "updated_date": (c.updated_date.isoformat() if c.updated_date else None)
             })
         return {
             "status": "success",
@@ -266,9 +239,7 @@ def GetAllCommandes():
 def GetAllCommandeByClient():
     try:
         data = request.json or {}
-        client_id = (
-            data.get("client_id") or ""
-        ).strip()
+        client_id = (data.get("client_id") or "").strip()
         if not client_id:
             return {
                 "status": "error",
@@ -278,22 +249,15 @@ def GetAllCommandeByClient():
         all_commande = (Commande.query.filter_by(client_id=client_id).order_by(Commande.created_date.desc()).all())
         result = []
         for c in all_commande:
-            single_product = (
-                Produit.query
-                .filter_by(uid=c.produit_id)
-                .first()
-            )
+            single_product = (Produit.query.filter_by(uid=c.produit_id).first())
             if not single_product:
                 result.append({
                     "commande_id": c.commande_id,
-                    "client_id": c.client_id,
                     "produit_id": c.produit_id,
                     "nom": "Produit indisponible",
-                    "fournisseur_id": c.fournisseur_id,
                     "quantite": c.quantite,
                     "prix_total": c.prix_total,
                     "statut": c.statut,
-                    "teller_id": c.teller_id,
                     "details": c.details,
                     "view": c.view,
                     "created_date": (
@@ -310,26 +274,15 @@ def GetAllCommandeByClient():
                 continue
             result.append({
                 "commande_id": c.commande_id,
-                "client_id": c.client_id,
-                "produit_id": c.produit_id,
                 "nom": single_product.nom,
                 "fournisseur_id": c.fournisseur_id,
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
-                "teller_id": c.teller_id,
                 "details": c.details,
                 "view": c.view,
-                "created_date": (
-                    str(c.created_date)
-                    if c.created_date
-                    else None
-                ),
-                "updated_date": (
-                    str(c.updated_date)
-                    if c.updated_date
-                    else None
-                ),
+                "created_date": (str(c.created_date) if c.created_date else None),
+                "updated_date": (str(c.updated_date) if c.updated_date else None),
             })
         return {
             "status": "success",
@@ -352,9 +305,7 @@ def GetAllCommandeByTeller():
                 "status": "error",
                 "message": "teller_id requis"
             }, 400
-        all_commande = Commande.query.filter_by(
-            teller_id=teller_id
-        ).all()
+        all_commande = Commande.query.filter_by(teller_id=teller_id).all()
         if not all_commande:
             return {
                 "status": "success",
@@ -365,21 +316,15 @@ def GetAllCommandeByTeller():
             result.append({
                 "commande_id": c.commande_id,
                 "client": {
-                    "uid": c.client.uid,
                     "nom": c.client.fullname,
-                    "email": c.client.email,
                     "phone": c.client.phone,
                 },
                 "produit": {
-                    "uid": c.produit.uid,
                     "nom": c.produit.nom,
-                    "prix_vente": c.produit.prix_vente,
                 },
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
-                "teller_id": c.teller_id,
-                "details": c.details,
                 "created_date": str(c.created_date),
                 "updated_date": str(c.updated_date),
             })
@@ -427,8 +372,6 @@ def GetSingleCommande():
             "status": "success",
             "commande": {
                 "commande_id": single_commande.commande_id,
-                "client_id": single_commande.client_id,
-                "produit_id": single_commande.produit_id,
                 "nom": single_product.nom,
                 "images": single_product.images,
                 "quantite": single_commande.quantite,
@@ -481,8 +424,6 @@ def GetSingleCommandeForSuccessPage():
             "status": "success",
             "commande": {
                 "commande_id": single_commande.commande_id,
-                "client_id": single_commande.client_id,
-                "produit_id": single_commande.produit_id,
                 "nom": single_product.nom,
                 "images": single_product.images,
                 "quantite": single_commande.quantite,

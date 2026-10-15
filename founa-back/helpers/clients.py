@@ -3,19 +3,13 @@ from model.founa import *
 from flask import request
 from config.constant import *
 from helpers.mailer_sms import *
-
 import secrets
 from argon2 import PasswordHasher
 from argon2 import PasswordHasher
-from argon2.exceptions import (
-    VerifyMismatchError,
-    VerificationError,
-    InvalidHashError
-)
+from argon2.exceptions import (VerifyMismatchError, VerificationError, InvalidHashError)
 from flask import current_app
 
 ph = PasswordHasher()
-
 def generate_otp():
     return str(secrets.randbelow(900000) + 100000)
 
@@ -26,18 +20,10 @@ def CreateClient():
         fullname = (data.get("fullname") or "").strip()
         phone = (data.get("phone") or "").strip()
         code_promo = (data.get("code_promo") or "").strip().upper()
-        adresse_livraison = (
-            data.get("adresse_livraison") or ""
-        ).strip()
+        adresse_livraison = (data.get("adresse_livraison") or "").strip()
         password = data.get("password")
         confirmpassword = data.get("confirmpassword")
-        if (
-            not fullname
-            or not phone
-            or not adresse_livraison
-            or not password
-            or not confirmpassword
-        ):
+        if (not fullname or not phone or not adresse_livraison or not password or not confirmpassword):
             return {
                 "status": "error",
                 "message": "Tous les champs obligatoires doivent être renseignés."
@@ -52,9 +38,7 @@ def CreateClient():
                 "status": "error",
                 "message": "Les mots de passe ne correspondent pas."
             }, 400
-        existing_phone = Client.query.filter_by(
-            phone=phone
-        ).first()
+        existing_phone = Client.query.filter_by(phone=phone).first()
         if existing_phone:
             return {
                 "status": "error",
@@ -62,16 +46,13 @@ def CreateClient():
             }, 409
         status_code_promo = None
         if code_promo:
-            existing_code_promo = PartnerPub.query.filter_by(
-                code_promo=code_promo
-            ).first()
+            existing_code_promo = PartnerPub.query.filter_by(code_promo=code_promo).first()
             if not existing_code_promo:
                 return {
                     "status": "error",
                     "message": "Ce code promo n'existe pas."
                 }, 409
             status_code_promo = "non-utiliser"
-            
         hashed_password = ph.hash(str(password))
         new_client = Client()
         new_client.fullname = fullname
@@ -178,18 +159,13 @@ def verfiy_OTP():
     expiration_time = (datetime.datetime.utcnow()- datetime.timedelta(minutes=5))
     Otp.query.filter(Otp.created_date < expiration_time).delete(synchronize_session=False)
     db.session.commit()
-    single_otp = Otp.query.filter_by(
-        otp=str(otp_code),
-        phone=str(phone)
-    ).first()
+    single_otp = Otp.query.filter_by(otp=str(otp_code),phone=str(phone)).first()
     if not single_otp:
         return {
             "status": "error",
             "message": "Code OTP invalide ou expiré"
         }, 400
-    single_client = Client.query.filter_by(
-        phone=str(phone)
-    ).first()
+    single_client = Client.query.filter_by(phone=str(phone)).first()
     if not single_client:
         db.session.delete(single_otp)
         db.session.commit()
@@ -262,15 +238,12 @@ def ReadSingleClient():
     return response
 
 
-
 def UpdateClient():
-    response = {}
     try:
         data = request.json or {}
         client_id = (data.get('uid') or '').strip()
         password = data.get('password')
         email = (data.get('email') or '').strip().lower()
-
         if not client_id:
             return {
                 "status": "error",
@@ -287,7 +260,6 @@ def UpdateClient():
                 "status": "error",
                 "message": "Le mot de passe est obligatoire"
             }, 400
-
         try:
             ph.verify(update_client.password, str(password))
         except (VerifyMismatchError, VerificationError, InvalidHashError):
@@ -296,25 +268,16 @@ def UpdateClient():
                 "message": "Mot de passe incorrect"
             }, 401
         if email and email != update_client.email.lower():
-            existing_email = Client.query.filter(
-                Client.email.ilike(email),
-                Client.uid != client_id
-            ).first()
+            existing_email = Client.query.filter(Client.email.ilike(email),Client.uid != client_id).first()
             if existing_email:
                 return {
                     "status": "error",
                     "message": "Cette adresse email est déjà utilisée"
                 }, 409
             update_client.email = email
-        update_client.fullname = data.get(
-            'fullname', update_client.fullname
-        )
-        update_client.phone = data.get(
-            'phone', update_client.phone
-        )
-        update_client.adresse_livraison = data.get(
-            'adresse_livraison', update_client.adresse_livraison
-        )
+        update_client.fullname = data.get('fullname', update_client.fullname)
+        update_client.phone = data.get('phone', update_client.phone)
+        update_client.adresse_livraison = data.get('adresse_livraison', update_client.adresse_livraison)
         db.session.commit()
         return {
             "status": "success",
