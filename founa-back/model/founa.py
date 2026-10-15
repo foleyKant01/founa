@@ -105,8 +105,6 @@ class Commande(db.Model):
     produit = db.relationship('Produit', backref=db.backref('commande', lazy=True)) 
     teller_id = db.Column(db.String(128), db.ForeignKey('teller.uid'), nullable=True)
     teller = db.relationship('Teller', backref=db.backref('commande', lazy=True))
-    fournisseur_id = db.Column(db.String(128), db.ForeignKey('fournisseur.uid'), nullable=True)
-    fournisseur = db.relationship('Fournisseur', backref=db.backref('commande', lazy=True))
     quantite = db.Column(db.Integer, nullable=False) 
     prix_total = db.Column(db.Float, nullable=False)
     total_reel = db.Column(db.Float, nullable=True)
