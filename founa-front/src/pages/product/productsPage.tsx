@@ -428,13 +428,13 @@ useEffect(() => {
       
       if (response.data.status === "success") {
         if (window.fbq) {
-          window.fbq("trackCustom", "OrderCreated", {
+          window.fbq("track", "InitiateCheckout", {
             content_ids: [uid],
             content_name: product.name,
             content_type: "product",
             value: product.price * quantity,
             currency: "XOF",
-            quantity: quantity,
+            num_items: quantity
           });
         }
 
@@ -2201,3 +2201,6 @@ useEffect(() => {
 };
 
 export default ProductPage;
+
+
+// "EAAYr6vLfuwsBS98NEtuvaDhDLdW1qW9qRNPp6x6NlLOkWk1ZC9yWH24o3TQgCX8FWjZA20jpMMPWexibGsx5mn7LN4MnUZBIj4FzIHn0oLcQCOSZCodLaJYkZAjm8YLjvwQVLLsohmgdHinIHxRXyFcVWCoJygZCfZBE1pAklblPAQPVZBE6DHSOxgrzyURIEgZDZD"

@@ -122,6 +122,17 @@ const PaymentSuccessPage: React.FC = () => {
         }
 
         setCommande(response.data.commande);
+        // Purchase - vente finale encaissée
+        if (window.fbq) {
+          window.fbq("track", "Purchase", {
+            content_ids: [response.data.commande.produit_id],
+            content_name: response.data.commande.nom,
+            content_type: "product",
+            value: response.data.commande.prix_total,
+            currency: "XOF",
+            num_items: response.data.commande.quantite
+          });
+        }
       } catch (err: any) {
         console.error(
           "Erreur GetSingleCommandeForSuccessPage :",
@@ -140,6 +151,22 @@ const PaymentSuccessPage: React.FC = () => {
     fetchCommande();
   }, [commandeId]);
 
+
+  useEffect(() => {
+    if (commande && !sessionStorage.getItem(`purchase_${commande.commande_id}`)) {
+      if (window.fbq) {
+        window.fbq("track", "Purchase", {
+          content_ids: [commande.produit_id],
+          content_name: commande.nom,
+          content_type: "product",
+          value: commande.prix_total,
+          currency: "XOF",
+          num_items: commande.quantite
+        });
+        sessionStorage.setItem(`purchase_${commande.commande_id}`, "1");
+      }
+    }
+  }, [commande]);
   /*
    * ============================================================
    * FORMATAGE DU MONTANT
