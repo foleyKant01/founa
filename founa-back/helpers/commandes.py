@@ -217,7 +217,6 @@ def GetAllCommandes():
                 "statut": c.statut,
                 "details": c.details,
                 "teller_id": c.teller_id,
-                "fournisseur_id": c.fournisseur_id,
                 "cout_envoie_maritime": c.cout_envoie_maritime,
                 "cout_envoie_aérienne": c.cout_envoie_aérienne,
                 "option_envoie": c.option_envoie,
@@ -275,7 +274,6 @@ def GetAllCommandeByClient():
             result.append({
                 "commande_id": c.commande_id,
                 "nom": single_product.nom,
-                "fournisseur_id": c.fournisseur_id,
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
