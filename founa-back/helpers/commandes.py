@@ -319,7 +319,7 @@ def GetAllCommandeByTeller():
                 },
                 "produit": {
                     "nom": c.produit.nom,
-                    "produit_id": c.produit.produit_id,
+                    "produit_id": c.produit.uid,
                 },
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
