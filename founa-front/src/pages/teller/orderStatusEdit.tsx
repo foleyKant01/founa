@@ -7,7 +7,7 @@ import {
   UpdateCommande,
   DeleteExpiredCommandes,
 } from "../../services/order.service";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import {
   ArrowLeft,
@@ -36,6 +36,7 @@ interface Commande {
   commande_id: string;
   produit: {
     nom: string;
+    produit_id: string;
   };
   client: {
     nom: string;
@@ -767,20 +768,37 @@ const OrderTellerPage: React.FC = () => {
                           {/* PRODUIT */}
 
                           <td>
-
                             <div className="product-cell">
-
                               <div className="product-icon">
                                 <Package size={17} />
                               </div>
 
-                              <span>
-                                {cmd.produit?.nom ||
-                                  "Produit"}
-                              </span>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                <span>
+                                  {cmd.produit?.nom || "Produit"}
+                                </span>
 
+                                {cmd.produit?.produit_id ? (
+                                  <Link
+                                    to={`/teller/readsingle/${encodeURIComponent(cmd.produit.produit_id)}`}
+                                    style={{
+                                      color: "#00A4A6",
+                                      fontSize: "12px",
+                                      fontWeight: 600,
+                                      textDecoration: "none",
+                                      cursor: "pointer",
+                                    }}
+                                    title="Voir les détails du produit"
+                                  >
+                                    {cmd.produit.produit_id}
+                                  </Link>
+                                ) : (
+                                  <span style={{ fontSize: "12px", color: "#999" }}>
+                                    ID indisponible
+                                  </span>
+                                )}
+                              </div>
                             </div>
-
                           </td>
 
                           {/* QUANTITE */}
