@@ -774,10 +774,6 @@ const OrderTellerPage: React.FC = () => {
                               </div>
 
                               <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                                <span>
-                                  {cmd.produit?.nom || "Produit"}
-                                </span>
-
                                 {cmd.produit?.produit_id ? (
                                   <Link
                                     to={`/teller/readsingle/${encodeURIComponent(cmd.produit.produit_id)}`}

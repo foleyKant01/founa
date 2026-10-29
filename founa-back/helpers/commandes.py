@@ -318,7 +318,6 @@ def GetAllCommandeByTeller():
                     "phone": c.client.phone,
                 },
                 "produit": {
-                    "nom": c.produit.nom,
                     "produit_id": c.produit.uid,
                 },
                 "quantite": c.quantite,
