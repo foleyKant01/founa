@@ -28,11 +28,11 @@ def CreateClient():
                 "status": "error",
                 "message": "Tous les champs obligatoires doivent être renseignés."
             }, 400
-        if not phone.isdigit() or not (8 <= len(phone) <= 15):
+        if not phone.isascii() or not phone.isdigit() or len(phone) != 10:
             return {
-                "status": "error",
-                "message": "Veuillez entrer un numéro de téléphone valide."
-            }, 400
+            "status": "error",
+            "message": "Le numéro de téléphone doit contenir exactement 10 chiffres."
+        }, 400
         if str(password) != str(confirmpassword):
             return {
                 "status": "error",
