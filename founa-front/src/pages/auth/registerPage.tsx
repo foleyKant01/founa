@@ -109,6 +109,85 @@ const RegisterPage: React.FC = () => {
         }
     };
 
+//     const [registering, setRegistering] = useState(false);
+
+// const handleRegister = async (e: React.FormEvent) => {
+//     e.preventDefault();
+
+//     const cleanPhone = phone.trim();
+
+//     if (!/^(01|05|07)[0-9]{8}$/.test(cleanPhone)) {
+//         showToast(
+//             "Le numéro doit contenir 10 chiffres et commencer par 01, 05 ou 07.",
+//             "error"
+//         );
+//         return;
+//     }
+
+//     if (password !== confirmPassword) {
+//         showToast(
+//             "Les mots de passe ne correspondent pas.",
+//             "error"
+//         );
+//         return;
+//     }
+
+//     const payload = {
+//         fullname: fullname.trim(),
+//         phone: cleanPhone,
+//         adresse_livraison: adresse.trim(),
+//         code_promo: codePromo.trim(),
+//         password,
+//         confirmpassword: confirmPassword,
+//     };
+
+//     try {
+//         setRegistering(true);
+
+//         const response = await CreateClient(payload);
+
+//         if (response.data.status === "success") {
+
+//             sessionStorage.setItem(
+//                 "pending_verification_phone",
+//                 cleanPhone
+//             );
+
+//             showToast(
+//                 "Compte créé ! Vérifiez maintenant votre numéro.",
+//                 "success"
+//             );
+
+//             nav("/auth/sendotp", {
+//                 state: {
+//                     phone: cleanPhone,
+//                     registration: true,
+//                 },
+//                 replace: true,
+//             });
+
+//         } else {
+//             showToast(
+//                 response.data.message ||
+//                 "Impossible de créer votre compte.",
+//                 "error"
+//             );
+//         }
+
+//     } catch (error: any) {
+//         console.error("Erreur inscription :", error);
+
+//         showToast(
+//             error?.response?.data?.message ||
+//             "Erreur lors de l'inscription.",
+//             "error"
+//         );
+
+//     } finally {
+//         setRegistering(false);
+//     }
+// };
+
     return (
         <div style={styles.container}>
             <div style={styles.logoWrapper}>
@@ -178,9 +257,6 @@ const RegisterPage: React.FC = () => {
                             Vous avez un code promo ? Entrez-le ici.
                         </span>
                     </div>
-
-                    
-
                     <input
                         type="password"
                         placeholder="Mot de passe"
@@ -204,6 +280,16 @@ const RegisterPage: React.FC = () => {
                     <button type="submit" style={styles.button}>
                         S'inscrire
                     </button>
+
+                    {/* <button
+                        type="submit"
+                        style={styles.button}
+                        disabled={registering}
+                    >
+                        {registering
+                            ? "Création du compte..."
+                            : "S'inscrire"}
+                    </button> */}
                 </form>
 
                 <p style={styles.loginText}>
