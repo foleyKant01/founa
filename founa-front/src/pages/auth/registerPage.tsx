@@ -111,11 +111,11 @@ const handleRegister = async (e: React.FormEvent) => {
             );
 
             setTimeout(() => {
-                // nav("/auth/home", {
-                nav("/auth/sendotp", {
-                    state: {
-                        phone: phone.trim()
-                    }
+                nav("/auth/home", {
+                // nav("/auth/sendotp", {
+                    // state: {
+                    //     phone: phone.trim()
+                    // }
                 });
             }, 2000);
 
