@@ -102,6 +102,7 @@ const handleRegister = async (e: React.FormEvent) => {
         const response = await CreateClient(payload);
 
         if (response.data.status === "success") {
+            localStorage.setItem("user", response.data.user_infos);
 
             showToast(
                 response.data.message ||

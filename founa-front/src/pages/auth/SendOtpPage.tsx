@@ -78,8 +78,6 @@ const SendOtpPage: React.FC = () => {
       return;
     }
 
-    localStorage.setItem("phone", phone);
-    
     try {
       const response = await send_OTP({
         phone: phone,
