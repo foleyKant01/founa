@@ -62,52 +62,88 @@ const RegisterPage: React.FC = () => {
         }, 2500);
     };
 
-    const handleRegister = async (e: React.FormEvent) => {
-        e.preventDefault();
+const [loading, setLoading] = useState(false);
 
-        if (password !== confirmPassword) {
-            showToast(
-                "Les mots de passe ne correspondent pas.",
-                "error"
-            );
-            return;
-        }
-        const payload = {
-            fullname,
-            phone,
-            adresse_livraison: adresse,
-            code_promo: codePromo.trim(),
-            password,
-            confirmpassword: confirmPassword,
-        };
-        try {
-            const response = await CreateClient(payload);
+const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-            if (response.data.status === "success") {
-                showToast(
-                    "Votre compte a été créé avec succès !",
-                    "success"
-                );
+    if (loading) return;
 
-                setTimeout(() => {
-                    nav("/auth/login");
-                }, 2000);
-            } else {
-                showToast(
-                    response.data.error_description ||
-                        "Impossible de créer votre compte.",
-                    "error"
-                );
-            }
-        } catch (error) {
-            console.error(error);
+    // Vérification des mots de passe
+    if (password !== confirmPassword) {
+        showToast(
+            "Les mots de passe ne correspondent pas.",
+            "error"
+        );
+        return;
+    }
 
-            showToast(
-                "Erreur lors de l'inscription.",
-                "error"
-            );
-        }
+    // Vérification du numéro
+    if (!/^[0-9]{10}$/.test(phone)) {
+        showToast(
+            "Le numéro de téléphone doit contenir exactement 10 chiffres.",
+            "error"
+        );
+        return;
+    }
+
+    const payload = {
+        fullname: fullname.trim(),
+        phone: phone.trim(),
+        adresse_livraison: adresse.trim(),
+        code_promo: codePromo.trim(),
+        password,
+        confirmpassword: confirmPassword,
     };
+
+    try {
+        setLoading(true);
+
+        const response = await CreateClient(payload);
+
+        if (response.data.status === "success") {
+
+            showToast(
+                response.data.message ||
+                "Votre compte a été créé avec succès !",
+                "success"
+            );
+
+            setTimeout(() => {
+                nav("/auth/sendotp", {
+                    state: {
+                        phone: phone.trim()
+                    }
+                });
+            }, 2000);
+
+        } else {
+
+            showToast(
+                response.data.message ||
+                response.data.error_description ||
+                "Impossible de créer votre compte.",
+                "error"
+            );
+        }
+
+    } catch (error: any) {
+
+        console.error("Erreur inscription :", error);
+
+        // Récupération du message retourné par Flask
+        const errorMessage =
+            error?.response?.data?.message ||
+            error?.response?.data?.error_description ||
+            error?.response?.data?.error ||
+            "Une erreur est survenue lors de l'inscription.";
+
+        showToast(errorMessage, "error");
+
+    } finally {
+        setLoading(false);
+    }
+};
 
 //     const [registering, setRegistering] = useState(false);
 
@@ -277,8 +313,16 @@ const RegisterPage: React.FC = () => {
                         required
                     />
 
-                    <button type="submit" style={styles.button}>
-                        S'inscrire
+                    <button
+                        type="submit"
+                        style={{
+                            ...styles.button,
+                            opacity: loading ? 0.6 : 1,
+                            cursor: loading ? "not-allowed" : "pointer",
+                        }}
+                        disabled={loading}
+                    >
+                        {loading ? "Inscription en cours..." : "S'inscrire"}
                     </button>
 
                     {/* <button
