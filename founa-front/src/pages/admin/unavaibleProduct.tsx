@@ -13,9 +13,10 @@ import {
   Hash,
   Clock3,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 import Swal from "sweetalert2";
-import { GetAllUnavaibleProduct } from "../../services/product.service";
+import { GetAllUnavaibleProduct, DeleteUnavaibleProduct } from "../../services/product.service";
 
 interface UnavaibleProduct {
   uid: string;
@@ -32,6 +33,7 @@ const ReadAllUnavaibleProductsPage: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [deletingUid, setDeletingUid] = useState<string | null>(null);
 
 const loadUnavailableProducts = async () => {
   try {
@@ -82,6 +84,51 @@ const loadUnavailableProducts = async () => {
       await loadUnavailableProducts();
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const handleDelete = async (product: UnavaibleProduct) => {
+    if (deletingUid) return;
+
+    const confirmation = await Swal.fire({
+      icon: "warning",
+      title: "Supprimer cette demande ?",
+      text: `La demande « ${product.text_search} » sera définitivement supprimée.`,
+      showCancelButton: true,
+      confirmButtonText: "Oui, supprimer",
+      cancelButtonText: "Annuler",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#667085",
+      reverseButtons: true,
+    });
+
+    if (!confirmation.isConfirmed) return;
+
+    try {
+      setDeletingUid(product.uid);
+      const response = await DeleteUnavaibleProduct({ uid: product.uid });
+
+      if (response.data?.status !== "success") {
+        throw new Error(response.data?.message || "La suppression a échoué.");
+      }
+
+      setProducts((previous) => previous.filter((item) => item.uid !== product.uid));
+      await Swal.fire({
+        icon: "success",
+        title: "Demande supprimée",
+        text: response.data?.message || "La demande a été supprimée avec succès.",
+        timer: 2200,
+        showConfirmButton: false,
+      });
+    } catch (error: any) {
+      await Swal.fire({
+        icon: "error",
+        title: "Suppression impossible",
+        text: error?.response?.data?.message || error?.message || "Une erreur est survenue.",
+        confirmButtonColor: "#00A4A6",
+      });
+    } finally {
+      setDeletingUid(null);
     }
   };
 
@@ -657,6 +704,39 @@ const loadUnavailableProducts = async () => {
           font-weight: 700;
         }
 
+        .delete-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          padding: 9px 12px;
+          border: 1px solid #fecaca;
+          border-radius: 10px;
+          background: #fff5f5;
+          color: #dc2626;
+          font-size: 11px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .delete-button:hover:not(:disabled) {
+          background: #dc2626;
+          color: #ffffff;
+          border-color: #dc2626;
+        }
+
+        .delete-button:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+
+        .request-actions {
+          margin-top: 14px;
+          display: flex;
+          justify-content: flex-end;
+        }
+
         /* LOADING */
 
         .loading-state {
@@ -1161,6 +1241,23 @@ const loadUnavailableProducts = async () => {
                     )}
                   </span>
 
+                </div>
+
+                <div className="request-actions">
+                  <button
+                    type="button"
+                    className="delete-button"
+                    onClick={() => handleDelete(product)}
+                    disabled={deletingUid !== null}
+                    aria-label={`Supprimer la demande ${product.text_search}`}
+                  >
+                    {deletingUid === product.uid ? (
+                      <RefreshCw size={15} className="refresh-spin" />
+                    ) : (
+                      <Trash2 size={15} />
+                    )}
+                    {deletingUid === product.uid ? "Suppression..." : "Supprimer"}
+                  </button>
                 </div>
 
               </article>

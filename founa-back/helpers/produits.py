@@ -357,6 +357,38 @@ def GetAllUnavaibleProduct():
     })
     
     
+def DeleteUnavaibleProduct():
+    try:
+        data = request.get_json(silent=True) or {}
+        uid = str(data.get("uid") or "").strip()
+        if not uid:
+            return jsonify({
+                "status": "error",
+                "message": "L'UID du produit est obligatoire."
+            }), 400
+        unavaible_product = UnavaibleProduct.query.filter_by(
+            uid=uid
+        ).first()
+        if not unavaible_product:
+            return jsonify({
+                "status": "error",
+                "message": "Produit indisponible introuvable."
+            }), 404
+        db.session.delete(unavaible_product)
+        db.session.commit()
+        return jsonify({
+            "status": "success",
+            "message": "Produit indisponible supprimé avec succès.",
+            "uid": uid
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "status": "error",
+            "message": "Une erreur est survenue lors de la suppression."
+        }), 500
+    
+    
 def MettreAJourPrixVente():
     try:
         produits = Produit.query.all()

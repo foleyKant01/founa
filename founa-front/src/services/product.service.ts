@@ -76,6 +76,12 @@ export const GetSingleProduit = (data: {
   return api.post("/produits/get_single_produit", data);
 };
 
+export const DeleteUnavaibleProduct = (data: {
+  uid: string;
+}) => {
+  return api.post("/produits/delete_unavaible_product", data);
+};
+
 
 // ======================================================
 // PRODUITS PAR CATÉGORIE

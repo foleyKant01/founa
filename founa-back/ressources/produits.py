@@ -11,8 +11,10 @@ class ProduitsApi(Resource):
             return AllSimilarProducts()   
         if route == "search_product":
             return SearchProduct() 
+        if route == "delete_unavaible_product":
+            return DeleteUnavaibleProduct() 
         if route == "get_produits_by_categorie":
-            return GetProduitsByCategorie() 
+            return GetProduitsByCategorie()  
 
     def get(self, route):
         if route == "get_all_produits":
