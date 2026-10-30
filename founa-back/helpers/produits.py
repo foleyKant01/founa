@@ -2,7 +2,7 @@ import os
 from config.db import db
 from model.founa import *
 from config.constant import *
-from flask import request, jsonify
+from flask import request, jsonify, current_app
 import uuid
 import json
 import math
@@ -12,6 +12,8 @@ from sqlalchemy import or_
 import unicodedata
 import cloudinary.uploader
 from werkzeug.utils import secure_filename
+from datetime import datetime, timedelta, timezone
+
 
 
 def upload_to_cloudinary(files):
@@ -357,34 +359,43 @@ def GetAllUnavaibleProduct():
     })
     
     
+
 def DeleteUnavaibleProduct():
     try:
-        uid = request.json.get('uid')
-        
-        # data = request.get_json(silent=True) or {}
-        # uid = str(data.get("uid") or "").strip()
-        if not uid:
-            return jsonify({
-                "status": "error",
-                "message": "L'UID du produit est obligatoire."
-            }), 400
-        unavaible_product = UnavaibleProduct.query.filter_by(
-            uid=uid
-        ).first()
-        if not unavaible_product:
-            return jsonify({
-                "status": "error",
-                "message": "Produit indisponible introuvable."
-            }), 404
-        db.session.delete(unavaible_product)
+        # Date limite : il y a 2 jours
+        date_limite = datetime.now(timezone.utc).replace(
+            tzinfo=None
+        ) - timedelta(days=2)
+
+        # Récupérer les produits datant d'au moins 2 jours
+        unavaible_products = UnavaibleProduct.query.filter(
+            UnavaibleProduct.created_date <= date_limite
+        ).all()
+
+        if not unavaible_products:
+            return {
+                "status": "success",
+                "message": "Aucun produit indisponible datant de 2 jours ou plus.",
+                "nombre_supprimes": 0
+            }, 200
+
+        nombre_supprimes = len(unavaible_products)
+
+        # Supprimer les produits
+        for product in unavaible_products:
+            db.session.delete(product)
         db.session.commit()
         return {
             "status": "success",
-            "message": "Produit indisponible supprimé avec succès.",
-            "uid": uid
+            "message": f"{nombre_supprimes} produit(s) indisponible(s) supprimé(s) avec succès.",
+            "nombre_supprimes": nombre_supprimes
         }, 200
-    except Exception as e:
+
+    except Exception:
         db.session.rollback()
+        current_app.logger.exception(
+            "Erreur lors de la suppression des produits indisponibles"
+        )
         return {
             "status": "error",
             "message": "Une erreur est survenue lors de la suppression."
