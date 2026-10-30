@@ -91,7 +91,7 @@ def CreateClient():
 def send_OTP():
     phone = request.json.get('phone')
     phone_session = request.json.get('phone_session')
-    if not phone_session or not phone:
+    if not phone:
         return {"status": "error","message": "Numéro de téléphone requis"}, 400
     if phone_session != phone:
         return {
