@@ -10,6 +10,12 @@ export const CreateOneTeller = (data: {
   return api.post("/teller/create_one_teller", data);
 };
 
+export const VerfiyUserByTeller = (data: {
+  phone: string;
+}) => {
+  return api.post("/clients/verfiy_user_by_teller", data);
+};
+
 export const ReadAllTellers = () => {
   return api.get("/teller/read_all_teller");
 };

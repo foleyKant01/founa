@@ -44,6 +44,7 @@ import ReadAllPartnerPubPage from "../pages/admin/readAllPartnerPub";
 import ProtectedRoutePartnerPub from "../components/routes/ProtectedRoutePartnerPub";
 import HomePartnerPub from "../pages/partnerpub/homePartnerPub";
 import { trackPageView } from "../utils/analytics";
+import SingleClientPage from "../pages/teller/singleClientPage";
 
 
 const AppRoutes = () => {
@@ -127,6 +128,15 @@ const AppRoutes = () => {
             element={
               <ProtectedRouteTeller>
                 <HomeTeller />
+              </ProtectedRouteTeller>
+            }
+          />
+
+          <Route
+            path="/teller/readsingleuser/:uid"
+            element={
+              <ProtectedRouteTeller>
+                <SingleClientPage />
               </ProtectedRouteTeller>
             }
           />

@@ -40,6 +40,7 @@ interface Commande {
   };
   client: {
     nom: string;
+    uid: string;
     phone: string;
   };
   quantite: number;
@@ -738,31 +739,41 @@ const OrderTellerPage: React.FC = () => {
                           {/* CLIENT */}
 
                           <td>
+                            {cmd.client?.uid ? (
+                              <Link
+                                to={`/teller/readsingleuser/${cmd.client.uid}`}
+                                className="client-cell client-link"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                <div className="client-avatar">
+                                  <User size={17} />
+                                </div>
 
-                            <div className="client-cell">
+                                <div>
+                                  <strong>{cmd.client.nom || "Client"}</strong>
 
-                              <div className="client-avatar">
-                                <User size={17} />
+                                  <span>
+                                    <Phone size={12} />
+                                    {cmd.client.phone || "Téléphone inconnu"}
+                                  </span>
+                                </div>
+                              </Link>
+                            ) : (
+                              <div className="client-cell">
+                                <div className="client-avatar">
+                                  <User size={17} />
+                                </div>
+
+                                <div>
+                                  <strong>{cmd.client?.nom || "Client"}</strong>
+
+                                  <span>
+                                    <Phone size={12} />
+                                    {cmd.client?.phone || "Téléphone inconnu"}
+                                  </span>
+                                </div>
                               </div>
-
-                              <div>
-
-                                <strong>
-                                  {cmd.client?.nom ||
-                                    "Client"}
-                                </strong>
-
-                                <span>
-                                  <Phone size={12} />
-
-                                  {cmd.client?.phone ||
-                                    "Téléphone inconnu"}
-                                </span>
-
-                              </div>
-
-                            </div>
-
+                            )}
                           </td>
 
                           {/* PRODUIT */}
@@ -1630,6 +1641,23 @@ const OrderTellerPage: React.FC = () => {
           color: #111827;
           font-size: 23px;
           line-height: 1;
+        }
+
+        .client-link {
+          color: inherit;
+          text-decoration: none;
+          cursor: pointer;
+          border-radius: 10px;
+        }
+
+        .client-link:hover strong {
+          color: #00a4a6;
+          text-decoration: underline;
+        }
+
+        .client-link:focus-visible {
+          outline: 2px solid #00a4a6;
+          outline-offset: 4px;
         }
 
         /* ================================================= */

@@ -9,10 +9,12 @@ class ClientsApi(Resource):
             return send_OTP()
         if route == "verfiy_otp":
             return verfiy_OTP()
+        if route == "verfiy_user_by_teller":
+            return VerfiyUserByTeller()
         if route == "read_single_client":
             return ReadSingleClient() 
         if route == "update_client":
-            return UpdateClient()
+            return UpdateClient() 
         if route == "update_password":
             return UpdatePassword()
     

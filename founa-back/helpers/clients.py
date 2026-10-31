@@ -186,6 +186,58 @@ def verfiy_OTP():
     return response
 
 
+
+
+def VerfiyUserByTeller():
+    try:
+        data = request.get_json(silent=True) or {}
+        phone = str(data.get("phone") or "").strip()
+        if not phone:
+            return {
+                "status": "error",
+                "message": "Numéro de téléphone requis."
+            }, 400
+        if not phone.isascii() or not phone.isdigit() or len(phone) != 10:
+            return {
+                "status": "error",
+                "message": "Le numéro de téléphone doit contenir exactement 10 chiffres."
+            }, 400
+        single_client = Client.query.filter_by(
+            phone=phone
+        ).first()
+        if not single_client:
+            return {
+                "status": "error",
+                "message": "Client introuvable."
+            }, 404
+        if single_client.status == "verifier":
+            return {
+                "status": "error",
+                "message": "Ce compte est déjà vérifié."
+            }, 409
+        single_client.status = "verifier"
+        db.session.commit()
+        return {
+            "status": "success",
+            "message": "Numéro de téléphone vérifié avec succès.",
+            "user_infos": {
+                "uid": single_client.uid,
+                "fullname": single_client.fullname,
+                "phone": single_client.phone,
+                "status": single_client.status
+            }
+        }, 200
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception(
+            "Erreur lors de la vérification du compte client"
+        )
+        return {
+            "status": "error",
+            "message": "Une erreur est survenue lors de la vérification du compte."
+        }, 500
+
+
 def ReadAllClients():
     response = {}
     try:
