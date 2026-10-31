@@ -276,8 +276,10 @@ def ReadSingleClient():
                 'fullname': client.fullname,
                 'email': client.email,
                 'phone': client.phone,
+                'status': client.status,
                 'adresse_livraison': client.adresse_livraison,
-                'creation_date': str(client.created_date)
+                'created_date': str(client.created_date),
+                'updated_date': str(client.updated_date)
             }
             response['status'] = 'success'
             response['client'] = client_info
