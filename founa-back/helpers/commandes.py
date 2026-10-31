@@ -315,8 +315,9 @@ def GetAllCommandeByTeller():
                 "commande_id": c.commande_id,
                 "client": {
                     "nom": c.client.fullname,
-                    "uid": c.client.uid,
+                    "uid": c.client.uid, 
                     "phone": c.client.phone,
+                    "status": c.client.status,
                 },
                 "produit": {
                     "produit_id": c.produit.uid,

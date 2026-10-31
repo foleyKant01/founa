@@ -29,6 +29,7 @@ import {
   CalendarDays,
   Plane,
   Ship,
+  BadgeCheck,
   FileText,
 } from "lucide-react";
 
@@ -42,6 +43,7 @@ interface Commande {
     nom: string;
     uid: string;
     phone: string;
+    status: string;
   };
   quantite: number;
   prix_total: number;
@@ -737,7 +739,6 @@ const OrderTellerPage: React.FC = () => {
                           </td>
 
                           {/* CLIENT */}
-
                           <td>
                             {cmd.client?.uid ? (
                               <Link
@@ -750,7 +751,22 @@ const OrderTellerPage: React.FC = () => {
                                 </div>
 
                                 <div>
-                                  <strong>{cmd.client.nom || "Client"}</strong>
+                                  <strong>
+                                    {cmd.client.nom || "Client"}
+
+                                    {cmd.client.status === "verifier" && (
+                                      <BadgeCheck
+                                        size={16}
+                                        color="#00A4A6"
+                                        aria-label="Client vérifié"
+                                        style={{
+                                          marginLeft: 5,
+                                          verticalAlign: "middle",
+                                          flexShrink: 0,
+                                        }}
+                                      />
+                                    )}
+                                  </strong>
 
                                   <span>
                                     <Phone size={12} />
@@ -765,7 +781,22 @@ const OrderTellerPage: React.FC = () => {
                                 </div>
 
                                 <div>
-                                  <strong>{cmd.client?.nom || "Client"}</strong>
+                                  <strong>
+                                    {cmd.client?.nom || "Client"}
+
+                                    {cmd.client?.status === "verifier" && (
+                                      <BadgeCheck
+                                        size={16}
+                                        color="#00A4A6"
+                                        aria-label="Client vérifié"
+                                        style={{
+                                          marginLeft: 5,
+                                          verticalAlign: "middle",
+                                          flexShrink: 0,
+                                        }}
+                                      />
+                                    )}
+                                  </strong>
 
                                   <span>
                                     <Phone size={12} />
