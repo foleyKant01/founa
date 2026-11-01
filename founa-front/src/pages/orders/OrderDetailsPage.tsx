@@ -82,26 +82,26 @@ const OrderDetailsPage: React.FC = () => {
 
   const [shippingLoading, setShippingLoading] = useState(false);
 
-  const getClientStatus = () => {
-    try {
-      const storedUser = localStorage.getItem("user");
+  // const getClientStatus = () => {
+  //   try {
+  //     const storedUser = localStorage.getItem("user");
 
-      if (!storedUser) {
-        return null;
-      }
+  //     if (!storedUser) {
+  //       return null;
+  //     }
 
-      const user = JSON.parse(storedUser);
+  //     const user = JSON.parse(storedUser);
 
-      return user?.status || null;
-    } catch (error) {
-      console.error(
-        "Erreur lors de la lecture du client :",
-        error
-      );
+  //     return user?.status || null;
+  //   } catch (error) {
+  //     console.error(
+  //       "Erreur lors de la lecture du client :",
+  //       error
+  //     );
 
-      return null;
-    }
-  };
+  //     return null;
+  //   }
+  // };
 
   useEffect(() => {
     if (!commande_id) {
