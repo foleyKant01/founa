@@ -417,16 +417,16 @@ const OrderDetailsPage: React.FC = () => {
 
   const handlePayment = async () => {
 
-    const clientStatus = getClientStatus();
-    console.log(
-      "Statut actuel du compte :",
-      clientStatus
-    );
+    // const clientStatus = getClientStatus();
+    // console.log(
+    //   "Statut actuel du compte :",
+    //   clientStatus
+    // );
 
-    if (clientStatus !== "verifier") {
-      setShowVerificationModal(true);
-      return;
-    }
+    // if (clientStatus !== "verifier") {
+    //   setShowVerificationModal(true);
+    //   return;
+    // }
 
     if (!commande_id) {
       console.error("Commande introuvable.");

@@ -164,6 +164,11 @@ def PaymentRequest():
                 "status": "error",
                 "message": "Client introuvable"
             }, 404
+        if single_client.status != "verifier":
+            return {
+                "status": "error",
+                "message": "Votre compte doit être vérifié avant de continuer."
+            }, 403
         single_commande = Commande.query.filter_by(commande_id=commande_id, client_id=user_id).first()
         if not single_commande:
             return {
