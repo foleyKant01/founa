@@ -751,19 +751,25 @@ const OrderTellerPage: React.FC = () => {
                                 </div>
 
                                 <div>
-                                  <strong>
-                                    {cmd.client.nom || "Client"}
+                                  <strong
+                                    title={cmd.client.nom || "Client"}
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 5,
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    {(cmd.client.nom || "Client").length > 13
+                                      ? `${(cmd.client.nom || "Client").slice(0, 13)}…`
+                                      : cmd.client.nom || "Client"}
 
                                     {cmd.client.status === "verifier" && (
                                       <BadgeCheck
                                         size={16}
                                         color="#00A4A6"
                                         aria-label="Client vérifié"
-                                        style={{
-                                          marginLeft: 5,
-                                          verticalAlign: "middle",
-                                          flexShrink: 0,
-                                        }}
+                                        style={{ flexShrink: 0 }}
                                       />
                                     )}
                                   </strong>
@@ -781,19 +787,27 @@ const OrderTellerPage: React.FC = () => {
                                 </div>
 
                                 <div>
-                                  <strong>
-                                    {cmd.client?.nom || "Client"}
+                                  <strong
+                                    title={cmd.client?.nom || "Client"}
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 5,
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    <span>
+                                      {(cmd.client?.nom || "Client").length > 13
+                                        ? `${(cmd.client?.nom || "Client").slice(0, 13)}…`
+                                        : cmd.client?.nom || "Client"}
+                                    </span>
 
                                     {cmd.client?.status === "verifier" && (
                                       <BadgeCheck
                                         size={16}
                                         color="#00A4A6"
                                         aria-label="Client vérifié"
-                                        style={{
-                                          marginLeft: 5,
-                                          verticalAlign: "middle",
-                                          flexShrink: 0,
-                                        }}
+                                        style={{ flexShrink: 0 }}
                                       />
                                     )}
                                   </strong>

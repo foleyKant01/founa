@@ -983,100 +983,93 @@ const OrderDetailsPage: React.FC = () => {
                 </div>
 
                 <div className="shipping-options">
+                  {/* MARITIME : visible uniquement si le coût est supérieur à 0 */}
+                  {coutMaritime > 0 && (
+                    <label
+                      className="shipping-option"
+                      style={{
+                        ...styles.shippingOption,
+                        ...(modeExpedition === "maritime"
+                          ? styles.shippingSelected
+                          : {}),
+                      }}
+                    >
+                      <div style={styles.shippingIcon}>🚢</div>
 
-                  {/* MARITIME */}
-                  <div
-                    className="shipping-option"
-                    style={{
-                      ...styles.shippingOption,
-                      ...(modeExpedition === "maritime"
-                        ? styles.shippingSelected
-                        : {}),
-                    }}
-                    onClick={() =>
-                      handleOptionEnvoie("maritime")
-                    }
-                  >
-                    <div style={styles.shippingIcon}>
-                      🚢
-                    </div>
+                      <div style={styles.shippingContent}>
+                        <div style={styles.shippingName}>Maritime</div>
 
-                    <div style={styles.shippingContent}>
-                      <div style={styles.shippingName}>
-                        Maritime
+                        <div style={styles.shippingDescription}>
+                          Transport maritime
+                        </div>
+
+                        <div style={styles.shippingPrice}>
+                          {coutMaritime.toLocaleString("fr-FR")} FCFA
+                        </div>
+
+                        <div style={styles.shippingTime}>
+                          ⏱ {order.temps_envoie_maritime || "Délai non renseigné"}
+                        </div>
                       </div>
 
-                      <div style={styles.shippingDescription}>
-                        Transport maritime
+                      <input
+                        type="radio"
+                        name="expedition"
+                        value="maritime"
+                        checked={modeExpedition === "maritime"}
+                        disabled={shippingLoading || paymentLoading}
+                        onChange={() => handleOptionEnvoie("maritime")}
+                      />
+                    </label>
+                  )}
+
+                  {/* AÉRIENNE : visible uniquement si le coût est supérieur à 0 */}
+                  {coutAerienne > 0 && (
+                    <label
+                      className="shipping-option"
+                      style={{
+                        ...styles.shippingOption,
+                        ...(modeExpedition === "aérienne"
+                          ? styles.shippingSelected
+                          : {}),
+                      }}
+                    >
+                      <div style={styles.shippingIcon}>✈️</div>
+
+                      <div style={styles.shippingContent}>
+                        <div style={styles.shippingName}>Aérienne</div>
+
+                        <div style={styles.shippingDescription}>
+                          Transport aérien
+                        </div>
+
+                        <div style={styles.shippingPrice}>
+                          {coutAerienne.toLocaleString("fr-FR")} FCFA
+                        </div>
+
+                        <div style={styles.shippingTime}>
+                          ⏱ {order.temps_envoie_aérienne || "Délai non renseigné"}
+                        </div>
                       </div>
 
-                      <div style={styles.shippingPrice}>
-                        {coutMaritime.toLocaleString()} FCFA
-                      </div>
-                      <div style={styles.shippingTime}>
-                        ⏱ {order.temps_envoie_maritime || "Délai non renseigné"}
-                      </div>
-                    </div>
-
-                    <input
-                      type="radio"
-                      name="expedition"
-                      checked={
-                        modeExpedition === "maritime"
-                      }
-                      onChange={() =>
-                        handleOptionEnvoie("maritime")
-                      }
-                    />
-                  </div>
-
-                  {/* AERIENNE */}
-                  <div
-                    className="shipping-option"
-                    style={{
-                      ...styles.shippingOption,
-                      ...(modeExpedition === "aérienne"
-                        ? styles.shippingSelected
-                        : {}),
-                    }}
-                    onClick={() =>
-                      handleOptionEnvoie("aérienne")
-                    }
-                  >
-                    <div style={styles.shippingIcon}>
-                      ✈️
-                    </div>
-
-                    <div style={styles.shippingContent}>
-                      <div style={styles.shippingName}>
-                        Aérienne
-                      </div>
-
-                      <div style={styles.shippingDescription}>
-                        Transport aérien
-                      </div>
-
-                      <div style={styles.shippingPrice}>
-                        {coutAerienne.toLocaleString()} FCFA
-                      </div>
-                      <div style={styles.shippingTime}>
-                        ⏱ {order.temps_envoie_aérienne || "Délai non renseigné"}
-                      </div>
-                    </div>
-
-                    <input
-                      type="radio"
-                      name="expedition"
-                      checked={
-                        modeExpedition === "aérienne"
-                      }
-                      onChange={() =>
-                        handleOptionEnvoie("aérienne")
-                      }
-                    />
-                  </div>
-
+                      <input
+                        type="radio"
+                        name="expedition"
+                        value="aérienne"
+                        checked={modeExpedition === "aérienne"}
+                        disabled={shippingLoading || paymentLoading}
+                        onChange={() => handleOptionEnvoie("aérienne")}
+                      />
+                    </label>
+                  )}
                 </div>
+
+                {coutMaritime <= 0 && coutAerienne <= 0 && (
+                  <p style={{ color: "#926017", fontSize: 14, lineHeight: 1.6 }}>
+                    Aucun mode d’expédition n’est disponible pour le moment.
+                    Les frais de transport doivent être renseignés avant le paiement.
+                  </p>
+                )}
 
                 {shippingLoading && (
                   <div style={styles.shippingSaving}>
