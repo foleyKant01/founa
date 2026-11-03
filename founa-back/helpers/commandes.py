@@ -452,9 +452,10 @@ def GetSingleCommandeForSuccessPage():
 def UpdateCommande():
     try:
         data = request.json or {}
-        commande_id = data.get("commande_id")
+        commande_id = data.get("commande_id") 
         statut = data.get("statut")
         details = data.get("details")
+        customer_review = data.get("customer_review")
 
         cout_envoie_maritime = data.get("cout_envoie_maritime", 0)
         temps_envoie_maritime = data.get("temps_envoie_maritime", "")
@@ -468,6 +469,7 @@ def UpdateCommande():
             }, 404
         update_commande.statut = statut
         update_commande.details = details
+        update_commande.customer_review = customer_review
         update_commande.cout_envoie_maritime = float(cout_envoie_maritime or 0)
         update_commande.cout_envoie_aérienne = float(cout_envoie_aerienne or 0)
         update_commande.temps_envoie_maritime = str(temps_envoie_maritime or "").strip()
@@ -517,6 +519,7 @@ def UpdateCommande():
                 "commande_id": update_commande.commande_id,
                 "statut": update_commande.statut,
                 "details": update_commande.details,
+                "customer_review": update_commande.customer_review,
                 "cout_envoie_maritime": update_commande.cout_envoie_maritime,
                 "cout_envoie_aérienne": update_commande.cout_envoie_aérienne,
                 "temps_envoie_maritime": update_commande.temps_envoie_maritime,
