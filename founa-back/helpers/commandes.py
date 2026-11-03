@@ -325,6 +325,7 @@ def GetAllCommandeByTeller():
                 "quantite": c.quantite,
                 "prix_total": c.prix_total,
                 "statut": c.statut,
+                "customer_review": c.customer_review,
                 "created_date": str(c.created_date),
                 "updated_date": str(c.updated_date),
             })

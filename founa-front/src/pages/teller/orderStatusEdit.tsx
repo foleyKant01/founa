@@ -49,6 +49,7 @@ interface Commande {
   prix_total: number;
   statut: string;
   details: string;
+  customer_review?: string | null;
   teller_id: string;
   created_date: string;
   cout_envoie_maritime?: number;
@@ -284,6 +285,7 @@ const OrderTellerPage: React.FC = () => {
       commande_id: editing.commande_id,
       statut: editing.statut,
       details: editing.details,
+      customer_review: editing.customer_review?.trim() ?? "",
       teller_id: teller?.uid,
 
       cout_envoie_maritime: editing.cout_envoie_maritime,
@@ -703,6 +705,7 @@ const OrderTellerPage: React.FC = () => {
                       <th>Qté</th>
                       <th>Total</th>
                       <th>Statut</th>
+                      <th>Avis client</th>
                       <th>Date</th>
                       <th>Action</th>
                     </tr>
@@ -901,6 +904,10 @@ const OrderTellerPage: React.FC = () => {
 
                             </span>
 
+                          </td>
+
+                          <td style={{ maxWidth: 280, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                            {cmd.customer_review?.trim() || "Aucun avis"}
                           </td>
 
                           {/* DATE */}
@@ -1388,6 +1395,20 @@ const OrderTellerPage: React.FC = () => {
             {/* ================================================= */}
             {/* ACTIONS */}
             {/* ================================================= */}
+
+            <div className="form-section">
+              <label htmlFor="customer-review">Avis client</label>
+              <textarea
+                id="customer-review"
+                value={editing.customer_review ?? ""}
+                onChange={(e) =>
+                  setEditing({ ...editing, customer_review: e.target.value })
+                }
+                rows={3}
+                placeholder="Saisir l’avis du client sur cette commande…"
+                disabled={saving}
+              />
+            </div>
 
             <div className="modal-actions">
 
