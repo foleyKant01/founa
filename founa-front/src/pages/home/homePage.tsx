@@ -365,7 +365,6 @@ const refreshHomePage = async () => {
       refreshedProducts = shuffleProducts(
         productsResponse.data.produits || []
       );
-
       hasMore = Boolean(
         productsResponse.data.pagination?.has_next
       );
@@ -386,11 +385,8 @@ const refreshHomePage = async () => {
         (produit: Produit) =>
           produit.status?.trim().toLowerCase() === "top"
       );
-
       refreshedFeaturedProducts = shuffleProducts(premiumList);
     }
-
-    // Mettre à jour l'affichage
     setAllProducts(refreshedProducts);
     setTopProducts(refreshedTopProducts);
     setFeaturedProducts(refreshedFeaturedProducts);
