@@ -15,7 +15,6 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta, timezone
 
 
-
 def upload_to_cloudinary(files):
     images = []
     for file in files:
@@ -360,34 +359,38 @@ def GetAllUnavaibleProduct():
     
     
 
+
 def DeleteUnavaibleProduct():
     try:
-        # Date limite : il y a 2 jours
-        date_limite = datetime.now(timezone.utc).replace(
-            tzinfo=None
-        ) - timedelta(days=2)
+        # Adapté à un created_date enregistré en UTC sans fuseau horaire
+        date_limite = (
+            datetime.now(timezone.utc) - timedelta(hours=48)
+        ).replace(tzinfo=None)
 
-        # Récupérer les produits datant d'au moins 2 jours
         unavaible_products = UnavaibleProduct.query.filter(
-            UnavaibleProduct.created_date <= date_limite
+            UnavaibleProduct.created_date < date_limite
         ).all()
-
-        if not unavaible_products:
-            return {
-                "status": "success",
-                "message": "Aucun produit indisponible datant de 2 jours ou plus.",
-                "nombre_supprimes": 0
-            }, 200
 
         nombre_supprimes = len(unavaible_products)
 
-        # Supprimer les produits
+        if nombre_supprimes == 0:
+            return {
+                "status": "success",
+                "message": "Aucun produit indisponible créé depuis plus de 48 heures.",
+                "nombre_supprimes": 0
+            }, 200
+
         for product in unavaible_products:
             db.session.delete(product)
+
         db.session.commit()
+
         return {
             "status": "success",
-            "message": f"{nombre_supprimes} produit(s) indisponible(s) supprimé(s) avec succès.",
+            "message": (
+                f"{nombre_supprimes} produit(s) indisponible(s) "
+                "créé(s) depuis plus de 48 heures supprimé(s) avec succès."
+            ),
             "nombre_supprimes": nombre_supprimes
         }, 200
 
@@ -396,6 +399,7 @@ def DeleteUnavaibleProduct():
         current_app.logger.exception(
             "Erreur lors de la suppression des produits indisponibles"
         )
+
         return {
             "status": "error",
             "message": "Une erreur est survenue lors de la suppression."
