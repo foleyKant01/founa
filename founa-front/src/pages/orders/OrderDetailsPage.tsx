@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   GetSingleCommande,
+  DeleteCommande,
   OptionEnvoie,
 } from "../../services/order.service";
 
@@ -42,6 +44,7 @@ const OrderDetailsPage: React.FC = () => {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [showVerificationModal, setShowVerificationModal] =
     useState(false);
 
@@ -416,6 +419,7 @@ const OrderDetailsPage: React.FC = () => {
   };
 
   const handlePayment = async () => {
+    if (deleting) return;
 
     // const clientStatus = getClientStatus();
     // console.log(
@@ -486,6 +490,64 @@ const OrderDetailsPage: React.FC = () => {
       setPaymentLoading(false);
     }
   };
+  const canDelete = ["Initier", "Prise en charge", "Valider"].includes(order.statut);
+
+  const handleDelete = async () => {
+    if (!canDelete || deleting || paymentLoading || shippingLoading) return;
+
+    setDeleting(true);
+    try {
+      const result = await Swal.fire({
+        title: "Supprimer cette commande ?",
+        text: "La commande et son historique seront supprimés définitivement.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Oui, supprimer",
+        cancelButtonText: "Annuler",
+        confirmButtonColor: "#DC2626",
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+        allowEscapeKey: () => !Swal.isLoading(),
+        preConfirm: async () => {
+          try {
+            const response = await DeleteCommande({
+              commande_id: order.commande_id,
+            });
+            if (response.data.status !== "success" && response.data.success !== true) {
+              Swal.showValidationMessage(
+                response.data.message || "Impossible de supprimer cette commande."
+              );
+              return false;
+            }
+            return true;
+          } catch (error) {
+            console.error("Erreur de suppression :", error);
+            Swal.showValidationMessage(
+              "La suppression n’a pas pu être confirmée. Actualisez la page avant de réessayer."
+            );
+            return false;
+          }
+        },
+      });
+
+      if (result.isConfirmed && result.value === true) {
+        try {
+          await refreshCommandeCount();
+        } catch (error) {
+          console.error("Actualisation du compteur impossible :", error);
+        }
+        await Swal.fire({
+          icon: "success",
+          title: "Commande supprimée",
+          confirmButtonColor: "#00A4A6",
+        });
+        navigate(-1);
+      }
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div style={styles.page}>
       <style>
@@ -1301,7 +1363,7 @@ const OrderDetailsPage: React.FC = () => {
 
                 <button
                   onClick={handlePayment}
-                  disabled={!modeExpedition || !modePaiement || paymentLoading}
+                  disabled={!modeExpedition || !modePaiement || paymentLoading || deleting}
                   style={{
                     ...styles.payButton,
                     opacity:
@@ -1324,16 +1386,38 @@ const OrderDetailsPage: React.FC = () => {
                   🔒 Paiement sécurisé
                 </div>
 
-                <div style={styles.paymentDeadline}>
+                {/* <div style={styles.paymentDeadline}>
                   ⚠️ La commande sera automatiquement
                   supprimée si elle n'est pas payée dans
                   les 7 prochains jours à compter de la
                   date à laquelle elle a été initiée.
-                </div>
+                </div> */}
               </div>
             )}
           </aside>
         </div>
+        {canDelete && (
+          <div style={{ marginTop: 24, paddingBottom: 24, textAlign: "center" }}>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting || paymentLoading || shippingLoading}
+              style={{
+                border: "1px solid #FECACA",
+                borderRadius: 12,
+                padding: "14px 24px",
+                background: "#FEF2F2",
+                color: "#B91C1C",
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: deleting || paymentLoading || shippingLoading ? "not-allowed" : "pointer",
+                opacity: deleting || paymentLoading || shippingLoading ? 0.5 : 1,
+              }}
+            >
+              {deleting ? "Suppression en cours…" : "Supprimer la commande"}
+            </button>
+          </div>
+        )}
       </main>
 
       {/* MODAL VERIFICATION */}

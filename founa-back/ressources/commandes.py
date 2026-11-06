@@ -14,9 +14,11 @@ class CommandesApi(Resource):
         if route == "attribuer_commandes":
             return AttribuerCommandes()
         if route == "option_envoie":
-            return OptionEnvoie()
+            return OptionEnvoie() 
         if route == "delete_expired_commandes":
             return DeleteExpiredCommandes()
+        if route == "delete_commande":
+            return DeleteCommande()
         if route == "get_all_commande_by_client":
             return GetAllCommandeByClient()
         if route == "get_all_commande_by_teller":

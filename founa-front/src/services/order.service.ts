@@ -22,6 +22,13 @@ export const GetSingleCommande = (data: {
   return api.post('/commandes/get_single_commande', data);
 };
 
+export const DeleteCommande = (data: {
+  commande_id: string;
+}) => {
+  return api.post('/commandes/delete_commande', data);
+};
+
+
 export const GetSingleCommandeForSuccessPage = (data: {
   commande_id: string;
 }) => {

@@ -52,6 +52,7 @@ interface Commande {
   customer_review?: string | null;
   teller_id: string;
   created_date: string;
+  updated_date?: string | null;
   cout_envoie_maritime?: number;
   temps_envoie_maritime?: string;
   cout_envoie_aérienne?: number;
@@ -706,7 +707,8 @@ const OrderTellerPage: React.FC = () => {
                       <th>Total</th>
                       <th>Statut</th>
                       <th>Avis client</th>
-                      <th>Date</th>
+                      <th>Created Date</th>
+                      <th>Updated Date</th>
                       <th>Action</th>
                     </tr>
 
@@ -910,7 +912,7 @@ const OrderTellerPage: React.FC = () => {
                             {cmd.customer_review?.trim() || "Aucun avis"}
                           </td>
 
-                          {/* DATE */}
+                          {/* CREATED DATE */}
 
                           <td>
 
@@ -929,6 +931,32 @@ const OrderTellerPage: React.FC = () => {
                               <small>
                                 {formatTime(
                                   cmd.created_date
+                                )}
+                              </small>
+
+                            </div>
+
+                          </td>
+
+                          {/* UPDATED DATE */}
+
+                          <td>
+
+                            <div className="date-cell">
+
+                              <span>
+                                <CalendarDays
+                                  size={14}
+                                />
+
+                                {formatDate(
+                                  cmd.updated_date ?? ""
+                                )}
+                              </span>
+
+                              <small>
+                                {formatTime(
+                                  cmd.updated_date ?? ""
                                 )}
                               </small>
 

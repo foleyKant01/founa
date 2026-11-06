@@ -1,6 +1,6 @@
 from config.db import db
 from model.founa import *
-from flask import request
+from flask import request, current_app
 from datetime import datetime
 from helpers.commandestatuslog import *
 import random
@@ -589,3 +589,63 @@ def DeleteExpiredCommandes():
             ),
             "error": str(e)
         }
+        
+        
+def DeleteCommande():
+    try:
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return {
+                "success": False,
+                "status": "error",
+                "message": "Un objet JSON est requis"
+            }, 400
+        commande_id = data.get("commande_id")
+        if not isinstance(commande_id, str) or not commande_id.strip():
+            return {
+                "success": False,
+                "status": "error",
+                "message": "commande_id est obligatoire"
+            }, 400
+        commande_id = commande_id.strip()
+        single_commande = Commande.query.filter_by(
+            commande_id=commande_id
+        ).first()
+        if not single_commande:
+            return {
+                "success": False,
+                "status": "error",
+                "message": "Commande introuvable"
+            }, 404
+        statuts_autorises = ("Initier", "Prise en charge", "Valider")
+        if single_commande.statut not in statuts_autorises:
+            return {
+                "success": False,
+                "status": "error",
+                "message": (
+                    "Seules les commandes aux statuts Initier, "
+                    "Prise en charge ou Valider peuvent être supprimées."
+                )
+            }, 400
+        CommandeStatusLog.query.filter_by(
+            commande_id=commande_id
+        ).delete(synchronize_session=False)
+        db.session.delete(single_commande)
+        db.session.commit()
+        return {
+            "success": True,
+            "status": "success",
+            "message": "Commande et historiques supprimés avec succès.",
+            "commande_id": commande_id,
+            "deleted_count": 1
+        }, 200
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception(
+            "Erreur lors de la suppression de la commande"
+        )
+        return {
+            "success": False,
+            "status": "error",
+            "message": "Une erreur est survenue lors de la suppression."
+        }, 500
